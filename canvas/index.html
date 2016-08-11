@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Speaker vs. Audience View</title>
+    <link href="stylesheets/index.css" rel="stylesheet" type="text/css">
+    <script src="javascripts/fabric.js"></script>
+</head>
+<body>
+<!-- Speaker View -->
+<div class="view speaker-view">
+    <h3>Speaker View</h3>
+    <div class="slide">
+        <div class="speaker-only">
+            <img id='target-box' height = 50px src="images/formula1.svg" />
+        </div>
+        <div class="canvas-wrapper"><canvas id="speaker-canvas"></canvas></div>
+    </div>
+</div>
+
+<!-- Audience View -->
+<div class="view audience-view">
+    <h3>Audience View</h3>
+    <div class="slide">
+        <div class="speaker-only">
+            <img height = 50px src="images/formula1.svg" />
+        </div>
+        <div class="canvas-wrapper"><canvas id="audience-canvas"></canvas></div>
+    </div>
+</div>
+
+<script>
+    var sp_canvas = new fabric.Canvas('speaker-canvas');
+    sp_canvas.setWidth('600');
+    sp_canvas.setHeight('400');
+    sp_canvas.isDrawingMode = true;
+
+    var a_canvas = new fabric.Canvas('audience-canvas');
+    a_canvas.setDimensions({height: '400', width: '600'});
+
+    var target = document.getElementById('target-box');
+
+    sp_canvas.on('path:created', handleTargetStrokes);
+
+    function handleTargetStrokes(event) {
+        var fitobj = getObjectsFitToTarget(sp_canvas.getObjects(), target);
+        a_canvas.clear();
+        a_canvas.add(fitobj);
+        a_canvas.renderAll();
+
+    }
+
+    function getObjectsFitToTarget(objs, target) {
+        var bbox = getBoundingRect(objs);
+        var strokew = bbox.width;
+        var strokeh = bbox.height;
+
+        // Get scaling factor
+        var scale = 1.0;
+        if (strokew/target.offsetWidth >= strokeh/target.offsetHeight && strokew/target.offsetWidth > 1) {
+            scale = target.offsetWidth/strokew;
+        }
+        else if (strokeh/target.offsetHeight > strokew/target.offsetWidth && strokeh/target.offsetHeight > 1) {
+            scale = target.offsetHeight/strokeh;
+        }
+        // clone and group objects
+        var group = new fabric.Group();
+        for (var i = 0; i < objs.length; i++) {
+            objs[i].clone(function(o) {
+                group.addWithUpdate(o);
+            });
+        }
+        // scale as a group
+        group.scale(scale);
+
+        // Move to match original left and top
+        var movex = bbox.left - group.getLeft();
+        var movey = bbox.top - group.getTop();
+        group.setLeft(group.getLeft() + movex);
+        group.setTop(group.getTop() + movey);
+
+
+        // Move to fit in box
+        if (group.left < target.offsetLeft) {
+            movex = target.offsetLeft - group.left;
+        }
+        if (group.top < target.offsetTop) {
+            movey = target.offsetTop - group.top;
+        }
+        if (group.left + group.getWidth() > target.offsetLeft + target.offsetWidth) {
+            movex = (target.offsetLeft + target.offsetWidth) - (group.left + group.getWidth());
+        }
+        if (group.top + group.getHeight() > target.offsetTop + target.offsetHeight) {
+            movey = (target.offsetTop + target.offsetHeight) - (group.top+ group.getHeight());
+        }
+
+        group.setLeft(group.getLeft() + movex);
+        group.setTop(group.getTop() + movey);
+
+        return group;
+    }
+
+    function getBoundingRect(objs) {
+        var left = Infinity;
+        var top = Infinity;
+        var right = -Infinity;
+        var bottom = -Infinity;
+        for (var i = 0; i < objs.length; i++) {
+
+            if (objs[i].left - objs[i].getWidth()/2.0 < left) {
+                left = objs[i].left- objs[i].getWidth()/2.0;
+            }
+            if (objs[i].top - objs[i].getHeight()/2.0 < top) {
+                top = objs[i].top - objs[i].getHeight()/2.0;
+            }
+            if (objs[i].left + objs[i].getWidth()/2.0 > right) {
+                right = objs[i].left + objs[i].getWidth()/2.0;
+            }
+            if (objs[i].top + objs[i].getHeight()/2.0 > bottom) {
+                bottom = objs[i].top + objs[i].getHeight()/2.0;
+            }
+
+        }
+        return {left:left, top:top, width:right-left, height:bottom-top};
+
+    }
+
+
+
+</script>
+</body>
+</html>
