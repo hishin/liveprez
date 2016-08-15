@@ -3,18 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Test Speaker vs. Audience View</title>
+    <link rel="stylesheet"
+          type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
     <link href="stylesheets/index.css" rel="stylesheet" type="text/css">
     <script src="javascripts/fabric.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 </head>
 <body>
+
+<div class="hover-menu" id="content-menu">
+    <ul class="menu">
+        <li><a onclick="setTargetCanvas()"><i class="glyphicon glyphicon-pencil"></i></a></li>
+        <li><a><i class="glyphicon glyphicon-eye-close"></i></a></li>
+    </ul>
+</div>
 <!-- Speaker View -->
 <div class="view speaker-view">
     <h3>Speaker View</h3>
     <div class="slide">
-        <div class="speaker-only">
-            <img id='target-box' height = 50px src="images/formula1.svg" />
+        <div id='speaker-target-box-1' class="speaker-only target" style="position: relative; left: 100px; top: 50px;">
+            <img class="speaker-only content" height = 30px src="images/formula1.svg" />
         </div>
-        <div class="canvas-wrapper"><canvas id="speaker-canvas"></canvas></div>
+        <div id="speaker-target-box-2" class="speaker-only target" style="position: relative; left: 150px; top: 100px ">
+            <img class="speaker-only content" height = 250px src="images/john_napier.gif"/>
+        </div>
     </div>
 </div>
 
@@ -22,47 +34,156 @@
 <div class="view audience-view">
     <h3>Audience View</h3>
     <div class="slide">
-        <div class="speaker-only">
-            <img height = 50px src="images/formula1.svg" />
+        <div id='audience-target-box-1' class="speaker-only target" style="position: relative; left: 100px; top: 50px;">
+            <img class="speaker-only content" height = 30px src="images/formula1.svg" />
         </div>
-        <div class="canvas-wrapper"><canvas id="audience-canvas"></canvas></div>
+        <div id='audience-target-box-2' class="speaker-only target" style="position: relative; left: 150px; top: 100px ">
+            <img class="speaker-only content" height = 250px src="images/john_napier.gif"/>
+        </div>
     </div>
 </div>
 
 <script>
-    var sp_canvas = new fabric.Canvas('speaker-canvas');
-    sp_canvas.setWidth('600');
-    sp_canvas.setHeight('400');
-    sp_canvas.isDrawingMode = true;
+    var slideh = document.querySelector('.slide').offsetHeight;
+    var slidew = document.querySelector('.slide').offsetWidth;
 
-    var a_canvas = new fabric.Canvas('audience-canvas');
-    a_canvas.setDimensions({height: '400', width: '600'});
+    /**
+     * [Speaker-view] Set up canvas overlay for entire slide & each speaker-only element
+     */
+    var slides = document.querySelectorAll('.speaker-view .slide');
+    for (var i = 0; i < slides.length; i++) {
+        var containerdiv = document.createElement('div');
+        containerdiv.classList.add('canvas-wrapper');
+        var canvas = document.createElement('canvas');
+        canvas.setAttribute('id', 'speaker-slide-canvas-'+i);
+        containerdiv.appendChild(canvas);
+        slides[i].appendChild(containerdiv);
 
-    var target = document.getElementById('target-box');
+        var fabric_canvas = new fabric.Canvas(canvas.id);
+        fabric_canvas.setWidth(slides[i].offsetWidth);
+        fabric_canvas.setHeight(slides[i].offsetHeight);
+        fabric_canvas.isDrawingMode = true;
+        canvas.fabric = fabric_canvas;
 
-    sp_canvas.on('path:created', handleTargetStrokes);
-
-    function handleTargetStrokes(event) {
-        var fitobj = getObjectsFitToTarget(sp_canvas.getObjects(), target);
-        a_canvas.clear();
-        a_canvas.add(fitobj);
-        a_canvas.renderAll();
+        canvas.fabric.on('path:created', handleTargetStrokes);
 
     }
 
-    function getObjectsFitToTarget(objs, target) {
-        var bbox = getBoundingRect(objs);
-        var strokew = bbox.width;
-        var strokeh = bbox.height;
+    var so_content = document.querySelectorAll('.speaker-view .speaker-only.target');
+    for (var i = 0; i < so_content.length; i++) {
+        var containerdiv = document.createElement('div');
+        containerdiv.classList.add('canvas-wrapper');
+        var canvas = document.createElement('canvas');
+        canvas.setAttribute('id', so_content[i].id +'-canvas');
+        containerdiv.appendChild(canvas);
+        so_content[i].appendChild(containerdiv);
 
-        // Get scaling factor
-        var scale = 1.0;
-        if (strokew/target.offsetWidth >= strokeh/target.offsetHeight && strokew/target.offsetWidth > 1) {
-            scale = target.offsetWidth/strokew;
+        var fabric_canvas = new fabric.Canvas(canvas.id);
+        fabric_canvas.setWidth(so_content[i].offsetWidth);
+        fabric_canvas.setHeight(so_content[i].offsetHeight);
+        canvas.fabric = fabric_canvas;
+        so_content[i].fabric = fabric_canvas;
+
+        so_content[i].addEventListener("mouseover", soContentIn, true);
+        so_content[i].addEventListener("mouseout", soContentMouseOut, true);
+
+        canvas.fabric.on('path:created', handleTargetStrokes);
+    }
+
+    /**
+     * [Audience-view] Set up canvas overlay for entire slide & each speaker-only element
+     */
+    var slides = document.querySelectorAll('.audience-view .slide');
+    for (var i = 0; i < slides.length; i++) {
+        var containerdiv = document.createElement('div');
+        containerdiv.classList.add('canvas-wrapper');
+        var canvas = document.createElement('canvas');
+        canvas.setAttribute('id', 'audience-slide-canvas-'+i);
+        containerdiv.appendChild(canvas);
+        slides[i].appendChild(containerdiv);
+
+        var fabric_canvas = new fabric.Canvas(canvas.id);
+        fabric_canvas.setWidth(slides[i].offsetWidth);
+        fabric_canvas.setHeight(slides[i].offsetHeight);
+        canvas.fabric = fabric_canvas;
+    }
+    so_content = document.querySelectorAll('.audience-view .speaker-only.target');
+    for (var i = 0; i < so_content.length; i++) {
+        var containerdiv = document.createElement('div');
+        containerdiv.classList.add('canvas-wrapper');
+        var canvas = document.createElement('canvas');
+        canvas.setAttribute('id', so_content[i].id + '-canvas');
+        containerdiv.appendChild(canvas);
+        so_content[i].appendChild(containerdiv);
+
+        var fabric_canvas = new fabric.Canvas(canvas.id);
+        fabric_canvas.setWidth(so_content[i].offsetWidth);
+        fabric_canvas.setHeight(so_content[i].offsetHeight);
+        canvas.fabric = fabric_canvas;
+        so_content[i].fabric = fabric_canvas;
+    }
+
+    var targetBox = null;
+    function soContentIn(event) {
+        targetBox = event.currentTarget;
+        if (targetBox.drawing) return;
+        revealMenu(event);
+    }
+
+    function soContentMouseOut(event) {
+        if (hasSomeParentWithClass(event.relatedTarget, 'hover-menu')) {
+            return;
         }
-        else if (strokeh/target.offsetHeight > strokew/target.offsetWidth && strokeh/target.offsetHeight > 1) {
-            scale = target.offsetHeight/strokeh;
+        hideMenu();
+    }
+
+    function setTargetCanvas() {
+        var canvasid = targetBox.id+'-canvas';
+        var canvas = targetBox.querySelector('#'+canvasid);
+
+        // Turn off other canvas' drawingMode
+        var allcanvas = document.querySelectorAll('canvas');
+        for (var i = 0; i < allcanvas.length; i++) {
+            if (allcanvas[i].fabric) {
+                allcanvas[i].fabric.isDrawingMode = false;
+            }
         }
+        var alltarget = document.querySelectorAll('.target');
+        for (var i = 0; i < alltarget.length; i++) {
+            alltarget[i].drawing = false;
+            alltarget[i].classList.remove('isdrawing');
+        }
+
+        // Turn on drawing mode
+        canvas.fabric.isDrawingMode = true;
+
+        // Adjust layout to fill slide
+        canvas.fabric.setWidth(slidew);
+        canvas.fabric.setHeight(slideh);
+
+        canvas.style.left = '-' + targetBox.style.left;
+        canvas.style.top = '-' + targetBox.style.top;
+        canvas.nextElementSibling.style.left = canvas.style.left;
+        canvas.nextElementSibling.style.top = canvas.style.top;
+
+        targetBox.drawing = true;
+        targetBox.classList.add('isdrawing');
+        hideMenu();
+
+    }
+
+    function handleTargetStrokes(event) {
+        var targetcanvas = event.path.canvas;
+        var fitobj = getObjectsFitToTarget(targetcanvas.getObjects(), targetBox);
+        var sibling_id = targetBox.id.replace('speaker', 'audience');
+        var audience_target = document.getElementById(sibling_id);
+        var sibling_canvas = audience_target.fabric;
+        sibling_canvas.clear();
+        sibling_canvas.add(fitobj);
+        sibling_canvas.renderAll();
+    }
+
+    function getObjectsFitToTarget(objs, target) {
         // clone and group objects
         var group = new fabric.Group();
         for (var i = 0; i < objs.length; i++) {
@@ -70,30 +191,50 @@
                 group.addWithUpdate(o);
             });
         }
-        // scale as a group
+
+        if (target == null) {
+            return group;
+        }
+
+        // Get scaling factor
+        var bbox = getBoundingRect(objs);
+        var strokew = bbox.width;
+        var strokeh = bbox.height;
+        var scale = 1.0;
+        if (strokew/target.clientWidth >= strokeh/target.clientHeight && strokew/target.clientWidth > 1) {
+            scale = target.clientWidth/strokew;
+        }
+        else if (strokeh/target.clientHeight > strokew/target.clientWidth && strokeh/target.clientHeight > 1) {
+            scale = target.clientHeight/strokeh;
+        }
+        // Scale as a group
         group.scale(scale);
 
         // Move to match original left and top
+        console.log(bbox);
         var movex = bbox.left - group.getLeft();
         var movey = bbox.top - group.getTop();
-        group.setLeft(group.getLeft() + movex);
-        group.setTop(group.getTop() + movey);
+        group.setLeft(group.getLeft() + movex - target.offsetLeft);
+        group.setTop(group.getTop() + movey - target.offsetTop);
+
 
 
         // Move to fit in box
-        if (group.left < target.offsetLeft) {
-            movex = target.offsetLeft - group.left;
-        }
-        if (group.top < target.offsetTop) {
-            movey = target.offsetTop - group.top;
-        }
-        if (group.left + group.getWidth() > target.offsetLeft + target.offsetWidth) {
-            movex = (target.offsetLeft + target.offsetWidth) - (group.left + group.getWidth());
-        }
-        if (group.top + group.getHeight() > target.offsetTop + target.offsetHeight) {
-            movey = (target.offsetTop + target.offsetHeight) - (group.top+ group.getHeight());
-        }
 
+        movex = 0;
+        movey = 0;
+        if (group.left < 0) {
+            movex = - group.left;
+        }
+        else if (group.left + group.getWidth() > target.clientWidth) {
+            movex = (target.clientWidth) - (group.left + group.getWidth());
+        }
+        if (group.top < 0) {
+            movey = - group.top;
+        }
+        else if (group.top + group.getHeight() > target.clientHeight) {
+            movey = (target.clientHeight) - (group.top+ group.getHeight());
+        }
         group.setLeft(group.getLeft() + movex);
         group.setTop(group.getTop() + movey);
 
@@ -123,6 +264,52 @@
         }
         return {left:left, top:top, width:right-left, height:bottom-top};
 
+    }
+
+
+    function revealMenu(event) {
+        var targetdiv = event.currentTarget;
+        var pos = getElementPos(targetdiv);
+        var targetleft = pos.left;
+        var targettop = pos.top;
+        var menu = document.getElementById( 'content-menu');
+        menu.style.position = 'absolute';
+        menu.style.left = targetleft + 'px';
+        menu.style.top = targettop + 'px';
+        menu.style.display = 'block';
+    }
+
+
+
+    function hideMenu() {
+        var menu = document.getElementById( 'content-menu');
+        menu.style.display = 'none';
+    }
+
+    function getElementPos(elem) {
+        var box = elem.getBoundingClientRect();
+        var body = document.body;
+        var docElem = document.documentElement;
+        var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+        var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+        var clientTop = docElem.clientTop || body.clientTop || 0;
+        var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+        var top  = box.top +  scrollTop - clientTop;
+        var left = box.left + scrollLeft - clientLeft;
+        return { top: Math.round(top), left: Math.round(left) };
+
+    }
+
+    function hasSomeParentWithClass(element, classname) {
+        if (element && element.className && element.className.split(' ').indexOf(classname)>=0) {
+            return true;
+        }
+        else if (element && element.parentNode) {
+            return hasSomeParentWithClass(element.parentNode, classname);
+        }
+        else {
+            return false;
+        }
     }
 
 
