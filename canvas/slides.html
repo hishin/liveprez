@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Speaker vs. Audience View</title>
+    <link rel="stylesheet"
+          type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link href="stylesheets/index.css" rel="stylesheet" type="text/css">
+    <script src="javascripts/fabric.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+</head>
+<body>
+
+<div class="hover-menu" id="content-menu">
+    <ul class="menu">
+        <li><a onclick="activateTargetCanvas()"><i class="glyphicon glyphicon-pencil"></i></a></li>
+        <li><a><i class="glyphicon glyphicon-eye-open"></i></a></li>
+    </ul>
+</div>
+<div id="deactivate-menu">
+    <ul class="menu">
+        <li><a onclick="deactivateCanvas()"><i class="glyphicon glyphicon-ok"></i></a></li>
+    </ul>
+</div>
+
+<!-- Speaker View -->
+<div class="view" id="speaker-view">
+    <h1>Speaker View</h1>
+    <div class="slide-container">
+        <div id="speaker-target-box-0" class="target" style="position: absolute; left:0px; top:0px;">
+            <div class= "slide">
+            <div id='speaker-target-box-1' class="speaker-only target" style="position: absolute; left: 100px; top: 50px;">
+                <img class="speaker-only content" height = 30px src="images/formula1.svg" />
+            </div>
+            <div id="speaker-target-box-2" class="speaker-only target" style="position: absolute; left: 150px; top: 100px ">
+                <img class="speaker-only content" height = 250px src="images/john_napier.gif"/>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audience View -->
+<div class="view" id="audience-view">
+    <h1>Audience View</h1>
+    <div class="slide-container">
+        <div id="audience-target-box-0" class="target" style="position: absolute; left: 0px; top: 0px;">
+            <div class="slide target" id="audience-slide-1">
+                <div id='audience-target-box-1' class="speaker-only target" style="position: absolute; left: 100px; top: 50px;">
+                    <img class="speaker-only content" height = 30px src="images/formula1.svg" />
+                </div>
+                <div id='audience-target-box-2' class="speaker-only target" style="position: absolute; left: 150px; top: 100px ">
+                    <img class="speaker-only content" height = 250px src="images/john_napier.gif"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="slides.js"></script>
+</body>
+</html>

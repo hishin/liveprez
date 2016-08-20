@@ -1,0 +1,25 @@
+body {
+    text-align: left;
+}
+
+
+canvas {
+    border: 3px solid #54948F;
+    width: 100%;
+    height: 500px;
+    text-align: center;
+
+}
+
+.jumbotron {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    background-color: #B8DBD9;
+    color: #54948F;
+}
+
+.menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}

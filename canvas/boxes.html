@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="stylesheets/boxes.css">
+    <script src="javascripts/paper-full.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        var _boxes = [];
+        var mypapers = [];
+        var rectstart, rectend;
+        var slidew, slideh;
+
+        window.onload = function () {
+
+            var canvas1 = document.getElementById('current-canvas');
+            var mypaper = new paper.PaperScope();
+            mypaper.setup(canvas1);
+            mypapers.push(mypaper);
+
+            var canvas2 = document.getElementById('previous-canvas');
+            mypaper = new paper.PaperScope();
+            mypaper.setup(canvas2);
+            mypapers.push(mypaper);
+
+            mypapers[0].activate();
+            var drawRectTool = new mypapers[0].Tool();
+            drawRectTool.onMouseDown = startRect;
+            drawRectTool.onMouseUp = endRect;
+
+            slidew = canvas1.offsetWidth;
+            slideh = canvas1.offsetHeight;
+        };
+
+        function finiteDifferenceConverge() {
+            mypapers[1].project.clear();
+            copyPaperToFrom(mypapers[1], mypapers[0]);
+            var ssum;
+            var iter = 0;
+            var eps = 1.0;
+            while(true) {
+                ssum = finiteDifferenceStep();
+                iter += 1;
+                if (ssum < eps) {return;}
+            }
+        }
+        ;
+
+        function finiteDifferenceStep() {
+            var diffBoxes = [];
+            for (var i = 0; i <_boxes.length; i++) {
+                diffBoxes.push(_boxes[i].clone({insert:false}));
+            }
+            var origscore = layoutScore(_boxes, _boxes);
+
+            var delta = 0.1;
+            var ssum = 0.0;
+            // move dx
+            var dEdx = new Array(_boxes.length);
+            for (var i = 0; i < _boxes.length; i++) {
+                diffBoxes[i].translate(new paper.Point(delta, 0));
+                dEdx[i] = (layoutScore(diffBoxes, _boxes) - origscore);
+                ssum += (dEdx[i]*dEdx[i]);
+                diffBoxes[i].translate(new paper.Point(-delta, 0));
+            }
+
+            // move dy
+            var dEdy = new Array(_boxes.length);
+            for (var i = 0; i < _boxes.length; i++) {
+                diffBoxes[i].translate(new paper.Point(0, delta));
+                dEdy[i] = (layoutScore(diffBoxes, _boxes) - origscore);
+                ssum += (dEdy[i]*dEdy[i]);
+                diffBoxes[i].translate(new paper.Point(0, -delta));
+            }
+
+            for (var i = 0; i < _boxes.length; i++) {
+                _boxes[i].translate(new paper.Point(dEdx[i], dEdy[i]));
+            }
+
+            return ssum;
+        }
+        ;
+
+        function clearCanvas(mypaper) {
+            mypaper.project.clear();
+            _boxes = [];
+            updateTable();
+        }
+        ;
+
+
+        function layoutScore(boxes, prevboxes) {
+            var score = -totalOverlap(boxes) - totalAreaOutsideSlide(slidew, slideh, boxes) - totalTranslation(prevboxes, boxes);
+            return score;
+        }
+        ;
+
+        function totalTranslation(boxes, boxes_moved) {
+            var trans = 0;
+            for (var i = 0; i < boxes.length; i++) {
+                trans += rectTranslation(boxes[i].strokeBounds, boxes_moved[i].strokeBounds);
+            }
+            return trans;
+        }
+        ;
+
+        function rectTranslation(rect, rect_moved) {
+            var moved = (rect.center.x - rect_moved.center.x)*(rect.center.x - rect_moved.center.x) +
+            (rect.center.y - rect_moved.center.y)*(rect.center.y - rect_moved.center.y)
+
+            return moved;
+        }
+        ;
+
+        function totalOverlap(boxes) {
+            var overlap = 0;
+            for (var i = 0; i < boxes.length - 1; i++) {
+                for (var j = i + 1; j < boxes.length; j++) {
+                    overlap += rectOverlap(boxes[i].strokeBounds, boxes[j].strokeBounds);
+                }
+            }
+            return overlap;
+        }
+        ;
+
+        function rectOverlap(rect1, rect2) {
+            var area = Math.max(0, Math.min(rect1.bottomRight.x, rect2.bottomRight.x) - Math.max(rect1.topLeft.x, rect2.topLeft.x)) *
+                    Math.max(0, Math.min(rect1.bottomRight.y, rect2.bottomRight.y) - Math.max(rect1.topLeft.y, rect2.topLeft.y));
+            return area;
+        }
+        ;
+
+        function totalAreaOutsideSlide(slidew, slideh, boxes) {
+            var slideRect = new paper.Rectangle(new paper.Point(0,0), new paper.Point(slidew, slideh));
+            var overlap = 0.0;
+            var totalarea = 0.0;
+            for (var i = 0; i < boxes.length; i++) {
+                var bbox = boxes[i].strokeBounds;
+                overlap += rectOverlap(slideRect, bbox);
+                totalarea += (bbox.width * bbox.height);
+            }
+            return totalarea - overlap;
+        }
+        ;
+
+
+
+        function startRect(event) {
+            rectstart = event.point;
+        }
+        ;
+
+        function endRect(event) {
+            rectend = event.point;
+            var path = new paper.Path.Rectangle(rectstart, rectend);
+//            path.fillColor = '#e9e9ff';
+            path.strokeColor = '#3366ff';
+            _boxes.push(path);
+            updateTable();
+        }
+        ;
+
+        function updateTable() {
+            document.getElementById('numbox1').innerHTML = _boxes.length;
+            document.getElementById('overlap1').innerHTML = totalOverlap(_boxes);
+        }
+        ;
+
+        function copyPaperToFrom(topaper, frompaper) {
+            var items = frompaper.project.activeLayer.getItems();
+            for (var i = 0; i < items.length; i++) {
+                topaper.project.activeLayer.addChild(items[i].clone({insert:false}));
+            }
+        }
+        ;
+
+
+    </script>
+
+
+    <title>Layout Management Tests</title>
+
+
+</head>
+<body>
+
+
+<div class="container">
+    <div class="jumbotron"><h2>Testing Layout Management</h2></div>
+    <div class="col-md-8">
+        <canvas id="current-canvas"></canvas>
+    </div>
+    <div class="col-md-4">
+        <table class="table table-striped" id="score-table1">
+            <tbody>
+            <tr>
+                <td># Boxes</td>
+                <td id="numbox1"></td>
+            </tr>
+            <tr>
+                <td>Overlap</td>
+                <td id="overlap1"></td>
+            </tr>
+            </tbody>
+        </table>
+        <ul class="menu">
+            <li><a onclick="clearCanvas(mypapers[0])"><i class="glyphicon glyphicon-remove"></i>&nbsp;Clear Canvas</a>
+            </li>
+            <li><a onclick="finiteDifferenceConverge()"><i class="glyphicon glyphicon-transfer"></i>&nbsp;Finite Difference</a>
+            </li>
+        </ul>
+    </div>
+    <div class="col-md-8">
+        <canvas id="previous-canvas"></canvas>
+    </div>
+    <div class="col-md-4">
+        <table class="table table-striped" id="score-table2">
+            <tbody>
+            <tr>
+                <td># Boxes</td>
+                <td id="numbox2"></td>
+            </tr>
+            <tr>
+                <td>Overlap</td>
+                <td id="overlap2"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+</body>
+
+</html>
