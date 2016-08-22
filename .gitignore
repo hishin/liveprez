@@ -7,4 +7,5 @@
 \f0\fs24 \cf0 */.DS_Store\
 */*.pdf\
 fabric.js-1.6.3\
-ExamplePresentations}
+ExamplePresentations\
+*.idea/*}

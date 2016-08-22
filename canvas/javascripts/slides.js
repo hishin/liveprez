@@ -125,7 +125,7 @@ function deactivateCanvas() {
     canvas.fabric.setHeight(targetBox.offsetHeight);
 
     canvas.style.left = 0;
-    canvas.style.top = 0;how
+    canvas.style.top = 0;
     canvas.nextElementSibling.style.left = canvas.style.left;
     canvas.nextElementSibling.style.top = canvas.style.top;
 
