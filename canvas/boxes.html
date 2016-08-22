@@ -4,12 +4,26 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="stylesheets/boxes.css">
-    <script src="javascripts/paper-full.js" type="text/javascript"></script>
-
+    <script type="text/javascript" src="javascripts/paper-full.js" type="text/javascript"></script>
+    <script type="text/javascript" src='javascripts/cassowary/c.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/HashTable.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/HashSet.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Error.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/SymbolicWeight.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Strength.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Variable.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Point.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Expression.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Constraint.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/EditInfo.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Tableau.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/SimplexSolver.js'></script>
+    <script type="text/javascript" src='javascripts/cassowary/Timer.js'></script>
+    <script type="text/javascript" src='javascripts/boxes.js'></script>
     <script type="text/javascript">
         var _boxes = [];
         var mypapers = [];
-        var rectstart, rectend;
+        var selectedRect = null;
         var slidew, slideh;
 
         window.onload = function () {
@@ -27,7 +41,9 @@
             mypapers[0].activate();
             var drawRectTool = new mypapers[0].Tool();
             drawRectTool.onMouseDown = startRect;
+            drawRectTool.onMouseDrag = traceRect;
             drawRectTool.onMouseUp = endRect;
+
 
             slidew = canvas1.offsetWidth;
             slideh = canvas1.offsetHeight;
@@ -39,18 +55,20 @@
             var ssum;
             var iter = 0;
             var eps = 1.0;
-            while(true) {
+            while (true) {
                 ssum = finiteDifferenceStep();
                 iter += 1;
-                if (ssum < eps) {return;}
+                if (ssum < eps) {
+                    return;
+                }
             }
         }
         ;
 
         function finiteDifferenceStep() {
             var diffBoxes = [];
-            for (var i = 0; i <_boxes.length; i++) {
-                diffBoxes.push(_boxes[i].clone({insert:false}));
+            for (var i = 0; i < _boxes.length; i++) {
+                diffBoxes.push(_boxes[i].clone({insert: false}));
             }
             var origscore = layoutScore(_boxes, _boxes);
 
@@ -61,7 +79,7 @@
             for (var i = 0; i < _boxes.length; i++) {
                 diffBoxes[i].translate(new paper.Point(delta, 0));
                 dEdx[i] = (layoutScore(diffBoxes, _boxes) - origscore);
-                ssum += (dEdx[i]*dEdx[i]);
+                ssum += (dEdx[i] * dEdx[i]);
                 diffBoxes[i].translate(new paper.Point(-delta, 0));
             }
 
@@ -70,7 +88,7 @@
             for (var i = 0; i < _boxes.length; i++) {
                 diffBoxes[i].translate(new paper.Point(0, delta));
                 dEdy[i] = (layoutScore(diffBoxes, _boxes) - origscore);
-                ssum += (dEdy[i]*dEdy[i]);
+                ssum += (dEdy[i] * dEdy[i]);
                 diffBoxes[i].translate(new paper.Point(0, -delta));
             }
 
@@ -106,8 +124,8 @@
         ;
 
         function rectTranslation(rect, rect_moved) {
-            var moved = (rect.center.x - rect_moved.center.x)*(rect.center.x - rect_moved.center.x) +
-            (rect.center.y - rect_moved.center.y)*(rect.center.y - rect_moved.center.y)
+            var moved = (rect.center.x - rect_moved.center.x) * (rect.center.x - rect_moved.center.x) +
+                    (rect.center.y - rect_moved.center.y) * (rect.center.y - rect_moved.center.y)
 
             return moved;
         }
@@ -132,7 +150,7 @@
         ;
 
         function totalAreaOutsideSlide(slidew, slideh, boxes) {
-            var slideRect = new paper.Rectangle(new paper.Point(0,0), new paper.Point(slidew, slideh));
+            var slideRect = new paper.Rectangle(new paper.Point(0, 0), new paper.Point(slidew, slideh));
             var overlap = 0.0;
             var totalarea = 0.0;
             for (var i = 0; i < boxes.length; i++) {
@@ -145,19 +163,34 @@
         ;
 
 
-
         function startRect(event) {
-            rectstart = event.point;
+            var rectstart = event.point;
+            var rectend = new paper.Point(rectstart.x + 0.1, rectstart.y + 0.1);
+            var rectpath = new paper.Path.Rectangle(rectstart, rectend);
+            rectpath.strokeColor = '#000000';
+            selectedRect = rectpath;
         }
         ;
 
+        function traceRect(event) {
+            if (selectedRect) {
+                var tl = selectedRect.strokeBounds.topLeft;
+                var br = selectedRect.strokeBounds.bottomRight;
+                var new_br = event.point;
+                var scalex = (new_br.x - tl.x) / (br.x - tl.x);
+                var scaley = (new_br.y - tl.y) / (br.y - tl.y);
+
+                selectedRect.scale(scalex, scaley, tl);
+            }
+        }
+
+
         function endRect(event) {
-            rectend = event.point;
-            var path = new paper.Path.Rectangle(rectstart, rectend);
-//            path.fillColor = '#e9e9ff';
-            path.strokeColor = '#3366ff';
-            _boxes.push(path);
-            updateTable();
+            if (selectedRect) {
+                selectedRect.strokeColor = '#3366ff';
+                _boxes.push(selectedRect);
+                updateTable();
+            }
         }
         ;
 
@@ -170,7 +203,7 @@
         function copyPaperToFrom(topaper, frompaper) {
             var items = frompaper.project.activeLayer.getItems();
             for (var i = 0; i < items.length; i++) {
-                topaper.project.activeLayer.addChild(items[i].clone({insert:false}));
+                topaper.project.activeLayer.addChild(items[i].clone({insert: false}));
             }
         }
         ;
@@ -207,7 +240,10 @@
         <ul class="menu">
             <li><a onclick="clearCanvas(mypapers[0])"><i class="glyphicon glyphicon-remove"></i>&nbsp;Clear Canvas</a>
             </li>
-            <li><a onclick="finiteDifferenceConverge()"><i class="glyphicon glyphicon-transfer"></i>&nbsp;Finite Difference</a>
+            <li><a onclick="finiteDifferenceConverge()"><i class="glyphicon glyphicon-transfer"></i>&nbsp;Finite
+                Difference</a>
+            </li>
+            <li><a onclick="cassowarySolve(mypapers[0])"><i class="glyphicon glyphicon-flash"></i>&nbsp;Cassowary</a>
             </li>
         </ul>
     </div>
