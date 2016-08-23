@@ -20,6 +20,8 @@
     <script type="text/javascript" src='javascripts/cassowary/SimplexSolver.js'></script>
     <script type="text/javascript" src='javascripts/cassowary/Timer.js'></script>
     <script type="text/javascript" src='javascripts/boxes.js'></script>
+    <script type="text/javascript" src="javascripts/cobyla_boxes.js"></script>
+    <script type="text/javascript" src="javascripts/Cobyla.js"></script>
     <script type="text/javascript">
         var _boxes = [];
         var mypapers = [];
@@ -44,9 +46,10 @@
             drawRectTool.onMouseDrag = traceRect;
             drawRectTool.onMouseUp = endRect;
 
-
             slidew = canvas1.offsetWidth;
             slideh = canvas1.offsetHeight;
+
+            testAddBulletList();
         };
 
         function finiteDifferenceConverge() {
@@ -131,22 +134,22 @@
         }
         ;
 
-        function totalOverlap(boxes) {
-            var overlap = 0;
-            for (var i = 0; i < boxes.length - 1; i++) {
-                for (var j = i + 1; j < boxes.length; j++) {
-                    overlap += rectOverlap(boxes[i].strokeBounds, boxes[j].strokeBounds);
-                }
-            }
-            return overlap;
-        }
-        ;
-
-        function rectOverlap(rect1, rect2) {
-            var area = Math.max(0, Math.min(rect1.bottomRight.x, rect2.bottomRight.x) - Math.max(rect1.topLeft.x, rect2.topLeft.x)) *
-                    Math.max(0, Math.min(rect1.bottomRight.y, rect2.bottomRight.y) - Math.max(rect1.topLeft.y, rect2.topLeft.y));
-            return area;
-        }
+//        function totalOverlap(boxes) {
+//            var overlap = 0;
+//            for (var i = 0; i < boxes.length - 1; i++) {
+//                for (var j = i + 1; j < boxes.length; j++) {
+//                    overlap += rectOverlap(boxes[i].strokeBounds, boxes[j].strokeBounds);
+//                }
+//            }
+//            return overlap;
+//        }
+//        ;
+//
+//        function rectOverlap(rect1, rect2) {
+//            var area = Math.max(0, Math.min(rect1.bottomRight.x, rect2.bottomRight.x) - Math.max(rect1.topLeft.x, rect2.topLeft.x)) *
+//                    Math.max(0, Math.min(rect1.bottomRight.y, rect2.bottomRight.y) - Math.max(rect1.topLeft.y, rect2.topLeft.y));
+//            return area;
+//        }
         ;
 
         function totalAreaOutsideSlide(slidew, slideh, boxes) {
@@ -208,12 +211,38 @@
         }
         ;
 
+        function testAddBulletList() {
+            var l1 = new paper.Point(10, 10);
+            var r1 = new paper.Point(500, 100);
+            var rectpath1 = new paper.Path.Rectangle(l1, r1);
+            // list items
+            var l2 = new paper.Point(15, 110);
+            var r2 = new paper.Point(200, 210);
+            var l3 = new paper.Point(15, 220);
+            var r3 = new paper.Point(210, 320);
+            var l4 = new paper.Point(15, 330);
+            var r4 = new paper.Point(300, 430);
+
+            var l5 = new paper.Point(15, 200);
+            var r5 = new paper.Point(350, 250);
+
+            var rectpath2 = new paper.Path.Rectangle(l2, r2);
+            var rectpath3 = new paper.Path.Rectangle(l3, r3);
+            var rectpath4 = new paper.Path.Rectangle(l4, r4);
+
+            paper.project.activeLayer.strokeColor = '#000000';
+
+            var rectpath5 = new paper.Path.Rectangle(l5, r5);
+            rectpath5.strokeColor = 'blue';
+
+        }
+
 
     </script>
 
 
     <title>Layout Management Tests</title>
-    <script src="../../Downloads/JSCobylaDistrib/Cobyla.js"></script>
+
 
 
 </head>
@@ -241,11 +270,12 @@
         <ul class="menu">
             <li><a onclick="clearCanvas(mypapers[0])"><i class="glyphicon glyphicon-remove"></i>&nbsp;Clear Canvas</a>
             </li>
-            <li><a onclick="finiteDifferenceConverge()"><i class="glyphicon glyphicon-transfer"></i>&nbsp;Finite
-                Difference</a>
-            </li>
-            <li><a onclick="cassowarySolve(mypapers[0])"><i class="glyphicon glyphicon-flash"></i>&nbsp;Cassowary</a>
-            </li>
+            <!--<li><a onclick="finiteDifferenceConverge()"><i class="glyphicon glyphicon-transfer"></i>&nbsp;Finite-->
+                <!--Difference</a>-->
+            <!--</li>-->
+            <!--<li><a onclick="cassowarySolve(mypapers[0])"><i class="glyphicon glyphicon-flash"></i>&nbsp;Cassowary</a>-->
+            <!--</li>-->
+            <li><a onclick="cobylaSolve(mypapers)"><i class="glyphicon glyphicon-transfer"></i>&nbsp;Cobyla</a></li>
         </ul>
     </div>
     <div class="col-md-8">
