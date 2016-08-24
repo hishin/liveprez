@@ -12,6 +12,7 @@ var ra = [];
 var hca = [];
 var ta = [];
 var ba = [];
+var slidepadding = 10;
 
 var CobylaSolver = function () {
     this.initialize = function () {
@@ -35,7 +36,7 @@ var CobylaSolver = function () {
         }
         this.rhobeg = 10.0;
         this.rhoend = 1.0e-3;
-        this.iprint = 1;
+        this.iprint = 0;
         this.maxfun = 1e6;
     };
 
@@ -52,10 +53,10 @@ var CobylaSolver = function () {
             var offset = 0;
             // fit inside slide
             for (var i = 0; i < nboxes; i++) {
-                con[offset + 4 * i] = x[4 * i]; // tl.x >= 0
-                con[offset + 4 * i + 1] = x[4 * i + 1]; // tl.y >= 0
-                con[offset + 4 * i + 2] = slidew - x[4 * i + 2]; // br.x <= slidew
-                con[offset + 4 * i + 3] = slideh - x[4 * i + 3]; // br.y <= slideh
+                con[offset + 4 * i] = x[4 * i] - slidepadding; // tl.x >= 0+slidepadding
+                con[offset + 4 * i + 1] = x[4 * i + 1] - slidepadding; // tl.y >= 0+slidepadding
+                con[offset + 4 * i + 2] = slidew - slidepadding - x[4 * i + 2]; // br.x <= slidew-slidepadding
+                con[offset + 4 * i + 3] = slideh - slidepadding - x[4 * i + 3]; // br.y <= slideh -slidepadding
             }
             offset += 4 * nboxes;
             // preserve aspect ratio
@@ -107,8 +108,8 @@ var CobylaSolver = function () {
                 var r2 = hca[i][1];
                 con[offset+2*i] = (x[4*r1+3] + x[4*r1+1]) - (x[4*r2+3] + x[4*r2+1]);
                 con[offset+2*i+1] = -((x[4*r1+3] + x[4*r1+1]) - (x[4*r2+3] + x[4*r2+1]));
-                console.log('con[' + (offset+2*i)+'] = ' + con[offset+2*i]);
-                console.log('con[' + (offset+2*i+1)+'] = ' + con[offset+2*i+1]);
+                // console.log('con[' + (offset+2*i)+'] = ' + con[offset+2*i]);
+                // console.log('con[' + (offset+2*i+1)+'] = ' + con[offset+2*i+1]);
                 offset += 2;
             }
             // top aligned tly
@@ -137,6 +138,8 @@ var CobylaSolver = function () {
             r = FindMinimum(calcfc, this.n, this.m, this.x, this.rhobeg, this.rhoend, this.iprint, this.maxfun);
             iter++;
         }
+        console.log("iter = " + iter);
+        console.log("r = " + r);
         return this.x;
     };
 
@@ -312,6 +315,9 @@ function cobylaSolve(mypapers) {
     // Copy original layout to mypaper[1] for comparison
     mypapers[1].project.clear();
     copyPaperToFrom(mypapers[1], mypapers[0]);
+    // copyPaperToFrom(mypapers[0], mypapers[0]);
+    // mypapers[0].project.activeLayer.strokeColor = '#333333';
+
 
     // Initialize variable
     var rectPaths = mypapers[0].project.activeLayer.getItems();
@@ -326,11 +332,12 @@ function cobylaSolve(mypapers) {
 
     // Solve
     var cobyla = new CobylaSolver();
-    var newx = cobyla.optimize.call(cobyla);
+    var newx = cobyla.optimize();
 
 
     // Draw new solution to
     mypapers[0].project.clear();
+
     mypapers[0].activate();
 
     for (var i = 0; i < newx.length / 4; i++) {
