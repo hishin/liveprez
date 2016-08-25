@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Adobe Exit Talk Demo</title>
+    <link rel="stylesheet"
+          type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link href="stylesheets/exittalk.css" rel="stylesheet" type="text/css">
+    <script src="javascripts/paper-full.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+<body>
+
+<!--Content Menu-->
+<div class="hover-menu" id="content-menu">
+    <ul class="menu">
+        <li><a onclick="activateTargetLayer()"><i class="glyphicon glyphicon-pencil"></i></a></li>
+        <li><a onclick ="revealTargetItem()"><i class="glyphicon glyphicon-eye-open"></i></a></li>
+        <li><a onclick ="hideTargetItem()"><i class="glyphicon glyphicon-eye-close"></i></a></li>
+    </ul>
+</div>
+<div id="deactivate-menu">
+    <ul class="menu">
+        <li><a onclick="deactivateLayer()"><i class="glyphicon glyphicon-ok"></i></a></li>
+    </ul>
+</div>
+
+<!--Slide-->
+<div class="view" id="speaker-view">
+    <h1>Speaker View</h1>
+    <div class="slide-container" id="speaker-slide-1" style="left:50px; top:75px;">
+        <div id="speaker-target-box-0" class="target" style="position: absolute; left:0px; top:0px;">
+            <div class= "slide">
+                <div class="" data-block-type="image" style="position: absolute; left: 10px; top: 0px;" data-block-id="545383aeecc4015ddadb184b446c9314">
+                        <img class="content" style="width: 560px; height: 390.777px;" src="images/img0.svg"/>
+                </div>
+                <div id="speaker-target-box-2" class="speaker-only target" data-block-type="image" style="position: absolute; left: 462px; top: 321px;" data-block-id="2dd1ec53d8eb630df8984e39773a0c5f">
+                        <img class="speaker-only notvis content" style="width: 85.1546px; height: 59px;" src="images/img1.svg"/>
+                </div>
+                <div id="speaker-target-box-3" class="speaker-only target" data-block-type="image" style="position: absolute; left: 311px; top: 137px;" data-block-id="731765b6164a4c0c4e960e10c01efd28">
+                        <img class="speaker-only notvis content" style="width: 151.45px; height: 52px;" src="images/img2.svg" data-natural-width="233" data-natural-height="80"/>
+                </div>
+                <div id="speaker-target-box-4" class="speaker-only target" data-block-type="image" style="position: absolute; left: 131px; top: 121px; z-index: 4" data-block-id="e56b05f6d67e898cb226542bbe80e72f">
+                        <img class="speaker-only notvis content" style="width: 84.8774px; height: 92px; " src="images/img3.svg" data-natural-width="143" data-natural-height="155"/>
+                </div>
+                <div id="speaker-target-box-5" class="speaker-only target" data-block-type="image" style="position: absolute; left: 131px; top: 48px;" data-block-id="9b3c967c9feda24ec7491cf107d0f406">
+                        <img class="speaker-only notvis content" style="width: 96.6531px; height: 160px;" src="images/img4.svg" data-natural-width="148" data-natural-height="245"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="view" id="audience-view">
+    <h1>Audience View</h1>
+    <div class="slide-container" id="audience-slide-1" style="left:50px; top:75px;">
+        <div id="audience-target-box-0" class="target" style="position: absolute; left:0px; top:0px;">
+            <div class= "slide">
+                <div class="" data-block-type="image" style="position: absolute; left: 10px; top: 0px;" data-block-id="545383aeecc4015ddadb184b446c9314">
+                    <img style="width: 560px; height: 390.777px;" src="images/img0.svg"/>
+                </div>
+                <div id="audience-target-box-2" class="speaker-only target" data-block-type="image" style="position: absolute; left: 462px; top: 321px;" data-block-id="2dd1ec53d8eb630df8984e39773a0c5f">
+                    <img class="speaker-only notvis content" style="width: 85.1546px; height: 59px;" src="images/img1.svg"/>
+                </div>
+                <div id="audience-target-box-3" class="speaker-only target" data-block-type="image" style="position: absolute; left: 311px; top: 137px;" data-block-id="731765b6164a4c0c4e960e10c01efd28">
+                    <img class="speaker-only notvis content" style="width: 151.45px; height: 52px;" src="images/img2.svg" data-natural-width="233" data-natural-height="80"/>
+                </div>
+                <div id="audience-target-box-4" class="speaker-only target" data-block-type="image" style="position: absolute; left: 131px; top: 121px;" data-block-id="e56b05f6d67e898cb226542bbe80e72f">
+                    <img class="speaker-only notvis content" style="width: 84.8774px; height: 92px;" src="images/img3.svg" data-natural-width="143" data-natural-height="155"/>
+                </div>
+                <div id="audience-target-box-5" class="speaker-only target" data-block-type="image" style="position: absolute; left: 131px; top: 48px;" data-block-id="9b3c967c9feda24ec7491cf107d0f406">
+                    <img class="speaker-only notvis content" style="width: 96.6531px; height: 160px;" src="images/img4.svg" data-natural-width="148" data-natural-height="245"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="javascripts/exittalk.js"></script>
+</body>
+</html>
