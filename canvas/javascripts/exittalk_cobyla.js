@@ -2,8 +2,9 @@
  * Created by vshin on 8/22/16.
  */
 
-// Global variables that are used, not defined in this script:
-var slidepadding = 5;
+// Global variables that are used, not defined in this script: slidew, slideh
+
+var slidepadding = 0;
 var origx;
 var align_eps = 1.0e-1;
 var slidehc = [];
@@ -25,7 +26,7 @@ var CobylaSolver = function () {
          * slidevc = slidevc.length * 2.0
          * vca = vca.length * 2.0
          */
-        this.m = origx.length + origx.length / 2 +
+        this.m = origx.length + //origx.length / 2 +
             slidehc.length * 2 + slidevc.length * 2 +
             vca.length * 2 + la.length * 2 + ra.length * 2 +
             hca.length * 2 + ta.length * 2 + ba.length * 2;
@@ -35,8 +36,8 @@ var CobylaSolver = function () {
             this.x.push(origx[i]);
         }
         this.rhobeg = 20.0;
-        this.rhoend = 1.0e-1;
-        this.iprint = 0;
+        this.rhoend = 1.0e-6;
+        this.iprint = 1;
         this.maxfun = 1e6;
     };
 
@@ -60,13 +61,13 @@ var CobylaSolver = function () {
             }
             offset += 4 * nboxes;
             // preserve aspect ratio
-            for (var i = 0; i < nboxes; i++) {
-                var a = (origx[4 * i + 3] - origx[4 * i + 1]) / (origx[4 * i + 2] - origx[4 * i]);
-                con[offset + 2 * i] = a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3];
-                con[offset + 2 * i + 1] = -(a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3]);
-            }
+            // for (var i = 0; i < nboxes; i++) {
+            //     var a = (origx[4 * i + 3] - origx[4 * i + 1]) / (origx[4 * i + 2] - origx[4 * i]);
+            //     con[offset + 2 * i] = a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3];
+            //     con[offset + 2 * i + 1] = -(a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3]);
+            //     offset += 2;
+            // }
             // slide-horizontal center aligned
-            offset += 2 * nboxes;
             for (var i = 0; i < slidehc.length; i++) {
                 con[offset + 2 * i] = x[4 * slidehc[i] + 2] + x[4 * slidehc[i]] - slidew;
                 con[offset + 2 * i + 1] = -(x[4 * slidehc[i] + 2] + x[4 * slidehc[i]] - slidew);
@@ -134,14 +135,12 @@ var CobylaSolver = function () {
 
         var r = 1;
         var iter = 0;
-        while (r > 0 || iter > 1e2) {
+        // while (r > 0 || iter > 1e2) {
             r = FindMinimum(calcfc, this.n, this.m, this.x, this.rhobeg, this.rhoend, this.iprint, this.maxfun);
             iter++;
-
-        }
+        // }
         console.log("iter = " + iter);
         console.log("r = " + r);
-
         return this.x;
     };
 
@@ -157,7 +156,7 @@ var CobylaSolver = function () {
  * @returns {*}
  */
 function objective(newx, origx) {
-    var obj = 20 * totalOverlap(newx) + 5* totalAreaDiff(origx, newx) + totalMoveDistance(origx, newx);
+    var obj = 20 * totalOverlap(newx) + totalAreaDiff(origx, newx) + totalMoveDistance(origx, newx);
     return obj;
 };
 
@@ -278,6 +277,13 @@ function initAlignmentConstraints(rects) {
 
         }
     }
+
+    console.log("la.length " + la.length);
+    console.log("ra.length " + ra.length);
+    console.log("vca.length " + vca.length);
+    console.log("ta.length " + ta.length);
+    console.log("ba.length " + ba.length);
+    console.log("hca.length " + hca.length);
 };
 
 function leftAligned(rect1, rect2) {
@@ -313,41 +319,40 @@ function slideVerticalCenterAligned(rect1, slideh) {
 };
 
 
-function cobylaSolve(mypapers) {
-    // Copy original layout to mypaper[1] for comparison
-    mypapers[1].project.clear();
-    copyPaperToFrom(mypapers[1], mypapers[0]);
-    // copyPaperToFrom(mypapers[0], mypapers[0]);
-    // mypapers[0].project.activeLayer.strokeColor = '#333333';
-
-
+function cobylaSolve(rects) {
     // Initialize variable
-    var rectPaths = mypapers[0].project.activeLayer.getItems();
-    var rects = [];
-    for (var i = 0; i < rectPaths.length; i++) {
-        rects.push(rectPaths[i].bounds);
-    }
     origx = initXfromRects(rects);
-
     // Initialize alignment constraints
     initAlignmentConstraints(rects);
 
-    // Solve
-    var cobyla = new CobylaSolver();
-    var newx = cobyla.optimize();
-
-
-    // Draw new solution to
-    mypapers[0].project.clear();
-
-    mypapers[0].activate();
-
-    for (var i = 0; i < newx.length / 4; i++) {
-        var tl = new paper.Point(Number(newx[4 * i].toFixed(2)), Number(newx[4 * i + 1].toFixed(2)));
-        var br = new paper.Point(Number(newx[4 * i + 2].toFixed(2)), Number(newx[4 * i + 3].toFixed(2)));
-        var rectPath = new paper.Path.Rectangle(tl, br);
-        rectPath.strokeColor = '#3366ff';
+    var overlap = totalOverlap(origx);
+    var maxoverlap = 1000;
+    var maxiter = 10;
+    var cobyla, newx;
+    console.log(origx);
+    console.log("original overlap = " + overlap);
+    var iter = 0;
+    newx = origx;
+    while(overlap > maxoverlap && iter < maxiter) {
+       // Solve
+        cobyla = new CobylaSolver();
+        newx = cobyla.optimize();
+        console.log(newx);
+        overlap = totalOverlap(newx);
+        console.log("new overlap: " + overlap);
+        origx = newx;
+        iter++;
     }
+
+    rects = [];
+    var newrect, tl, br;
+    for (var i = 0; i < newx.length / 4; i++) {
+        tl = new paper.Point(newx[4 * i], newx[4 * i + 1]);
+        br = new paper.Point(newx[4 * i + 2], newx[4 * i + 3]);
+        newrect = new paper.Rectangle(tl, br);
+        rects.push(newrect);
+    }
+    return rects;
 
 };
 

@@ -1,21 +1,25 @@
 /**
  * Created by vshin on 8/16/16.
  */
-var slideh = document.querySelector('.slide').offsetHeight;
-var slidew = document.querySelector('.slide').offsetWidth;
+var slideh;
+var slidew;
 var mypapers = [];
-var canvasactive = false;
 var menuBox = null;
 var targetBox = null;
+const pentool = 0;
+const recttool = 1;
+var alltargets = [];
 
 window.onload = function () {
+    slideh = document.querySelector('.slide').offsetHeight;
+    slidew = document.querySelector('.slide').offsetWidth;
+
     // Setup canvas for each slide
     setupSlideCanvas();
 
     // Add menu to speaker targets
     activateTargetListener();
 };
-
 
 function activateTargetListener() {
     var speaker_targets = document.getElementById('speaker-view').querySelectorAll('.target');
@@ -51,28 +55,44 @@ function setupSlideCanvas() {
         mypaper.slide = slides[i];
         mypaper.canvas = canvas;
 
+        // Pen tool
         var drawingtool = new mypaper.Tool();
         drawingtool.onMouseDown = drawStart;
         drawingtool.onMouseDrag = drawContinue;
         drawingtool.onMouseUp = drawEnd;
 
+        // Rectangle tool
+        var recttool = new mypaper.Tool();
+        recttool.onMouseDown = rectStart;
+        recttool.onMouseDrag = rectContinue;
+        recttool.onMouseUp = rectEnd;
+
         setupTargetLayers(slides[i]);
+    }
+    var mytargets = document.querySelectorAll('#speaker-view .target');
+    for (var i = 0; i < mytargets.length; i++) {
+        alltargets.push(mytargets[i]);
     }
 };
 
 function setupTargetLayers(slide) {
     // Setup layer for each target within slide
     var targets = slide.getElementsByClassName('target');
-    var mypaper = slide.paper;
     for (var i = 0; i < targets.length; i++) {
-        var layer = new paper.Layer();
-        mypaper.project.addLayer(layer);
-        layer.target = targets[i];
-        targets[i].layer = layer;
-        targets[i].paper = mypaper;
-        targets[i].slide = slide;
+        setupLayer(targets[i], slide);
     }
-}
+};
+
+function setupLayer(target, slide) {
+    var layer = new paper.Layer();
+    var mypaper = slide.paper;
+    mypaper.project.addLayer(layer);
+    layer.target = target;
+    target.layer = layer;
+    target.paper = mypaper;
+    target.slide = slide;
+};
+
 
 function targetMouseIn(event) {
     revealMenu(event);
@@ -174,10 +194,11 @@ function activateTargetLayer() {
     targetBox.layer.activate();
 
     // Turn on drawing tool
-    targetBox.paper.tools[0].activate();
+    targetBox.paper.tools[pentool].activate();
 
     revealDeactivateMenu(targetBox.slide);
 };
+
 
 function fitStrokesToTarget(target) {
     var items = target.layer.getItems();
@@ -189,33 +210,40 @@ function fitStrokesToTarget(target) {
     // If object is larger scale and move
     var tbound = new paper.Rectangle(tl, br);
     var sbound = group.strokeBounds;
-    if (group.strokeBounds.width > target.offsetWidth || group.strokeBounds.height > target.offsetHeight) {
-        group.fitBounds(tbound);
-    } else { // only move
-        var delta;
-        if (sbound.left < tbound.left) {
-            delta = new paper.Point(tbound.left - sbound.left, 0);
-            console.log('moveleft:' + delta);
-            group.translate(delta);
-        }
-        if (sbound.top < tbound.top) {
-            delta = new paper.Point(0, tbound.top - sbound.top);
-            console.log('movetop:' + delta);
-
-            group.translate(delta);
-        }
-        if (sbound.right > tbound.right) {
-            delta = new paper.Point(tbound.right - sbound.right, 0);
-            console.log('moveright:' + delta);
-
-            group.translate(delta);
-        }
-        if (sbound.bottom > tbound.bottom) {
-            delta = new paper.Point(0, tbound.bottom - sbound.bottom);
-            console.log('movebottom:' + delta);
-            group.translate(delta);
-        }
+    var origl = group.strokeBounds.left;
+    var origt = group.strokeBounds.top;
+    var scale = 1.0;
+    if (sbound.width > target.offsetWidth || sbound.height > target.offsetHeight) {
+        scale = Math.min(target.offsetWidth/sbound.width, target.offsetHeight/sbound.height)
+        group.scale(scale);
+        group.translate(origl - group.strokeBounds.left, origt - group.strokeBounds.top);
+        sbound = group.strokeBounds;
     }
+
+    var delta;
+    if (sbound.left < tbound.left) {
+        delta = new paper.Point(tbound.left - sbound.left, 0);
+        console.log('moveleft:' + delta);
+        group.translate(delta);
+    }
+    if (sbound.top < tbound.top) {
+        delta = new paper.Point(0, tbound.top - sbound.top);
+        console.log('movetop:' + delta);
+
+        group.translate(delta);
+    }
+    if (sbound.right > tbound.right) {
+        delta = new paper.Point(tbound.right - sbound.right, 0);
+        console.log('moveright:' + delta);
+
+        group.translate(delta);
+    }
+    if (sbound.bottom > tbound.bottom) {
+        delta = new paper.Point(0, tbound.bottom - sbound.bottom);
+        console.log('movebottom:' + delta);
+        group.translate(delta);
+    }
+
 
     group.parent.insertChildren(group.index,  group.removeChildren());
     group.remove();
@@ -224,8 +252,6 @@ function fitStrokesToTarget(target) {
 function deactivateLayer() {
     // Fit objects to canvas
     fitStrokesToTarget(targetBox);
-    console.log('targetbox items');
-    console.log(targetBox.layer.getItems());
     // Turn off drawing, activate target listeners
     targetBox.classList.remove('isdrawing');
     hideMenu('deactivate-menu');
@@ -264,116 +290,99 @@ function cloneToSiblingLayer() {
 
 };
 
-// function addGroupObjsToCanvas(fcanvas, groupobj) {
-//     var groupobjs = groupobj.getObjects();
-//     for (var i = 0; i < groupobjs.length; i++) {
-//         var obj = groupobjs[i];
-//         var group = obj.group;
-//         obj.setLeft(group.getLeft() + obj.getLeft() + group.getWidth()/2.0);
-//         obj.setTop(group.getTop() + obj.getTop() + group.getHeight()/2.0);
-//         obj.setScaleX(obj.getScaleX()*group.getScaleX());
-//         obj.setScaleY(obj.getScaleY()*group.getScaleY());
-//
-//
-//         fcanvas.add(obj);
-//
-//     }
-// };
-//
 
-//
-// function getObjectsFitToTarget(objs, target) {
-//     // TODO: There is an error when re-targeting a canvas. Objects scale, even when it fits!
-//
-//     // clone and group objects
-//     var group = new fabric.Group();
-//     for (var i = 0; i < objs.length; i++) {
-//         console.log('obj.originX ' + objs[i].originX);
-//         console.log('obj.left' + objs[i].getLeft());
-//
-//         objs[i].clone(function (o) {
-//             group.addWithUpdate(o);
-//         });
-//     }
-//
-//     if (target == null) {
-//         return group;
-//     }
-//
-//     // Get scaling factor
-//     var bbox = getBoundingRect(objs);
-//     var strokew = bbox.width;
-//     var strokeh = bbox.height;
-//     var scale = 1.0;
-//     if (strokew / target.clientWidth >= strokeh / target.clientHeight && strokew / target.clientWidth > 1) {
-//         scale = target.clientWidth / strokew;
-//     }
-//     else if (strokeh / target.clientHeight > strokew / target.clientWidth && strokeh / target.clientHeight > 1) {
-//         scale = target.clientHeight / strokeh;
-//     }
-//     console.log('scaling factor: ' + scale);
-//     // Scale as a group
-//     group.scale(scale);
-//
-//
-//     // Move to match original left and top
-//     var movex = bbox.left - group.getLeft();
-//     var movey = bbox.top - group.getTop();
-//     group.setLeft(group.getLeft() + movex - target.offsetLeft);
-//     group.setTop(group.getTop() + movey - target.offsetTop);
-//
-//
-//     // Move to fit in box
-//     movex = 0;
-//     movey = 0;
-//     if (group.left < 0) {
-//         movex = - group.left;
-//     }
-//     else if (group.left + group.getWidth() > target.clientWidth) {
-//         movex = (target.clientWidth) - (group.left + group.getWidth());
-//     }
-//     if (group.top < 0) {
-//         movey = - group.top;
-//     }
-//     else if (group.top + group.getHeight() > target.clientHeight) {
-//         movey = (target.clientHeight) - (group.top+ group.getHeight());
-//     }
-//
-//     group.setLeft(group.getLeft() + movex);
-//     group.setTop(group.getTop() + movey);
-//
-//     return group;
-// }
-//
-// function getBoundingRect(objs) {
-//     var left = Infinity;
-//     var top = Infinity;
-//     var right = -Infinity;
-//     var bottom = -Infinity;
-//     for (var i = 0; i < objs.length; i++) {
-//         console.log('getleft = ' + objs[i].getLeft());
-//
-//         if (objs[i].getLeft() - objs[i].getWidth()/2.0 < left) {
-//             left = objs[i].getLeft()- objs[i].getWidth()/2.0;
-//         }
-//         if (objs[i].getTop() - objs[i].getHeight()/2.0 < top) {
-//             top = objs[i].getTop() - objs[i].getHeight()/2.0;
-//         }
-//         if (objs[i].getLeft() + objs[i].getWidth()/2.0 > right) {
-//             right = objs[i].getLeft() + objs[i].getWidth()/2.0;
-//         }
-//         if (objs[i].getTop() + objs[i].getHeight()/2.0 > bottom) {
-//             bottom = objs[i].getTop() + objs[i].getHeight()/2.0;
-//         }
-//
-//     }
-//     return {left:left, top:top, width:right-left, height:bottom-top};
-//
-// }
-//
-//
+function createNewTarget() {
+    deactivateTargetListener();
+    hideMenu('content-menu');
 
-//
+    // Activate slide canvas
+    targetBox = menuBox;
+    var slide = targetBox.slide;
+    var slideTarget = $(slide).children('.target')[0];
+    targetBox = slideTarget;
+    slideTarget.classList.add('isdrawing');
+    slideTarget.layer.activate();
+
+    // Turn on rectangle tool
+    targetBox.paper.tools[recttool].activate();
+    revealDeactivateMenu(targetBox.slide);
+};
+
+var currect;
+function rectStart(event) {
+    var rectstart = event.point;
+    var rectend = new paper.Point(rectstart.x + 0.1, rectstart.y + 0.1);
+    var rectpath = new paper.Path.Rectangle(rectstart, rectend);
+    rectpath.strokeColor = '#000000';
+    rectpath.dashArray = [5, 3];
+    currect = rectpath;
+};
+
+function rectContinue(event) {
+    if (currect) {
+        var tl = currect.strokeBounds.topLeft;
+        var br = currect.strokeBounds.bottomRight;
+        var new_br = event.point;
+        var scalex = (new_br.x - tl.x) / (br.x - tl.x);
+        var scaley = (new_br.y - tl.y) / (br.y - tl.y);
+        currect.scale(scalex, scaley, tl);
+    }
+};
+
+function rectEnd(event) {
+    if (currect) {
+        // Create target at rectangle location.
+        currect.strokeColor = '#3366ff';
+        currect.dashArray = [];
+        menuBox = createTarget(currect);
+        currect.remove();
+        // Optimize layout
+        optimizeLayout(targetBox);
+        // Activate Target
+        activateTargetLayer();
+
+
+    }
+};
+
+function createTarget(rect) {
+    // targetBox = slide-container > target: target for the entire slide
+    var slide = $(targetBox).closest('.slide-container')[0];
+    var slidediv = $(targetBox).find('.slide')[0];
+    var targetdiv = document.createElement('div');
+    targetdiv.classList.add('contentbox');
+    targetdiv.classList.add('speaker-only');
+    targetdiv.classList.add('target');
+    targetdiv.style.position = 'absolute';
+    targetdiv.style.left = rect.strokeBounds.left +'px';
+    targetdiv.style.top = rect.strokeBounds.top +'px';
+    targetdiv.style.width = rect.strokeBounds.width +'px';
+    targetdiv.style.height = rect.strokeBounds.height +'px';
+    targetdiv.id = 'speaker-target-box-'+alltargets.length;
+    slidediv.appendChild(targetdiv);
+    alltargets.push(targetdiv);
+    setupLayer(targetdiv, slide);
+
+    var s_slide = getSibling(slide);
+    var s_slidediv = $(s_slide).find('.slide')[0];
+    var s_targetdiv = targetdiv.cloneNode(true);
+    s_targetdiv.id = s_targetdiv.id.replace('speaker', 'audience');
+    s_slidediv.appendChild(s_targetdiv);
+    setupLayer(s_targetdiv, s_slide);
+
+    return targetdiv;
+};
+
+function getSibling(elem) {
+    var sibling_id;
+    if (elem.id.includes('speaker'))
+        sibling_id = elem.id.replace('speaker', 'audience');
+    else if (elem.id.includes('audience'))
+        sibling_id = elem.id.replace('audience', 'speaker');
+    else return null;
+    return document.getElementById(sibling_id);
+};
+
 function revealDeactivateMenu(targetdiv) {
     var pos = getElementPos(targetdiv);
     var menu = document.getElementById('deactivate-menu');
@@ -388,4 +397,45 @@ function revealDeactivateMenu(targetdiv) {
     menu.style.visibility = 'visible';
 };
 
+function optimizeLayout(slide) {
+    // 1. Get all content boxes within slide
+    var contentboxes = slide.querySelectorAll('.contentbox');
+    var rects = [];
+    var box, rect, tlx, tly, brx, bry;
+    for (var i = 0; i < contentboxes.length; i++) {
+        box = contentboxes[i];
+        tlx = parseFloat(box.style.left);
+        tly = parseFloat(box.style.top);
+        brx = tlx + parseFloat(box.offsetWidth);
+        bry = tly + parseFloat(box.offsetHeight);
+        rect = new paper.Rectangle(new paper.Point(tlx, tly), new paper.Point(brx, bry));
+        rects.push(rect);
+    }
+
+    // 2. Optimize the box layouts
+    var newrects = cobylaSolve(rects);
+
+    // 3. Move the boxes, and the layers
+    var delta, scale, origwidth, newwidth;
+    for (var i = 0; i < contentboxes.length; i++) {
+        box = contentboxes[i];
+        delta = new paper.Point(newrects[i].topLeft.x-box.style.left, newrects[i].topLeft.y-box.style.top);
+        origwidth = box.offsetWidth;
+        newwidth = newrects[i].width;
+        scale = newwidth/origwidth;
+        console.log("scale = " + scale);
+
+        // adjust targetdiv
+        box.style.left = newrects[i].topLeft.x +'px';
+        box.style.top = newrects[i].topLeft.y + 'px';
+        box.style.width = newrects.width;
+        box.style.height = newrects[i].height;
+        // adjust targetdiv.layer
+
+    }
+
+
+
+
+};
 
