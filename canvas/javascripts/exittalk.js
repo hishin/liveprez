@@ -152,14 +152,26 @@ function hasSomeParentWithClass(element, classname) {
 function revealTargetItem() {
     targetBox = menuBox;
     var items = $(targetBox).find('.speaker-only');
+    if (targetBox.layer) {
+        targetBox.layer.removeChildren();
+    }
     for (var i = 0; i < items.length; i++) {
         items[i].classList.remove('notvis');
+        if (items[i].layer) {
+            items[i].layer.removeChildren();
+        }
     }
     // Reveal sibiling item in audience view
     var siblingBox = getSiblingTarget(targetBox);
+    if (siblingBox.layer) {
+        siblingBox.layer.removeChildren();
+    }
     var items = $(siblingBox).find('.speaker-only');
     for (var i = 0; i < items.length; i++) {
         items[i].classList.remove('notvis');
+        if (items[i].layer) {
+            items[i].layer.removeChildren();
+        }
     }
 
 };
@@ -223,24 +235,22 @@ function fitStrokesToTarget(target) {
     var delta;
     if (sbound.left < tbound.left) {
         delta = new paper.Point(tbound.left - sbound.left, 0);
-        console.log('moveleft:' + delta);
+        // console.log('moveleft:' + delta);
         group.translate(delta);
     }
     if (sbound.top < tbound.top) {
         delta = new paper.Point(0, tbound.top - sbound.top);
-        console.log('movetop:' + delta);
-
+        // console.log('movetop:' + delta);
         group.translate(delta);
     }
     if (sbound.right > tbound.right) {
         delta = new paper.Point(tbound.right - sbound.right, 0);
-        console.log('moveright:' + delta);
-
+        // console.log('moveright:' + delta);
         group.translate(delta);
     }
     if (sbound.bottom > tbound.bottom) {
         delta = new paper.Point(0, tbound.bottom - sbound.bottom);
-        console.log('movebottom:' + delta);
+        // console.log('movebottom:' + delta);
         group.translate(delta);
     }
 
@@ -416,24 +426,40 @@ function optimizeLayout(slide) {
     var newrects = cobylaSolve(rects);
 
     // 3. Move the boxes, and the layers
-    var delta, scale, origwidth, newwidth;
+    var delta, origtlx, origtly, newx, newy, origw, neww;
     for (var i = 0; i < contentboxes.length; i++) {
         box = contentboxes[i];
-        delta = new paper.Point(newrects[i].topLeft.x-box.style.left, newrects[i].topLeft.y-box.style.top);
-        origwidth = box.offsetWidth;
-        newwidth = newrects[i].width;
-        scale = newwidth/origwidth;
-        // console.log("scale = " + scale);
-
         // adjust targetdiv
+        origtlx = parseFloat(box.style.left);
+        origtly = parseFloat(box.style.top);
+        origw = parseFloat(box.style.width);
         box.style.left = Number(newrects[i].topLeft.x).toFixed(2) +'px';
         box.style.top = Number(newrects[i].topLeft.y).toFixed(2) + 'px';
         box.style.width = Number(newrects[i].width).toFixed(2) + 'px';
         box.style.height = Number(newrects[i].height).toFixed(2) +'px';
-        // adjust targetdiv.layer
-        var myrect = new paper.Path.Rectangle(newrects[i].topLeft, newrects[i].bottomRight);
-        myrect.strokeColor = 'black';
+        newx = parseFloat(box.style.left);
+        newy = parseFloat(box.style.top);
+        neww = parseFloat(box.style.width);
+        delta = new paper.Point(newx - origtlx, newy - origtly);
+        if (box.layer) {
+            box.layer.translate(delta);
+            scale = neww / origw;
+            box.layer.scale(scale, new paper.Point(newx, newy));
+        }
+
+        // 4. Move sibling boxes and layers
+        s_box = getSibling(box);
+        s_box.style.left = Number(newrects[i].topLeft.x).toFixed(2) +'px';
+        s_box.style.top = Number(newrects[i].topLeft.y).toFixed(2) + 'px';
+        s_box.style.width = Number(newrects[i].width).toFixed(2) + 'px';
+        s_box.style.height = Number(newrects[i].height).toFixed(2) +'px';
+        if (s_box.layer) {
+            s_box.layer.translate(delta);
+            scale = neww / origw;
+            s_box.layer.scale(scale, new paper.Point(newx, newy));
+        }
     }
+
 
 
 
