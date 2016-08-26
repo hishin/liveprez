@@ -74,40 +74,40 @@ var CobylaSolver = function () {
             }
             // slide-vertical-center aligned
             for (var i = 0; i < slidevc.length; i++) {
-                con[offset + 2 * i] = x[4 * slidevc[i] + 3] + x[4 * slidevc[i]+1] - slideh;
-                con[offset + 2 * i + 1] = -(x[4 * slidevc[i] + 3] + x[4 * slidevc[i]+1] - slideh);
+                con[offset + 2 * i] = x[4 * slidevc[i] + 3] + x[4 * slidevc[i] + 1] - slideh;
+                con[offset + 2 * i + 1] = -(x[4 * slidevc[i] + 3] + x[4 * slidevc[i] + 1] - slideh);
                 offset += 2;
             }
             // vertical-center aligned (brx + tlx) / 2.0
             for (var i = 0; i < vca.length; i++) {
                 var r1 = vca[i][0];
                 var r2 = vca[i][1];
-                con[offset+2*i] = (x[4*r1+2] + x[4*r1]) - (x[4*r2+2] + x[4*r2]);
-                con[offset+2*i+1] = -((x[4*r1+2] + x[4*r1]) - (x[4*r2+2] + x[4*r2]));
+                con[offset + 2 * i] = (x[4 * r1 + 2] + x[4 * r1]) - (x[4 * r2 + 2] + x[4 * r2]);
+                con[offset + 2 * i + 1] = -((x[4 * r1 + 2] + x[4 * r1]) - (x[4 * r2 + 2] + x[4 * r2]));
                 offset += 2;
             }
             // left aligned tlx
             for (var i = 0; i < la.length; i++) {
                 var r1 = la[i][0];
                 var r2 = la[i][1];
-                con[offset+2*i] = x[4*r1] - x[4*r2];
-                con[offset+2*i+1] = -(x[4*r1] - x[4*r2]);
+                con[offset + 2 * i] = x[4 * r1] - x[4 * r2];
+                con[offset + 2 * i + 1] = -(x[4 * r1] - x[4 * r2]);
                 offset += 2;
             }
             // right aligned brx
             for (var i = 0; i < ra.length; i++) {
                 var r1 = ra[i][0];
                 var r2 = ra[i][1];
-                con[offset+2*i] = x[4*r1+2] - x[4*r2+2];
-                con[offset+2*i+1] = -(x[4*r1+2] - x[4*r2+2]);
+                con[offset + 2 * i] = x[4 * r1 + 2] - x[4 * r2 + 2];
+                con[offset + 2 * i + 1] = -(x[4 * r1 + 2] - x[4 * r2 + 2]);
                 offset += 2;
             }
             // horizontal-center aligned
             for (var i = 0; i < hca.length; i++) {
                 var r1 = hca[i][0];
                 var r2 = hca[i][1];
-                con[offset+2*i] = (x[4*r1+3] + x[4*r1+1]) - (x[4*r2+3] + x[4*r2+1]);
-                con[offset+2*i+1] = -((x[4*r1+3] + x[4*r1+1]) - (x[4*r2+3] + x[4*r2+1]));
+                con[offset + 2 * i] = (x[4 * r1 + 3] + x[4 * r1 + 1]) - (x[4 * r2 + 3] + x[4 * r2 + 1]);
+                con[offset + 2 * i + 1] = -((x[4 * r1 + 3] + x[4 * r1 + 1]) - (x[4 * r2 + 3] + x[4 * r2 + 1]));
                 // console.log('con[' + (offset+2*i)+'] = ' + con[offset+2*i]);
                 // console.log('con[' + (offset+2*i+1)+'] = ' + con[offset+2*i+1]);
                 offset += 2;
@@ -116,16 +116,16 @@ var CobylaSolver = function () {
             for (var i = 0; i < ta.length; i++) {
                 var r1 = ta[i][0];
                 var r2 = ta[i][1];
-                con[offset+2*i] = x[4*r1+1] - x[4*r2+1];
-                con[offset+2*i+1] = -(x[4*r1+1] - x[4*r2+1]);
+                con[offset + 2 * i] = x[4 * r1 + 1] - x[4 * r2 + 1];
+                con[offset + 2 * i + 1] = -(x[4 * r1 + 1] - x[4 * r2 + 1]);
                 offset += 2;
             }
             // bottom aligned bry
             for (var i = 0; i < ba.length; i++) {
                 var r1 = ba[i][0];
                 var r2 = ba[i][1];
-                con[offset+2*i] = x[4*r1+3] - x[4*r2+3];
-                con[offset+2*i+1] = -(x[4*r1+3] - x[4*r2+3]);
+                con[offset + 2 * i] = x[4 * r1 + 3] - x[4 * r2 + 3];
+                con[offset + 2 * i + 1] = -(x[4 * r1 + 3] - x[4 * r2 + 3]);
                 offset += 2;
             }
             var obj = objective(x, this.origx);
@@ -157,7 +157,7 @@ var CobylaSolver = function () {
  * @returns {*}
  */
 function objective(newx, origx) {
-    var obj = 20 * totalOverlap(newx) + 5* totalAreaDiff(origx, newx) + totalMoveDistance(origx, newx);
+    var obj = 20 * totalOverlap(newx) + 5 * totalAreaDiff(origx, newx) + totalMoveDistance(origx, newx);
     return obj;
 };
 
@@ -317,9 +317,6 @@ function cobylaSolve(mypapers) {
     // Copy original layout to mypaper[1] for comparison
     mypapers[1].project.clear();
     copyPaperToFrom(mypapers[1], mypapers[0]);
-    // copyPaperToFrom(mypapers[0], mypapers[0]);
-    // mypapers[0].project.activeLayer.strokeColor = '#333333';
-
 
     // Initialize variable
     var rectPaths = mypapers[0].project.activeLayer.getItems();
@@ -332,10 +329,20 @@ function cobylaSolve(mypapers) {
     // Initialize alignment constraints
     initAlignmentConstraints(rects);
 
+    var overlap = totalOverlap(origx);
+    console.log("original overlap = " + overlap);
+
+    var cobyla, newx;
+    newx = origx;
     // Solve
+    var maxoverlap = 1000;
+    var maxiter = 10;
+    // while (overlap > maxoverlap && inter < maxiter) {
     var cobyla = new CobylaSolver();
     var newx = cobyla.optimize();
-
+    overlap = totalOverlap(newx);
+    console.log("new overlap: " + overlap);
+    // }
 
     // Draw new solution to
     mypapers[0].project.clear();

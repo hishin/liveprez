@@ -26,7 +26,7 @@ var CobylaSolver = function () {
          * slidevc = slidevc.length * 2.0
          * vca = vca.length * 2.0
          */
-        this.m = origx.length + //origx.length / 2 +
+        this.m = origx.length + origx.length / 2 +
             slidehc.length * 2 + slidevc.length * 2 +
             vca.length * 2 + la.length * 2 + ra.length * 2 +
             hca.length * 2 + ta.length * 2 + ba.length * 2;
@@ -61,12 +61,13 @@ var CobylaSolver = function () {
             }
             offset += 4 * nboxes;
             // preserve aspect ratio
-            // for (var i = 0; i < nboxes; i++) {
-            //     var a = (origx[4 * i + 3] - origx[4 * i + 1]) / (origx[4 * i + 2] - origx[4 * i]);
-            //     con[offset + 2 * i] = a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3];
-            //     con[offset + 2 * i + 1] = -(a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3]);
-            //     offset += 2;
-            // }
+            for (var i = 0; i < nboxes; i++) {
+                var a = (origx[4 * i + 3] - origx[4 * i + 1]) / (origx[4 * i + 2] - origx[4 * i]);
+                console.log("aspect ratio [" + i + "] = " + a);
+                con[offset + 2 * i] = a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3];
+                con[offset + 2 * i + 1] = -(a * x[4 * i] - x[4 * i + 1] - a * x[4 * i + 2] + x[4 * i + 3]);
+                offset += 2;
+            }
             // slide-horizontal center aligned
             for (var i = 0; i < slidehc.length; i++) {
                 con[offset + 2 * i] = x[4 * slidehc[i] + 2] + x[4 * slidehc[i]] - slidew;
@@ -278,12 +279,12 @@ function initAlignmentConstraints(rects) {
         }
     }
 
-    console.log("la.length " + la.length);
-    console.log("ra.length " + ra.length);
-    console.log("vca.length " + vca.length);
-    console.log("ta.length " + ta.length);
-    console.log("ba.length " + ba.length);
-    console.log("hca.length " + hca.length);
+    // console.log("la.length " + la.length);
+    // console.log("ra.length " + ra.length);
+    // console.log("vca.length " + vca.length);
+    // console.log("ta.length " + ta.length);
+    // console.log("ba.length " + ba.length);
+    // console.log("hca.length " + hca.length);
 };
 
 function leftAligned(rect1, rect2) {
@@ -329,7 +330,7 @@ function cobylaSolve(rects) {
     var maxoverlap = 1000;
     var maxiter = 10;
     var cobyla, newx;
-    console.log(origx);
+    // console.log(origx);
     console.log("original overlap = " + overlap);
     var iter = 0;
     newx = origx;

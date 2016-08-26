@@ -423,17 +423,17 @@ function optimizeLayout(slide) {
         origwidth = box.offsetWidth;
         newwidth = newrects[i].width;
         scale = newwidth/origwidth;
-        console.log("scale = " + scale);
+        // console.log("scale = " + scale);
 
         // adjust targetdiv
-        box.style.left = newrects[i].topLeft.x +'px';
-        box.style.top = newrects[i].topLeft.y + 'px';
-        box.style.width = newrects.width;
-        box.style.height = newrects[i].height;
+        box.style.left = Number(newrects[i].topLeft.x).toFixed(2) +'px';
+        box.style.top = Number(newrects[i].topLeft.y).toFixed(2) + 'px';
+        box.style.width = Number(newrects[i].width).toFixed(2) + 'px';
+        box.style.height = Number(newrects[i].height).toFixed(2) +'px';
         // adjust targetdiv.layer
-
+        var myrect = new paper.Path.Rectangle(newrects[i].topLeft, newrects[i].bottomRight);
+        myrect.strokeColor = 'black';
     }
-
 
 
 
