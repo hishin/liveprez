@@ -67,7 +67,7 @@ var CobylaSolver_Scale = function () {
             }
             // minimum and maximum scaling factor
             for (var i = 0; i < nboxes; i++) {
-                con[offset] = x[3 * i + 2] - 0.85; // s >= 0.5
+                con[offset] = x[3 * i + 2] - 0.90; // s >= 0.5
                 con[offset + 1] = -x[3 * i + 2] + 1.0; // s <= 1.0
                 // console.log('con[' + (offset) + '] = ' + con[offset]);
                 // console.log('con[' + (offset + 1) + '] = ' + con[offset + 1]);
