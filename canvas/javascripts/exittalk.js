@@ -106,6 +106,7 @@ function targetMouseOut(event) {
 };
 
 function revealMenu(event) {
+    console.log(event.currentTarget);
     var targetdiv = event.currentTarget;
     menuBox = targetdiv;
     var pos = getElementPos(targetdiv);
@@ -114,8 +115,13 @@ function revealMenu(event) {
     var menu = document.getElementById('content-menu');
     menu.style.position = 'absolute';
     menu.style.left = targetleft + 'px';
-    menu.style.top = targettop + 'px';
+    menu.style.display = 'inline-block';
+    menu.style.visibility = 'hidden';
+    menu.style.top = targettop - menu.offsetHeight + 'px';
     menu.style.display = 'block';
+    menu.style.visibility = 'visible';
+
+
 };
 
 function hideMenu(id) {
