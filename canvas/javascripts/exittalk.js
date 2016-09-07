@@ -9,10 +9,52 @@ var targetBox = null;
 const pentool = 0;
 const recttool = 1;
 var alltargets = [];
+var scenes = [];
+
+function ContentBox(box) {
+    this.box = box;
+    this.tlx = box.offsetLeft;
+    this.tly = box.offsetTop;
+    this.width = box.offsetWidth;
+    this.height = box.offsetHeight;
+    this.parent = null;
+    this.children = [];
+
+    this.insertBox = function(other_box) {
+      for (var i = 0; i < this.children.length; i++) {
+          var childbox = this.children[i];
+          if (childbox.contains(other_box)) {
+              childbox.insertBox(other_box);
+              return;
+          }
+          if (other_box.contains(childbox)) {
+              other_box.parent = childbox.parent;
+              childbox.parent = other_box;
+              this.children[i] = other_box;
+              return;
+          }
+      }
+      other_box.parent = this;
+      this.children.push(other_box);
+    };
+
+    this.contains = function(other_box) {
+        if (this.tlx <= other_box.tlx && this.tly <= other_box.tly &&
+            this.tlx + this.width >= other_box.tlx + other_box.width &&
+            this.tly + this.height >= other_box.tly + other_box.height)
+            return true;
+        else
+            return false;
+    };
+
+};
 
 window.onload = function () {
     slideh = document.querySelector('.slide').offsetHeight;
     slidew = document.querySelector('.slide').offsetWidth;
+
+    // setup scene graph for each slide
+    setupSlideSceneGraph();
 
     // Setup canvas for each slide
     setupSlideCanvas();
@@ -36,6 +78,7 @@ function deactivateTargetListener() {
         speaker_targets[i].style.pointerEvents = "none";
     }
 };
+
 
 function setupSlideCanvas() {
     var slides = document.querySelectorAll('.slide-container');
@@ -73,6 +116,7 @@ function setupSlideCanvas() {
     for (var i = 0; i < mytargets.length; i++) {
         alltargets.push(mytargets[i]);
     }
+
 };
 
 function setupTargetLayers(slide) {
@@ -375,6 +419,7 @@ function createTarget(rect) {
     targetdiv.style.width = rect.strokeBounds.width +'px';
     targetdiv.style.height = rect.strokeBounds.height +'px';
     targetdiv.id = 'speaker-target-box-'+alltargets.length;
+    console.log("new target.id: " + targetdiv.id);
     slidediv.appendChild(targetdiv);
     alltargets.push(targetdiv);
     setupLayer(targetdiv, slide);
@@ -411,6 +456,25 @@ function revealDeactivateMenu(targetdiv) {
     menu.style.top = targettop + 'px';
     menu.style.display = 'block';
     menu.style.visibility = 'visible';
+};
+
+
+function setupSlideSceneGraph() {
+    var slides = document.getElementById('speaker-view').querySelectorAll('.slide-container');
+    for (var i = 0; i < slides.length; i++) {
+        console.log(slides[i]);
+        createSceneGraph(slides[i]);
+    }
+
+};
+
+function createSceneGraph(slide) {
+    var rootBox = new ContentBox(slide);
+    var contentboxes = slide.querySelectorAll('.contentbox');
+    for (var i = 0; i < contentboxes.length; i++) {
+        rootBox.insertBox(new ContentBox(contentboxes[i]));
+    }
+    console.log(rootBox);
 };
 
 function optimizeLayout(slide) {
