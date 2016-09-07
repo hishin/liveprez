@@ -32,6 +32,7 @@ div>img {
     /*height: 100%;*/
     display: block;
     overflow: auto;
+    padding: 0 auto;
     margin: 0 auto;
 
 }

@@ -6,6 +6,7 @@ var slidew;
 var mypapers = [];
 var menuBox = null;
 var targetBox = null;
+var slideTarget = null;
 const pentool = 0;
 const recttool = 1;
 var alltargets = [];
@@ -150,7 +151,6 @@ function targetMouseOut(event) {
 };
 
 function revealMenu(event) {
-    console.log(event.currentTarget);
     var targetdiv = event.currentTarget;
     menuBox = targetdiv;
     var pos = getElementPos(targetdiv);
@@ -358,14 +358,16 @@ function createNewTarget() {
     // Activate slide canvas
     targetBox = menuBox;
     var slide = targetBox.slide;
-    var slideTarget = $(slide).children('.target')[0];
-    targetBox = slideTarget;
-    slideTarget.classList.add('isdrawing');
-    slideTarget.layer.activate();
+    slideTarget = $(slide).children('.target')[0];
+    // targetBox = slideTarget;
+    // slideTarget.classList.add('isdrawing');
+    targetBox.classList.add('isdrawing');
+    // slideTarget.layer.activate();
+    targetBox.layer.activate();
 
     // Turn on rectangle tool
     targetBox.paper.tools[recttool].activate();
-    revealDeactivateMenu(targetBox.slide);
+    revealDeactivateMenu(slideTarget.slide);
 };
 
 var currect;
@@ -396,19 +398,20 @@ function rectEnd(event) {
         currect.dashArray = [];
         menuBox = createTarget(currect);
         currect.remove();
+
         // Optimize layout
-        optimizeLayout(targetBox);
-        // Activate Target
+        // optimizeLayout(targetBox);
+
+        // Deactivate container targetbox, and Activate new target
+        deactivateLayer();
         activateTargetLayer();
-
-
     }
 };
 
 function createTarget(rect) {
     // targetBox = slide-container > target: target for the entire slide
-    var slide = $(targetBox).closest('.slide-container')[0];
-    var slidediv = $(targetBox).find('.slide')[0];
+    var slide = $(slideTarget).closest('.slide-container')[0];
+    var slidediv = $(slideTarget).find('.slide')[0];
     var targetdiv = document.createElement('div');
     targetdiv.classList.add('contentbox');
     targetdiv.classList.add('speaker-only');
@@ -419,7 +422,6 @@ function createTarget(rect) {
     targetdiv.style.width = rect.strokeBounds.width +'px';
     targetdiv.style.height = rect.strokeBounds.height +'px';
     targetdiv.id = 'speaker-target-box-'+alltargets.length;
-    console.log("new target.id: " + targetdiv.id);
     slidediv.appendChild(targetdiv);
     alltargets.push(targetdiv);
     setupLayer(targetdiv, slide);
@@ -462,7 +464,6 @@ function revealDeactivateMenu(targetdiv) {
 function setupSlideSceneGraph() {
     var slides = document.getElementById('speaker-view').querySelectorAll('.slide-container');
     for (var i = 0; i < slides.length; i++) {
-        console.log(slides[i]);
         createSceneGraph(slides[i]);
     }
 
@@ -474,7 +475,6 @@ function createSceneGraph(slide) {
     for (var i = 0; i < contentboxes.length; i++) {
         rootBox.insertBox(new ContentBox(contentboxes[i]));
     }
-    console.log(rootBox);
 };
 
 function optimizeLayout(slide) {
