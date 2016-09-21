@@ -130,7 +130,7 @@ function deactivateCanvas() {
     canvas.nextElementSibling.style.top = canvas.style.top;
 
     // Fit objects to canvas
-    // console.log('before fitting box:');
+    // console.log('before fitting target:');
     var before_box = getBoundingRect(canvas.fabric.getObjects());
     // console.log(before_box);
     //
@@ -138,7 +138,7 @@ function deactivateCanvas() {
     var audience_target = document.getElementById(sibling_id);
     var sibling_canvas = audience_target.fabric;
 
-    // console.log('sibling box:');
+    // console.log('sibling target:');
     var sibling_box = getBoundingRect(sibling_canvas.getObjects());
     // console.log(sibling_box);
 
@@ -148,7 +148,7 @@ function deactivateCanvas() {
     canvas.fabric.add(fitobj);
     canvas.fabric.renderAll();
 
-    console.log('after fitting box:');
+    console.log('after fitting target:');
     var after_box = getBoundingRect(canvas.fabric.getObjects());
     // console.log(after_box);
 
@@ -216,7 +216,7 @@ function getObjectsFitToTarget(objs, target) {
     group.setTop(group.getTop() + movey - target.offsetTop);
 
 
-    // Move to fit in box
+    // Move to fit in target
     movex = 0;
     movey = 0;
     if (group.left < 0) {

@@ -12,12 +12,15 @@ const recttool = 1;
 var alltargets = [];
 var scenes = [];
 
-function ContentBox(box) {
-    this.box = box;
-    this.tlx = box.offsetLeft;
-    this.tly = box.offsetTop;
-    this.width = box.offsetWidth;
-    this.height = box.offsetHeight;
+function SceneBox(target) {
+    target.scenebox = this;
+    this.target = target;
+    this.tlx = target.offsetLeft;
+    this.tly = target.offsetTop;
+    this.width = target.offsetWidth;
+    this.height = target.offsetHeight;
+    this.brx = this.tlx + this.width;
+    this.bry = this.tly + this.height;
     this.parent = null;
     this.children = [];
 
@@ -41,11 +44,14 @@ function ContentBox(box) {
 
     this.contains = function(other_box) {
         if (this.tlx <= other_box.tlx && this.tly <= other_box.tly &&
-            this.tlx + this.width >= other_box.tlx + other_box.width &&
-            this.tly + this.height >= other_box.tly + other_box.height)
+            this.brx >= other_box.brx && this.bry >= other_box.bry)
             return true;
         else
             return false;
+    };
+
+    this.getPaperRect = function() {
+        return new paper.Rectangle(new paper.Point(this.tlx, this.tly), new paper.Point(this.brx, this.bry));
     };
 
 };
@@ -136,8 +142,50 @@ function setupLayer(target, slide) {
     target.layer = layer;
     target.paper = mypaper;
     target.slide = slide;
+
+    loadImages(target);
 };
 
+function loadImages(target) {
+    var images = target.getElementsByTagName('img');
+    var img, img_src, img_type, notvis;
+    for (var i = 0; i < images.length; i++) {
+        img = images[i];
+        img_src = img.getAttribute('src');
+        notvis = $(img).hasClass('notvis');
+        if (img.id) {
+            img_type = img_src.split('.').pop();
+            if (img_type === 'svg') {
+                target.layer.importSVG(img_src, function(svgitem, data) {
+                    var wscale = parseFloat(target.style.width)/svgitem.bounds.width;
+                    var hscale = parseFloat(target.style.height)/svgitem.bounds.height;
+                    svgitem.scale(wscale, hscale);
+                    var delta = new paper.Point(parseFloat(target.style.left) - svgitem.bounds.left,
+                        parseFloat(target.style.top) - svgitem.bounds.top);
+                    svgitem.translate(delta);
+                    if (notvis)
+                        svgitem.opacity = 0.3;
+                    target.igm = svgitem;
+                });
+            }
+            else {
+                target.layer.activate();
+                var raster = new paper.Raster(img.id);
+                // scale and fit into target
+                var wscale = parseFloat(target.style.width)/raster.width;
+                var hscale = parseFloat(target.style.height)/raster.height;
+                raster.scale(wscale, hscale);
+                var delta = new paper.Point(parseFloat(target.style.left) - raster.bounds.left,
+                    parseFloat(target.style.top) - raster.bounds.top);
+                raster.translate(delta);
+                if (notvis)
+                    raster.opacity = 0.3;
+                target.img = raster;
+            }
+
+        }
+    }
+};
 
 function targetMouseIn(event) {
     revealMenu(event);
@@ -252,6 +300,7 @@ function activateTargetLayer() {
     hideMenu('content-menu');
 
     targetBox = menuBox;
+    console.log("targetbox");
     targetBox.classList.add('isdrawing');
     targetBox.layer.activate();
 
@@ -400,7 +449,8 @@ function rectEnd(event) {
         currect.remove();
 
         // Optimize layout
-        // optimizeLayout(targetBox);
+        var slide = $(slideTarget).closest('.slide-container')[0];
+        optimizeLayoutHierarchical(menuBox);
 
         // Deactivate container targetbox, and Activate new target
         deactivateLayer();
@@ -421,8 +471,12 @@ function createTarget(rect) {
     targetdiv.style.top = rect.strokeBounds.top +'px';
     targetdiv.style.width = rect.strokeBounds.width +'px';
     targetdiv.style.height = rect.strokeBounds.height +'px';
-    targetdiv.id = 'speaker-target-box-'+alltargets.length;
+    targetdiv.id = 'speaker-target-target-'+alltargets.length;
+    // Insert html element into slide
     slidediv.appendChild(targetdiv);
+    // Insert into slide scene graph
+    slide.scene.insertBox(new SceneBox(targetdiv));
+
     alltargets.push(targetdiv);
     setupLayer(targetdiv, slide);
 
@@ -431,6 +485,8 @@ function createTarget(rect) {
     var s_targetdiv = targetdiv.cloneNode(true);
     s_targetdiv.id = s_targetdiv.id.replace('speaker', 'audience');
     s_slidediv.appendChild(s_targetdiv);
+    s_slide.scene.insertBox(new SceneBox(s_targetdiv));
+
     setupLayer(s_targetdiv, s_slide);
 
     return targetdiv;
@@ -462,19 +518,27 @@ function revealDeactivateMenu(targetdiv) {
 
 
 function setupSlideSceneGraph() {
-    var slides = document.getElementById('speaker-view').querySelectorAll('.slide-container');
+    var slides = document.querySelectorAll('.slide-container');
     for (var i = 0; i < slides.length; i++) {
-        createSceneGraph(slides[i]);
+        var sceneroot = createSceneGraph(slides[i]);
+        scenes.push(sceneroot);
+        slides[i].scene = sceneroot;
     }
-
 };
 
 function createSceneGraph(slide) {
-    var rootBox = new ContentBox(slide);
+    var rootBox = new SceneBox(slide);
+    rootBox.tlx = 0;
+    rootBox.tly = 0;
+    rootBox.brx = slidew;
+    rootBox.bry = slideh;
+    rootBox.width = slidew;
+    rootBox.height = slideh;
     var contentboxes = slide.querySelectorAll('.contentbox');
     for (var i = 0; i < contentboxes.length; i++) {
-        rootBox.insertBox(new ContentBox(contentboxes[i]));
+        rootBox.insertBox(new SceneBox(contentboxes[i]));
     }
+    return rootBox;
 };
 
 function optimizeLayout(slide) {
@@ -492,7 +556,7 @@ function optimizeLayout(slide) {
         rects.push(rect);
     }
 
-    // 2. Optimize the box layouts
+    // 2. Optimize the target layouts
     var newrects = cobylaSolve(rects);
 
     // 3. Move the boxes, and the layers
@@ -530,8 +594,84 @@ function optimizeLayout(slide) {
         }
     }
 
+};
 
 
+function optimizeLayoutHierarchical(target) {
+    // 1. Get all content boxes within target.parent
+    var parentbox = target.scenebox.parent;
+    var siblingboxes = parentbox.children;
+    var rects = [];
+    var rect, sbox;
+    for (var i = 0; i < siblingboxes.length; i ++) {
+        sbox = siblingboxes[i];
+        rect = sbox.getPaperRect();
+        rects.push(rect);
+    }
+
+    // 2. Optimize target layout within target
+    var newrects = cobylaSolve(rects, parentbox);
+
+    // 3. Move the boxes, and the layers
+    //TODO: Move children boxes
+    for (var i = 0; i < siblingboxes.length; i++) {
+        // Move target and layer
+        fitTargetToRect(siblingboxes[i].target, newrects[i]);
+
+        // Move sibling target and layer
+        s_target = getSibling(siblingboxes[i].target);
+        fitTargetToRect(s_target, newrects[i]);
+    }
+};
+
+function fitTargetToRect(target, rect, ctr) {
+    var delta, origtlx, origtly, newx, newy, origw, origh, neww;
+    origtlx = parseFloat(target.style.left);
+    origtly = parseFloat(target.style.top);
+    origw = parseFloat(target.style.width);
+    origh = parseFloat(target.style.height);
+    target.style.left = Number(rect.topLeft.x).toFixed(2) +'px';
+    target.style.top = Number(rect.topLeft.y).toFixed(2) + 'px';
+    target.style.width = Number(rect.width).toFixed(2) + 'px';
+    target.style.height = Number(rect.height).toFixed(2) +'px';
+
+    // Adjust scene box
+    target.scenebox.tlx = target.offsetLeft;
+    target.scenebox.tly = target.offsetTop;
+    target.scenebox.width = target.offsetWidth;
+    target.scenebox.height = target.offsetHeight;
+    target.scenebox.brx = target.offsetLeft + target.offsetWidth;
+    target.scenebox.bry = target.offsetTop + target.offsetHeight;
+
+    newx = parseFloat(target.style.left);
+    newy = parseFloat(target.style.top);
+    neww = parseFloat(target.style.width);
+    delta = new paper.Point(newx - origtlx, newy - origtly);
+    scale = neww / origw;
+
+    // Adjust layer (existing ink)
+    if (target.layer) {
+        target.layer.translate(delta);
+        target.layer.scale(scale, new paper.Point(newx, newy));
+    }
+
+    // Move and scale all children
+    var scenebox = target.scenebox;
+    if (!ctr) {
+        ctr = new paper.Point(origtlx, origtly);
+    }
+    var childtarget, childrect, childbox, temprect;
+    for (var i = 0; i < scenebox.children.length; i++) {
+        childbox = scenebox.children[i];
+        childrect = childbox.getPaperRect();
+        temprect = new paper.Path.Rectangle(childrect);
+        temprect.scale(scale, ctr);
+
+        temprect.translate(delta);
+        childtarget = childbox.target;
+        fitTargetToRect(childtarget, temprect.bounds);
+        temprect.remove();
+    }
 
 };
 

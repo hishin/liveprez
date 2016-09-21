@@ -1147,7 +1147,7 @@ fabric.Collection = {
   };
 
   /**
-   * Calculate bounding box of a elliptic-arc
+   * Calculate bounding target of a elliptic-arc
    * @param {Number} fx start point of arc
    * @param {Number} fy
    * @param {Number} rx horizontal radius
@@ -1179,7 +1179,7 @@ fabric.Collection = {
   };
 
   /**
-   * Calculate bounding box of a beziercurve
+   * Calculate bounding target of a beziercurve
    * @param {Number} x0 starting point
    * @param {Number} y0
    * @param {Number} x1 first control point
@@ -5807,7 +5807,7 @@ fabric.Pattern = fabric.util.createClass(/** @lends fabric.Pattern.prototype */ 
 
       if (object.width && object.height) {
         //http://www.w3.org/TR/SVG/filters.html#FilterEffectsRegion
-        // we add some extra space to filter box to contain the blur ( 20 )
+        // we add some extra space to filter target to contain the blur ( 20 )
         fBoxX = toFixed((Math.abs(offset.x) + this.blur) / object.width, NUM_FRACTION_DIGITS) * 100 + BLUR_BOX;
         fBoxY = toFixed((Math.abs(offset.y) + this.blur) / object.height, NUM_FRACTION_DIGITS) * 100 + BLUR_BOX;
       }
@@ -6842,7 +6842,7 @@ fabric.Pattern = fabric.util.createClass(/** @lends fabric.Pattern.prototype */ 
 
     /**
      * Method to render only the top canvas.
-     * Also used to render the group selection box.
+     * Also used to render the group selection target.
      * @return {fabric.Canvas} thisArg
      * @chainable
      */
@@ -8519,7 +8519,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
     containerClass:         'canvas-container',
 
     /**
-     * When true, object detection happens on per-pixel basis rather than on per-bounding-box
+     * When true, object detection happens on per-pixel basis rather than on per-bounding-target
      * @type Boolean
      * @default
      */
@@ -9342,7 +9342,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
      */
     _searchPossibleTargets: function(objects, pointer) {
 
-      // Cache all targets where their bounding box contains point.
+      // Cache all targets where their bounding target contains point.
       var target, i = objects.length, normalizedPointer, subTarget;
       // Do not check for currently grouped objects, since we check the parent group itself.
       // untill we call this function specifically to search inside the activeGroup
@@ -10308,7 +10308,7 @@ fabric.PatternBrush = fabric.util.createClass(fabric.PencilBrush, /** @lends fab
 
       var groupSelector = this._groupSelector;
 
-      // We initially clicked in an empty area, so we draw a box for multiple selection
+      // We initially clicked in an empty area, so we draw a target for multiple selection
       if (groupSelector) {
         pointer = this.getPointer(e, true);
 
@@ -11815,7 +11815,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     rotatingPointOffset:      40,
 
     /**
-     * When set to `true`, objects are "found" on canvas on per-pixel basis rather than according to bounding box
+     * When set to `true`, objects are "found" on canvas on per-pixel basis rather than according to bounding target
      * @type Boolean
      * @default
      */
@@ -13262,7 +13262,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     },
 
     /**
-     * Returns width of an object bounding box counting transformations
+     * Returns width of an object bounding target counting transformations
      * @return {Number} width value
      */
     getWidth: function() {
@@ -13270,7 +13270,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     },
 
     /**
-     * Returns height of an object bounding box counting transformations
+     * Returns height of an object bounding target counting transformations
      * to be renamed in 2.0
      * @return {Number} height value
      */
@@ -13318,7 +13318,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     },
 
     /**
-     * Scales an object to a given width, with respect to bounding box (scaling by x/y equally)
+     * Scales an object to a given width, with respect to bounding target (scaling by x/y equally)
      * @param {Number} value New width value
      * @return {fabric.Object} thisArg
      * @chainable
@@ -13330,7 +13330,7 @@ fabric.util.object.extend(fabric.StaticCanvas.prototype, /** @lends fabric.Stati
     },
 
     /**
-     * Scales an object to a given height, with respect to bounding box (scaling by x/y equally)
+     * Scales an object to a given height, with respect to bounding target (scaling by x/y equally)
      * @param {Number} value New height value
      * @return {fabric.Object} thisArg
      * @chainable
@@ -13940,7 +13940,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
     },
 
     /**
-     * Draws borders of an object's bounding box.
+     * Draws borders of an object's bounding target.
      * Requires public properties: width, height
      * Requires public options: padding, borderColor
      * @param {CanvasRenderingContext2D} ctx Context to draw on
@@ -13984,7 +13984,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
     },
 
     /**
-     * Draws borders of an object's bounding box when it is inside a group.
+     * Draws borders of an object's bounding target when it is inside a group.
      * Requires public properties: width, height
      * Requires public options: padding, borderColor
      * @param {CanvasRenderingContext2D} ctx Context to draw on
@@ -14020,7 +14020,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
     },
 
     /**
-     * Draws corners of an object's bounding box.
+     * Draws corners of an object's bounding target.
      * Requires public properties: width, height
      * Requires public options: cornerSize, padding
      * @param {CanvasRenderingContext2D} ctx Context to draw on
@@ -14593,7 +14593,7 @@ fabric.util.object.extend(fabric.Object.prototype, /** @lends fabric.Object.prot
       }
 
       if (!this.strokeDashArray || this.strokeDashArray && supportsLineDash) {
-        // move from center (of virtual box) to its left/top corner
+        // move from center (of virtual target) to its left/top corner
         // we can't assume x1, y1 is top left and x2, y2 is bottom right
         var p = this.calcLinePoints();
         ctx.moveTo(p.x1, p.y1);
@@ -21215,7 +21215,7 @@ fabric.Image.filters.BaseFilter = fabric.util.createClass(/** @lends fabric.Imag
       var textSpans = [ ],
           textBgRects = [ ],
           height = 0;
-      // bounding-box background
+      // bounding-target background
       this._setSVGBg(textBgRects);
 
       // text and text-background
@@ -21438,8 +21438,8 @@ fabric.Image.filters.BaseFilter = fabric.util.createClass(/** @lends fabric.Imag
         offX = 0;
     /*
       Adjust positioning:
-        x/y attributes in SVG correspond to the bottom-left corner of text bounding box
-        top/left properties in Fabric correspond to center point of text bounding box
+        x/y attributes in SVG correspond to the bottom-left corner of text bounding target
+        top/left properties in Fabric correspond to center point of text bounding target
     */
     if (text.originX === 'left') {
       offX = text.getWidth() / 2;
@@ -21896,8 +21896,8 @@ fabric.Image.filters.BaseFilter = fabric.util.createClass(/** @lends fabric.Imag
      */
     _getCursorBoundaries: function(chars, typeOfBoundaries) {
 
-      // left/top are left/top of entire text box
-      // leftOffset/topOffset are offset from that left/top point of a text box
+      // left/top are left/top of entire text target
+      // leftOffset/topOffset are offset from that left/top point of a text target
 
       var left = Math.round(this._getLeftOffset()),
           top = this._getTopOffset(),
@@ -22040,7 +22040,7 @@ fabric.Image.filters.BaseFilter = fabric.util.createClass(/** @lends fabric.Imag
       charOffset = charOffset || 0;
       this.skipTextAlign = true;
 
-      // set proper box offset
+      // set proper target offset
       left -= this.textAlign === 'center'
         ? (this.width / 2)
         : (this.textAlign === 'right')

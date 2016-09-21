@@ -2,14 +2,15 @@
  * Created by vshin on 8/22/16.
  */
 
-// Global variables that are used, not defined in this script: slidew, slideh
+// Global variables that are used, not defined in this script: fitw, fith
 
-var slidepadding = 0;
+var fitpadding = 0;
+var fittlx, fittly, fitbrx, fitbry;
 var origx;
 var origdim;
 var align_eps = 1.0e-1;
-var slidehc = [];
-var slidevc = [];
+var fithc = [];
+var fitvc = [];
 var vca = [];
 var la = [];
 var ra = [];
@@ -24,12 +25,12 @@ var CobylaSolver_Scale = function () {
         /**
          * fit-in-slide: origx.length / 3 * 4
          * min and max scaling factor: origx.length/3*2;
-         * slidehc = slidehc.length * 2.0
-         * slidevc = slidevc.length * 2.0
+         * fithc = fithc.length * 2.0
+         * fitvc = fitvc.length * 2.0
          * vca = vca.length * 2.0
          */
         this.m = origx.length / 3 * 4 + origx.length / 3 * 2 +
-            slidehc.length * 2 + slidevc.length * 2 +
+            fithc.length * 2 + fitvc.length * 2 +
             vca.length * 2 + la.length * 2 + ra.length * 2 +
             hca.length * 2 + ta.length * 2 + ba.length * 2;
         // console.log("this.n " + this.n);
@@ -59,10 +60,10 @@ var CobylaSolver_Scale = function () {
             var offset = 0;
             // fit inside slide
             for (var i = 0; i < nboxes; i++) {
-                con[offset] = x[3 * i] - slidepadding; // tl.x >= 0+slidepadding
-                con[offset + 1] = x[3 * i + 1] - slidepadding; // tl.y >= 0+slidepadding
-                con[offset + 2] = slidew - slidepadding - (x[3 * i] + origdim[2 * i] * x[3 * i + 2]); // br.x <= slidew-slidepadding
-                con[offset + 3] = slideh - slidepadding - x[3 * i + 1] + origdim[2 * i + 1] * x[3 * i + 2]; // br.y <= slideh -slidepadding
+                con[offset] = x[3 * i] - fitpadding - fittlx; // tl.x >= fittlx+fitpadding
+                con[offset + 1] = x[3 * i + 1] - fitpadding - fittly; // tl.y >= fittly+fitpadding
+                con[offset + 2] = fitbrx - fitpadding - (x[3 * i] + origdim[2 * i] * x[3 * i + 2]); // br.x <= fitbrx-fitpadding
+                con[offset + 3] = fitbry - fitpadding - x[3 * i + 1] + origdim[2 * i + 1] * x[3 * i + 2]; // br.y <= fitbry -fitpadding
                 offset += 4;
             }
             // minimum and maximum scaling factor
@@ -75,20 +76,20 @@ var CobylaSolver_Scale = function () {
             }
             // slide-horizontal center aligned
             var brx, tlx;
-            for (var i = 0; i < slidehc.length; i++) { // brx + tlx = slidew
-                tlx = x[3 * slidehc[i]];
-                brx = tlx + x[3 * slidehc[i] + 2] * origdim[2 * slidehc[i]];
-                con[offset] = brx + tlx - slidew;
-                con[offset + 1] = -(brx + tlx - slidew);
+            for (var i = 0; i < fithc.length; i++) { // brx + tlx = fitbrx + fittlx
+                tlx = x[3 * fithc[i]];
+                brx = tlx + x[3 * fithc[i] + 2] * origdim[2 * fithc[i]];
+                con[offset] = brx + tlx - fitbrx - fittlx;
+                con[offset + 1] = -(brx + tlx - fitbrx - fittlx);
                 offset += 2;
             }
             // slide-vertical-center aligned
             var bry, tly;
-            for (var i = 0; i < slidevc.length; i++) {
-                tly = x[3 * slidevc[i] + 1];
-                bry = tly + x[3 * slidevc[i] + 2] * origdim[2 * slidehc[i] + 1];
-                con[offset] = bry + tly - slideh;
-                con[offset + 1] = -(bry + tly - slideh);
+            for (var i = 0; i < fitvc.length; i++) {
+                tly = x[3 * fitvc[i] + 1];
+                bry = tly + x[3 * fitvc[i] + 2] * origdim[2 * fithc[i] + 1];
+                con[offset] = bry + tly - fith;
+                con[offset + 1] = -(bry + tly - fith);
                 offset += 2;
             }
             // vertical-center aligned (brx + tlx) / 2.0
@@ -184,12 +185,12 @@ var CobylaSolver = function () {
         /**
          * fit-in-slide: origx.length
          * aspect ratio: origx.length / 2.0
-         * slidehc = slidehc.length * 2.0
-         * slidevc = slidevc.length * 2.0
+         * fithc = fithc.length * 2.0
+         * fitvc = fitvc.length * 2.0
          * vca = vca.length * 2.0
          */
         this.m = origx.length + origx.length / 2 +
-            slidehc.length * 2 + slidevc.length * 2 +
+            fithc.length * 2 + fitvc.length * 2 +
             vca.length * 2 + la.length * 2 + ra.length * 2 +
             hca.length * 2 + ta.length * 2 + ba.length * 2;
         this.origx = origx;
@@ -216,10 +217,10 @@ var CobylaSolver = function () {
             var offset = 0;
             // fit inside slide
             for (var i = 0; i < nboxes; i++) {
-                con[offset] = x[4 * i] - slidepadding; // tl.x >= 0+slidepadding
-                con[offset + 1] = x[4 * i + 1] - slidepadding; // tl.y >= 0+slidepadding
-                con[offset + 2] = slidew - slidepadding - x[4 * i + 2]; // br.x <= slidew-slidepadding
-                con[offset + 3] = slideh - slidepadding - x[4 * i + 3]; // br.y <= slideh -slidepadding
+                con[offset] = x[4 * i] - fitpadding - fittlx; // tl.x >= fittlx+fitpadding
+                con[offset + 1] = x[4 * i + 1] - fitpadding - fittly; // tl.y >= fittly+fitpadding
+                con[offset + 2] = fitbrx - fitpadding - x[4 * i + 2]; // br.x <= fitw-fitpadding
+                con[offset + 3] = fitbry - fitpadding - x[4 * i + 3]; // br.y <= fith -fitpadding
                 offset += 4;
             }
 
@@ -232,15 +233,15 @@ var CobylaSolver = function () {
                 offset += 2;
             }
             // slide-horizontal center aligned
-            for (var i = 0; i < slidehc.length; i++) {
-                con[offset] = x[4 * slidehc[i] + 2] + x[4 * slidehc[i]] - slidew;
-                con[offset + 1] = -(x[4 * slidehc[i] + 2] + x[4 * slidehc[i]] - slidew);
+            for (var i = 0; i < fithc.length; i++) {
+                con[offset] = x[4 * fithc[i] + 2] + x[4 * fithc[i]] - fitw;
+                con[offset + 1] = -(x[4 * fithc[i] + 2] + x[4 * fithc[i]] - fitw);
                 offset += 2;
             }
-            // slide-vertical-center aligned
-            for (var i = 0; i < slidevc.length; i++) {
-                con[offset] = x[4 * slidevc[i] + 3] + x[4 * slidevc[i] + 1] - slideh;
-                con[offset + 1] = -(x[4 * slidevc[i] + 3] + x[4 * slidevc[i] + 1] - slideh);
+            // slide-vertical-center aligned: tly + bry = fittly + fitbry
+            for (var i = 0; i < fitvc.length; i++) {
+                con[offset] = x[4 * fitvc[i] + 3] + x[4 * fitvc[i] + 1] - fittly - fitbry;
+                con[offset + 1] = -(x[4 * fitvc[i] + 3] + x[4 * fitvc[i] + 1] - fittly - fitbry);
                 offset += 2;
             }
             // vertical-center aligned (brx + tlx) / 2.0
@@ -355,7 +356,7 @@ function sumOverlap(x) {
 
 /**
  * computes total overlap
- * @param x: Array of [topleft.x, topleft.y, bottomright.x, bottomright.y] for each box
+ * @param x: Array of [topleft.x, topleft.y, bottomright.x, bottomright.y] for each target
  */
 function totalOverlap(x) {
     var nboxes = x.length / 4;
@@ -459,8 +460,8 @@ function initializeVariables(rects) {
 
 function initAlignmentConstraints(rects) {
     // Slide center constraints
-    slidehc = [];
-    slidevc = [];
+    fithc = [];
+    fitvc = [];
     vca = [];
     la = [];
     ra = [];
@@ -469,11 +470,12 @@ function initAlignmentConstraints(rects) {
     ba = [];
 
     for (var i = 0; i < rects.length; i++) {
-        if (slideHorizontalCenterAligned(rects[i], slidew)) {
-            slidehc.push(i);
+
+        if (slideHorizontalCenterAligned(rects[i], (fitbrx + fittlx))) {
+            fithc.push(i);
         }
-        if (slideVerticalCenterAligned(rects[i], slideh)) {
-            slidevc.push(i);
+        if (slideVerticalCenterAligned(rects[i], (fitbry + fittly))) {
+            fitvc.push(i);
         }
     }
 
@@ -529,16 +531,22 @@ function horizontalCenterAligned(rect1, rect2) {
     return Math.abs(rect1.center.y - rect2.center.y) < align_eps;
 };
 
-function slideHorizontalCenterAligned(rect1, slidew) {
-    return Math.abs(rect1.center.x - slidew / 2.0) < align_eps;
+function slideHorizontalCenterAligned(rect1, fitw) {
+    return Math.abs(rect1.center.x - fitw / 2.0) < align_eps;
 };
 
-function slideVerticalCenterAligned(rect1, slideh) {
-    return Math.abs(rect1.center.y - slideh / 2.0) < align_eps;
+function slideVerticalCenterAligned(rect1, fith) {
+    return Math.abs(rect1.center.y - fith / 2.0) < align_eps;
 };
 
 
-function cobylaSolve(rects) {
+function cobylaSolve(rects, parentbox) {
+    // initialize parent rect variables
+    fittlx = parentbox.tlx;
+    fittly = parentbox.tly;
+    fitbrx = parentbox.brx;
+    fitbry = parentbox.bry;
+
     // Initialize variable
     initializeVariables(rects);
     // Initialize alignment constraints
@@ -549,13 +557,14 @@ function cobylaSolve(rects) {
         overlap = sumOverlap(origx);
     else
         overlap = totalOverlap(origx);
-    var maxoverlap = 1000;
+    var maxoverlap = 10;
     var maxiter = 10;
     var cobyla, newx;
     // console.log(origx);
     // console.log("original overlap = " + overlap);
     var iter = 0;
     newx = origx;
+    console.log("overlap " + overlap);
     while (overlap > maxoverlap && iter < maxiter) {
         // Solve
         if (scale)

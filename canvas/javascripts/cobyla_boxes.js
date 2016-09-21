@@ -21,8 +21,8 @@ var CobylaSolver = function () {
         /**
          * fit-in-slide: origx.length
          * aspect ratio: origx.length / 2.0
-         * slidehc = slidehc.length * 2.0
-         * slidevc = slidevc.length * 2.0
+         * fithc = fithc.length * 2.0
+         * fitvc = fitvc.length * 2.0
          * vca = vca.length * 2.0
          */
         this.m = origx.length + origx.length / 2 +
@@ -53,10 +53,10 @@ var CobylaSolver = function () {
             var offset = 0;
             // fit inside slide
             for (var i = 0; i < nboxes; i++) {
-                con[offset + 4 * i] = x[4 * i] - slidepadding; // tl.x >= 0+slidepadding
-                con[offset + 4 * i + 1] = x[4 * i + 1] - slidepadding; // tl.y >= 0+slidepadding
-                con[offset + 4 * i + 2] = slidew - slidepadding - x[4 * i + 2]; // br.x <= slidew-slidepadding
-                con[offset + 4 * i + 3] = slideh - slidepadding - x[4 * i + 3]; // br.y <= slideh -slidepadding
+                con[offset + 4 * i] = x[4 * i] - slidepadding; // tl.x >= 0+fitpadding
+                con[offset + 4 * i + 1] = x[4 * i + 1] - slidepadding; // tl.y >= 0+fitpadding
+                con[offset + 4 * i + 2] = slidew - slidepadding - x[4 * i + 2]; // br.x <= slidew-fitpadding
+                con[offset + 4 * i + 3] = slideh - slidepadding - x[4 * i + 3]; // br.y <= slideh -fitpadding
             }
             offset += 4 * nboxes;
             // preserve aspect ratio
@@ -163,7 +163,7 @@ function objective(newx, origx) {
 
 /**
  * computes total overlap
- * @param x: Array of [topleft.x, topleft.y, bottomright.x, bottomright.y] for each box
+ * @param x: Array of [topleft.x, topleft.y, bottomright.x, bottomright.y] for each target
  */
 function totalOverlap(x) {
     var nboxes = x.length / 4;
