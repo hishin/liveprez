@@ -90,7 +90,7 @@ function deactivateTargetListener() {
 function setupSlideCanvas() {
     var slides = document.querySelectorAll('.slide-container');
     for (var i = 0; i < slides.length; i++) {
-        canvas = document.createElement('canvas');
+        var canvas = document.createElement('canvas');
         canvas.setAttribute('id', slides[i].id.replace('slide', 'canvas'));
         slides[i].appendChild(canvas);
 
