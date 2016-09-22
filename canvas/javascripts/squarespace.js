@@ -279,6 +279,8 @@ function vertLineEnd(event) {
     }
     // Translate items left of the vertical line by 100 pixels
     expandVertical(curline, 10);
+
+    curline.remove();
 };
 
 
