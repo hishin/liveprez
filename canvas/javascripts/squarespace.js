@@ -62,9 +62,10 @@ function loadImage(contentbox, mypaper) {
             onLoad: function(svgitem, data) {
                 var wscale = parseFloat(contentbox.style.width)/svgitem.bounds.width;
                 var hscale = parseFloat(contentbox.style.height)/svgitem.bounds.height;
-                svgitem.scale(wscale, hscale);
-                var delta = new paper.Point(parseFloat(contentbox.style.left) - svgitem.bounds.left,
-                    parseFloat(contentbox.style.top) - svgitem.bounds.top);
+                // svgitem.scale(3.0);
+                // svgitem.scale(wscale, hscale);
+                // var delta = new paper.Point(parseFloat(contentbox.style.left) - svgitem.bounds.left,
+                //     parseFloat(contentbox.style.top) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 contentbox.images.push(svgitem);
                 // svgitem.selected = true;
