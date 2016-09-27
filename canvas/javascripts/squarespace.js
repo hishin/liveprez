@@ -3,6 +3,7 @@
  */
 
 var scenes = [];
+var mypapers = [];
 
 window.onload = function () {
 
@@ -25,6 +26,7 @@ function setupSlideCanvas() {
 
         var mypaper = new paper.PaperScope();
         mypaper.setup(canvas);
+        mypapers.push(mypaper);
 
         slides[i].paper = mypaper;
         slides[i].canvas = canvas;
@@ -39,6 +41,13 @@ function setupSlideCanvas() {
         verttool.onMouseDrag = vertLineContinue;
         verttool.onMouseUp = vertLineEnd;
         mypaper.verttool = verttool;
+
+        // HorizontalSpace tool
+        var horitool = new mypaper.Tool();
+        horitool.onMouseDown = horiLineStart;
+        horitool.onMouseDrag = horiLineContinue;
+        horitool.onMouseUp = horiLineEnd;
+        mypaper.horitool = horitool;
 
         // load images onto canvas
         var contents = slides[i].getElementsByClassName('contentbox');
@@ -62,10 +71,10 @@ function loadImage(contentbox, mypaper) {
             onLoad: function(svgitem, data) {
                 var wscale = parseFloat(contentbox.style.width)/svgitem.bounds.width;
                 var hscale = parseFloat(contentbox.style.height)/svgitem.bounds.height;
-                // svgitem.scale(3.0);
-                // svgitem.scale(wscale, hscale);
-                // var delta = new paper.Point(parseFloat(contentbox.style.left) - svgitem.bounds.left,
-                //     parseFloat(contentbox.style.top) - svgitem.bounds.top);
+                // svgitem.scale(3.0, 3.0);
+                svgitem.scale(wscale, hscale);
+                var delta = new paper.Point(parseFloat(contentbox.style.left) - svgitem.bounds.left,
+                    parseFloat(contentbox.style.top) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 contentbox.images.push(svgitem);
                 // svgitem.selected = true;
@@ -244,15 +253,27 @@ function createSceneGraph(slide) {
 function makeVerticalSpace() {
     deactivateTargetListener();
     var slides = document.querySelectorAll('.slide-container');
-    var slide = slides[0];
-    var mypaper = slide.paper;
-    mypaper.verttool.activate();
+    for (var i = 0; i < slides.length; i++) {
+        slides[i].paper.verttool.activate();
+    }
+};
+
+function makeHorizontalSpace() {
+    deactivateTargetListener();
+    var slides = document.querySelectorAll('.slide-container');
+    for (var i = 0; i < slides.length; i++) {
+        slides[i].paper.horitool.activate();
+    }
 };
 
 var curline;
 var startp;
+var curslide;
 
 function vertLineStart(event) {
+    // get the target slide
+    var canvas = event.event.target;
+    curslide = canvas.slide;
     var start = event.point;
     var end = new paper.Point(start.x+0.1, start.y);
     var linepath = new paper.Path.Line(start, end);
@@ -278,12 +299,47 @@ function vertLineEnd(event) {
         curline.strokeColor = '#3366ff';
         curline.dashArray = [];
     }
-    // Translate items left of the vertical line by 100 pixels
-    expandVertical(curline, 10);
-
+    // Translate items left of the vertical line by # pixels
     curline.remove();
+    expandVertical(curslide, curline, 10);
 };
 
+
+function horiLineStart(event) {
+    // get the target slide
+    var canvas = event.event.target;
+    curslide = canvas.slide;
+    var start = event.point;
+    var end = new paper.Point(start.x, start.y+0.1);
+    var linepath = new paper.Path.Line(start, end);
+    linepath.strokeColor = '#000000';
+    linepath.dashArray = [5, 3];
+    curline = linepath;
+    startp = event.point;
+};
+
+function horiLineContinue(event) {
+    if (curline) {
+        var end = new paper.Point(startp.x, event.point.y);
+        var linepath = new paper.Path.Line(startp, end);
+        linepath.strokeColor = '#000000';
+        linepath.dashArray = [5, 3];
+        curline.remove();
+        curline = linepath;
+    }
+};
+
+function horiLineEnd(event) {
+    if (curline) {
+        curline.strokeColor = '#3366ff';
+        curline.dashArray = [];
+    }
+    // Translate items left of the vertical line by 100 pixels
+    curline.remove();
+
+    expandHorizontal(curslide, curline, 10);
+
+};
 
 function deactivateTargetListener() {
     var speaker_targets = document.querySelectorAll('.target');
@@ -292,21 +348,57 @@ function deactivateTargetListener() {
     }
 };
 
-function expandVertical(line, pixels) {
+function expandVertical(slide, line, pixels) {
     // get all the paths below the line
-    var slides = document.querySelectorAll('.slide-container');
-    var slide = slides[0];
     var mypaper = slide.paper;
     var items = mypaper.project.activeLayer.children;
     var delta = new paper.Point(0, pixels);
     var item;
+    var depth = 0;
     for (var i = 0; i < items.length; i++) {
         item = items[i];
-        if (belowLine(item, line)) {
-            item.translate(delta);
+        translateIfBelow(line, item, delta, depth);
+    }
+};
+
+function expandHorizontal(slide, line, pixels) {
+    // get all the paths below the line
+    var mypaper = slide.paper;
+    var items = mypaper.project.activeLayer.children;
+    var delta = new paper.Point(pixels, 0);
+    var item;
+    var depth = 0;
+    for (var i = 0; i < items.length; i++) {
+        item = items[i];
+        translateIfRight(line, item, delta, depth);
+    }
+};
+
+function translateIfBelow(line, item, delta, depth) {
+
+    if (belowLine(item, line)) {
+        item.translate(delta);
+        // item.selected = true;
+    }
+    else if (item.hasChildren()) {
+        for (var j = 0; j < item.children.length; j++) {
+            translateIfBelow(line, item.children[j], delta, depth+1);
         }
     }
 };
+
+function translateIfRight(line, item, delta, depth) {
+
+    if (rightOfLine(item, line)) {
+        item.translate(delta);
+    }
+    else if (item.hasChildren()) {
+        for (var j = 0; j < item.children.length; j++) {
+            translateIfRight(line, item.children[j], delta, depth+1);
+        }
+    }
+};
+
 
 function belowLine(item, line) {
     if (item.strokeBounds.top <= line.strokeBounds.bottom) {
@@ -325,3 +417,23 @@ function belowLine(item, line) {
     return false;
 
 };
+
+
+function rightOfLine(item, line) {
+    if (item.strokeBounds.left <= line.strokeBounds.right) {
+        return false;
+    }
+
+    var lt = line.strokeBounds.top;
+    var lb = line.strokeBounds.bottom;
+    var it = item.strokeBounds.top;
+    var ib = item.strokeBounds.bottom;
+
+    var overlap = Math.min(lb, ib) - Math.max(lt, it);
+    if (overlap >= 0.3 * item.strokeBounds.width) {
+        return true;
+    }
+    return false;
+
+};
+
