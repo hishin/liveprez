@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   viewBox="0 0 253.58 190.60001"
+   id="svg2"
+   height="190.60001mm"
+   width="253.58mm"
+   version="1.0">
+  <metadata
+     id="metadata41">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4">
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern" />
+  </defs>
+  <g
+     id="g3369">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:14.09347248px;line-height:125%;font-family:Calibri;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="37.348091"
+       y="57.74831"
+       id="text9"><tspan
+         x="37.348091"
+         y="57.74831"
+         id="tspan11"><tspan
+           dx="0"
+           dy="0"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:14.09347248px;font-family:Calibri;fill:#000000"
+           id="tspan13">Everything you always wanted</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:14.09347248px;line-height:125%;font-family:Calibri;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="55.60165"
+       y="79.744568"
+       id="text21"><tspan
+         x="55.60165"
+         y="79.744568"
+         id="tspan23"><tspan
+           dx="0 0"
+           dy="0 0"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:14.09347248px;font-family:Calibri;fill:#000000"
+           id="tspan25">to know about cameras,</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:14.09347248px;line-height:125%;font-family:Calibri;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="63.33078"
+       y="106.14524"
+       id="text33"><tspan
+         x="63.33078"
+         y="106.14524"
+         id="tspan35"><tspan
+           dx="0 0"
+           dy="0 0"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:14.09347248px;font-family:Calibri;fill:#000000"
+           id="tspan37">but were afraid to ask</tspan></tspan></text>
+  </g>
+</svg>

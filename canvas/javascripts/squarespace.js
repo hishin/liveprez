@@ -77,7 +77,8 @@ function loadImage(contentbox, mypaper) {
                     parseFloat(contentbox.style.top) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 contentbox.images.push(svgitem);
-                // svgitem.selected = true;
+                console.log("image " + img_src);
+                console.log(svgitem);
             }});
 
         }
