@@ -11,93 +11,43 @@
 <body>
 <div class="col-md-8">
     <div class="col-md-3" >
-        <nav class="" style="position:fixed; top:20px; width: 250px;">
+        <nav class="">
         <button type="button" class="btn btn-default"><a onclick="makeVerticalSpace()"><i
                 class="glyphicon glyphicon-option-horizontal"></i> Expand Space Horizontally</a></button>
 
         <button type="button" class="btn btn-default"><a onclick="makeHorizontalSpace()"><i
                 class="glyphicon glyphicon-option-vertical"></i> Expand Space Vertically</a></button>
         </nav>
+
+
+        <select id="slide-src" onchange="loadSlide()">
+            <option value="samplepresentations/exlecture/slide1plainai.svg">Slide 1</option>
+            <option value="samplepresentations/exlecture/Slide2Plain.svg">Slide 2</option>
+            <option value="samplepresentations/exlecture/slide3plainai.svg">Slide 3</option>
+            <option value="samplepresentations/exlecture/slide4plain.svg">Slide 4</option>
+            <option value="samplepresentations/exlecture/slide5plain.svg">Slide 5</option>
+
+        </select>
+
     </div>
 
     <div class="container col-md-9" style="position:relative;">
-        <div class="slide-container" id="slide1" style="left:50px; top:50px;">
-            <div id="speaker-target-box-1" class="target" style="position: absolute; left:0px; top:0px;">
-                <div class="slide" style="width:900px; height: 600px">
-                    <div id="speaker-target-box-2" class="contentbox speaker-only target" data-block-type="image"
-                         style="position:absolute; width:900px; height: 600px; left: 0px; top: 0px;"
-                         data-block-id="9014005de347035e5e8be60431331916">
-                        <img id="slide1-image1" class="speaker-only notvis content"
-                             src="../samplepresentations/exlecture/slide1plainai.svg"/>
+        <div class="slide-container" id="slide" style="left:50px; top:50px;">
+            <div id="speaker-target-box" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide" style="width:720px; height: 540px">
+                    <div id="speaker-target-box-1" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width:720px; height: 540px; left: 0px; top: 0px;">
+                        <!--<img id="slide-image" class="speaker-only notvis content"-->
+                             <!--src="samplepresentations/exlecture/slide1plainai.svg"/>-->
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="slide-container" id="slide2" style="left:50px; top:50px;">
-            <div id="speaker-target-box-3" class="target" style="position: absolute; left:0px; top:0px;">
-                <div class="slide" style="width:900px; height: 600px">
-                    <div id="speaker-target-box-4" class="contentbox speaker-only target" data-block-type="image"
-                         style="position:absolute; width:900px; height: 600px; left: 0px; top: 0px;"
-                         data-block-id="9014005de347035e5e8be60431331916">
-                        <img id="slide2-image1" class="speaker-only notvis content"
-                        src="../samplepresentations/exlecture/Slide2Plain.svg">
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="slide-container" id="slide3" style="left:50px; top:50px;">
-            <div id="speaker-target-box-5" class="target" style="position: absolute; left:0px; top:0px;">
-                <div class="slide" style="width:900px; height: 600px">
-                    <div id="speaker-target-box-6" class="contentbox speaker-only target" data-block-type="image"
-                         style="position:absolute; width:900px; height: 600px; left: 0px; top: 0px;"
-                         data-block-id="9014005de347035e5e8be60431331916">
-                        <img id="slide3-image1" class="speaker-only notvis content"
-                             src="../samplepresentations/exlecture/slide3plainai.svg">
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="slide-container" id="slide4" style="left:50px; top:50px;">
-            <div id="speaker-target-box-7" class="target" style="position: absolute; left:0px; top:0px;">
-                <div class="slide" style="width:900px; height: 600px">
-                    <div id="speaker-target-box-8" class="contentbox speaker-only target" data-block-type="image"
-                         style="position:absolute; width:900px; height: 600px; left: 0px; top: 0px;"
-                         data-block-id="9014005de347035e5e8be60431331916">
-                        <img id="slide4-image1" class="speaker-only notvis content"
-                             src="../samplepresentations/exlecture/slide4plain.svg">
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="slide-container" id="slide%" style="left:50px; top:50px;">
-            <div id="speaker-target-box-9" class="target" style="position: absolute; left:0px; top:0px;">
-                <div class="slide" style="width:900px; height: 600px">
-                    <div id="speaker-target-box-10" class="contentbox speaker-only target" data-block-type="image"
-                         style="position:absolute; width:900px; height: 600px; left: 0px; top: 0px;"
-                         data-block-id="9014005de347035e5e8be60431331916">
-                        <img id="slide5-image1" class="speaker-only notvis content"
-                             src="../samplepresentations/exlecture/slide5plain.svg">
-
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
-</div>
+
+
+
+
 
 <script src="javascripts/squarespace.js"></script>
 </body>

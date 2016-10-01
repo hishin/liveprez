@@ -2,58 +2,84 @@
  * Created by hijungshin on 9/20/16.
  */
 
-var scenes = [];
-var mypapers = [];
+var scene;
+var mypaper;
+var slide;
+var maxy = 1000;
 
 window.onload = function () {
-
     // setup paper canvas
     setupSlideCanvas();
-
-    // setupt scene graph
-    setupSlideSceneGraph();
-
-    // setup hover reaction
-    // setupExpansionBars();
 };
 
 function setupSlideCanvas() {
-    var slides = document.querySelectorAll('.slide-container');
-    for (var i = 0; i < slides.length; i++) {
-        var canvas = document.createElement('canvas');
-        canvas.setAttribute('id', slides[i].id.replace('slide', 'canvas'));
-        slides[i].appendChild(canvas);
+    slide = document.getElementById('slide');
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('id', slide.id.replace('slide', 'canvas'));
+    slide.appendChild(canvas);
 
-        var mypaper = new paper.PaperScope();
-        mypaper.setup(canvas);
-        mypapers.push(mypaper);
+    mypaper = new paper.PaperScope();
+    mypaper.setup(canvas);
 
-        slides[i].paper = mypaper;
-        slides[i].canvas = canvas;
-        canvas.paper = mypaper;
-        canvas.slide = slides[i];
-        mypaper.slide = slides[i];
-        mypaper.canvas = canvas;
+    slide.paper = mypaper;
+    slide.canvas = canvas;
+    canvas.paper = mypaper;
+    canvas.slide = slide;
+    mypaper.slide = slide;
+    mypaper.canvas = canvas;
 
-        // VerticalSpace tool
-        var verttool = new mypaper.Tool();
-        verttool.onMouseDown = vertLineStart;
-        verttool.onMouseDrag = vertLineContinue;
-        verttool.onMouseUp = vertLineEnd;
-        mypaper.verttool = verttool;
+    // Default tool
+    var defaulttool = new mypaper.Tool();
+    mypaper.defaulttool = defaulttool;
 
-        // HorizontalSpace tool
-        var horitool = new mypaper.Tool();
-        horitool.onMouseDown = horiLineStart;
-        horitool.onMouseDrag = horiLineContinue;
-        horitool.onMouseUp = horiLineEnd;
-        mypaper.horitool = horitool;
+    // Vertical Space tool
+    var verttool = new mypaper.Tool();
+    verttool.onMouseDown = vertLineStart;
+    verttool.onMouseDrag = vertLineContinue;
+    verttool.onMouseUp = vertLineEnd;
+    mypaper.verttool = verttool;
 
-        // load images onto canvas
-        var contents = slides[i].getElementsByClassName('contentbox');
-        for (var c = 0; c < contents.length; c++) {
-            loadImage(contents[c], mypaper);
-        }
+    // Horizontal Space tool
+    var horitool = new mypaper.Tool();
+    horitool.onMouseDown = horiLineStart;
+    horitool.onMouseDrag = horiLineContinue;
+    horitool.onMouseUp = horiLineEnd;
+    mypaper.horitool = horitool;
+
+    // Expand Vertical tool
+    var expandverttool = new mypaper.Tool();
+    expandverttool.onMouseDrag = expandRectangleVert;
+    mypaper.expandverttool = expandverttool;
+
+    // Load Slide Image
+   loadSlide();
+};
+
+function loadSlide() {
+    mypaper.project.clear();
+    var img_src = document.getElementById('slide-src').value;
+    var img_type = img_src.split('.').pop();
+    if (img_type  == 'svg') {
+        mypaper.project.importSVG(img_src, {expandShapes:true,
+            onLoad: function(svgitem, data) {
+                var wscale = parseFloat( mypaper.canvas.offsetWidth)/svgitem.bounds.width;
+                var hscale = parseFloat( mypaper.canvas.offsetHeight)/svgitem.bounds.height;
+                svgitem.scale(wscale, hscale);
+                var delta = new paper.Point(parseFloat(mypaper.canvas.offsetLeft) - svgitem.bounds.left,
+                    parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
+                svgitem.translate(delta);
+                scene = svgitem;
+            }});
+    }
+    else {
+        var raster = new paper.Raster(img_src);
+        // scale and fit into target
+        var wscale = parseFloat(slide.offsetWidth)/raster.width;
+        var hscale = parseFloat(slide.offsetHeight)/raster.height;
+        raster.scale(wscale, hscale);
+        var delta = new paper.Point(parseFloat(contentbox.style.left) - raster.bounds.left,
+            parseFloat(contentbox.style.top) - raster.bounds.top);
+        raster.translate(delta);
     }
 };
 
@@ -267,9 +293,25 @@ function makeHorizontalSpace() {
     }
 };
 
+function activateDefaultTool() {
+    var slides = document.querySelectorAll('.slide-container');
+    for (var i = 0; i < slides.length; i++) {
+        slides[i].paper.defaulttool.activate();
+    }
+};
+
+function activateExpandVertTool() {
+    var slides = document.querySelectorAll('.slide-container');
+    for (var i = 0; i < slides.length; i++) {
+        slides[i].paper.expandverttool.activate();
+    }
+};
+
+
 var curline;
 var startp;
 var curslide;
+var currect;
 
 function vertLineStart(event) {
     // get the target slide
@@ -295,16 +337,78 @@ function vertLineContinue(event) {
     }
 };
 
-function vertLineEnd(event) {
-    if (curline) {
-        curline.strokeColor = '#3366ff';
-        curline.dashArray = [];
+function getItemsBelow(rect) {
+    var tl = rect.strokeBounds.topLeft;
+    var br = rect.strokeBounds.bottomRight;
+    var areaBelow = new paper.Path.Rectangle(tl, new paper.Point(br.x, maxy));
+    var items = scene.children;
+    var itemsbelow  = [];
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (areaBelow.bounds.intersects(item.bounds) && rect.bounds.top < item.bounds.top) {
+            itemsbelow.push(item);
+        }
     }
-    // Translate items left of the vertical line by # pixels
-    curline.remove();
-    expandVertical(curslide, curline, 10);
+    itemsbelow.sort(compareTop);
+    return itemsbelow;
 };
 
+function vertLineEnd(event) {
+    if (curline) {
+        // make thin rectangle
+        var rectstart = curline.strokeBounds.topLeft;
+        var rectend = new paper.Point(curline.strokeBounds.bottomRight.x, curline.strokeBounds.bottomRight.y + 5.0);
+        var rect = new paper.Path.Rectangle(rectstart, rectend);
+        rect.strokeColor = '#3366ff';
+        rect.strokeWidth = 5;
+        rect.dashArray = [];
+
+        // onmouseover: change to "expand" cursor
+        currect = rect;
+        rect.onMouseEnter  = function(event) {
+            document.body.style.cursor = 's-resize';
+            activateExpandVertTool();
+        };
+        rect.onMouseDown = function(event) {
+        };
+        rect.onMouseLeave = function(event) {
+            document.body.style.cursor = 'auto';
+        };
+
+    }
+    curline.remove();
+    activateDefaultTool();
+};
+
+function expandRectangleVert(event) {
+    if (currect) {
+        var br = currect.strokeBounds.bottomRight;
+        var tl = currect.strokeBounds.topLeft;
+        var scaley = (event.point.y - tl.y) / (br.y - tl.y);
+        if (scaley > 1.0) {
+            currect.scale(1.0, scaley, currect.bounds.topLeft);
+        }
+        var itemsbelow = getItemsBelow(currect);
+        for (var i = 0; i < itemsbelow.length; i++) {
+            pushItemDown(itemsbelow[i], currect);
+        }
+    }
+};
+
+function pushItemDown(item, rect) {
+    var deltay = rect.strokeBounds.bottom - item.bounds.top;
+    if (deltay > 0) {
+        item.translate(new paper.Point(0, deltay));
+        var itemsbelow = getItemsBelow(item);
+        for (var i = 0; i < itemsbelow.length; i++) {
+            pushItemDown(itemsbelow[i], item);
+        }
+    }
+};
+
+function compareTop(item1, item2) {
+    return item1.bounds.top - item2.bounds.top;
+};
 
 function horiLineStart(event) {
     // get the target slide
@@ -346,6 +450,13 @@ function deactivateTargetListener() {
     var speaker_targets = document.querySelectorAll('.target');
     for (var i = 0; i < speaker_targets.length; i++) {
         speaker_targets[i].style.pointerEvents = "none";
+    }
+};
+
+function activateTargetListener() {
+    var speaker_targets = document.querySelectorAll('.target');
+    for (var i = 0; i < speaker_targets.length; i++) {
+        speaker_targets[i].style.pointerEvents = "auto";
     }
 };
 
