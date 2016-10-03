@@ -3,6 +3,7 @@
  */
 
 var scene;
+var scenegraph;
 var mypaper;
 var slide;
 var maxy = 1000;
@@ -69,6 +70,8 @@ function loadSlide() {
                     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
+                console.log(scene);
+                createSceneGraph(svgitem);
             }});
     }
     else {
@@ -103,8 +106,6 @@ function loadImage(contentbox, mypaper) {
                     parseFloat(contentbox.style.top) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 contentbox.images.push(svgitem);
-                console.log("image " + img_src);
-                console.log(svgitem);
             }});
 
         }
@@ -118,7 +119,6 @@ function loadImage(contentbox, mypaper) {
                 parseFloat(contentbox.style.top) - raster.bounds.top);
             raster.translate(delta);
             contentbox.images.push(raster);
-            // raster.selected = true;
         }
     }
 };
@@ -214,67 +214,58 @@ function isBelow(target, query) {
     return false;
 };
 
-function SceneBox(target) {
-    target.scenebox = this;
-    this.target = target;
-    this.tlx = target.offsetLeft;
-    this.tly = target.offsetTop;
-    this.width = target.offsetWidth;
-    this.height = target.offsetHeight;
-    this.brx = this.tlx + this.width;
-    this.bry = this.tly + this.height;
+function createSceneGraph(svgitem) {
+    var rootBox = new SceneBox(svgitem);
+    var leafitems = getLeafItems(svgitem);
+    console.log(leafitems);
+
+    // for (var i = 0; i < svgitem.children.length; i++) {
+    //     rootBox.insertBox(svgitem.children[i]);
+    // }
+    // return rootBox;
+};
+
+function SceneBox(item) {
+    item.scenebox = this;
+    this.item = item;
     this.parent = null;
     this.children = [];
 
-    this.insertBox = function(other_box) {
+    this.insertBox = function(otherItem) {
+        var otherbox = new SceneBox(otherItem);
         for (var i = 0; i < this.children.length; i++) {
             var childbox = this.children[i];
-            if (childbox.contains(other_box)) {
-                childbox.insertBox(other_box);
+            console.log("childbox: " + childbox);
+            if (childbox.contains(otherbox)) {
+                childbox.insertBox(otherbox);
                 return;
             }
-            if (other_box.contains(childbox)) {
-                other_box.parent = childbox.parent;
-                childbox.parent = other_box;
-                this.children[i] = other_box;
+            console.log("otherbox:" + otherbox);
+            if (otherbox.contains(childbox)) {
+                otherbox.parent = childbox.parent;
+                childbox.parent = otherbox;
+                this.children[i] = otherbox;
                 return;
             }
         }
-        other_box.parent = this;
-        this.children.push(other_box);
+        otherbox.parent = this;
+        this.children.push(otherbox);
+        if (otherItem.children) {
+            for (var i = 0; i < otherItem.children.length; i++) {
+                otherbox.insertBox(otherItem.children[i]);
+            }
+        }
     };
 
-    this.contains = function(other_box) {
-        if (this.tlx <= other_box.tlx && this.tly <= other_box.tly &&
-            this.brx >= other_box.brx && this.bry >= other_box.bry)
-            return true;
-        else
-            return false;
+    this.contains = function(otherbox) {
+        console.log("this.item");
+        console.log(this.item);
+        console.log("otherbox.item");
+        console.log(otherbox.item);
+        console.log(this.item.bounds)
+
+        return (this.item.bounds.contains(otherbox.item.bounds));
     };
-};
-
-function setupSlideSceneGraph() {
-    var slides = document.querySelectorAll('.slide-container');
-    for (var i = 0; i < slides.length; i++) {
-        var sceneroot = createSceneGraph(slides[i]);
-        scenes.push(sceneroot);
-        slides[i].scene = sceneroot;
-    }
-};
-
-function createSceneGraph(slide) {
-    var rootBox = new SceneBox(slide);
-    rootBox.tlx = 0;
-    rootBox.tly = 0;
-    rootBox.brx = slide.offsetWidth;
-    rootBox.bry = slide.offsetHeight;
-    rootBox.width = slide.offsetWidth;
-    rootBox.height = slide.offsetHeight;
-    var contentboxes = slide.querySelectorAll('.contentbox');
-    for (var i = 0; i < contentboxes.length; i++) {
-        rootBox.insertBox(new SceneBox(contentboxes[i]));
-    }
-    return rootBox;
 };
 
 function makeVerticalSpace() {
@@ -337,16 +328,57 @@ function vertLineContinue(event) {
     }
 };
 
-function getItemsBelow(rect) {
+/** Get descendant items of parent that is strictly below rectangle**/
+function getItemsBelow(rect, parent) {
     var tl = rect.strokeBounds.topLeft;
     var br = rect.strokeBounds.bottomRight;
-    var areaBelow = new paper.Path.Rectangle(tl, new paper.Point(br.x, maxy));
-    var items = scene.children;
+    var areaBelow = new paper.Path.Rectangle(new paper.Point(tl.x, br.y), new paper.Point(br.x, maxy));
+    if (!parent.children) return [];
+    var items = parent.children;
     var itemsbelow  = [];
     for (var i = 0; i < items.length; i++) {
         var item = items[i];
-        if (areaBelow.bounds.intersects(item.bounds) && rect.bounds.top < item.bounds.top) {
-            itemsbelow.push(item);
+        if (areaBelow.bounds.intersects(item.bounds)) {
+            if (rect.bounds.top < item.bounds.top) {
+                itemsbelow.push(item);
+            } else {
+                itemsbelow.push.apply(itemsbelow, getItemsBelow(rect, item));
+            }
+        }
+    }
+    itemsbelow.sort(compareTop);
+    return itemsbelow;
+};
+
+/** Get descendant items that have no children**/
+function getLeafItems(item) {
+    var leafitems = [];
+    if (!item.children) {
+        leafitems.push(item);
+    }
+    else {
+        for (var i = 0; i < item.children.length; i++) {
+            leafitems.push.apply(leafitems, getLeafItems(item.children[i]));
+        }
+    }
+    return leafitems;
+};
+
+function getItemsIntersecting(rect, parent) {
+    var tl = rect.strokeBounds.topLeft;
+    var br = rect.strokeBounds.bottomRight;
+    var areaBelow = new paper.Path.Rectangle(new paper.Point(tl.x, br.y), new paper.Point(br.x, maxy));
+    if (!parent.children) return [];
+    var items = parent.children;
+    var itemsbelow  = [];
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (areaBelow.bounds.intersects(item.bounds)) {
+            if (!item.children)
+                itemsbelow.push(item);
+            else {
+                itemsbelow.push.apply(itemsbelow, getItemsIntersecting(rect, item));
+            }
         }
     }
     itemsbelow.sort(compareTop);
@@ -388,7 +420,7 @@ function expandRectangleVert(event) {
         if (scaley > 1.0) {
             currect.scale(1.0, scaley, currect.bounds.topLeft);
         }
-        var itemsbelow = getItemsBelow(currect);
+        var itemsbelow = getItemsBelow(currect, scene);
         for (var i = 0; i < itemsbelow.length; i++) {
             pushItemDown(itemsbelow[i], currect);
         }
@@ -399,12 +431,13 @@ function pushItemDown(item, rect) {
     var deltay = rect.strokeBounds.bottom - item.bounds.top;
     if (deltay > 0) {
         item.translate(new paper.Point(0, deltay));
-        var itemsbelow = getItemsBelow(item);
+        var itemsbelow = getItemsBelow(item, scene);
         for (var i = 0; i < itemsbelow.length; i++) {
             pushItemDown(itemsbelow[i], item);
         }
     }
 };
+
 
 function compareTop(item1, item2) {
     return item1.bounds.top - item2.bounds.top;
