@@ -70,7 +70,6 @@ function loadSlide() {
                     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
-                console.log(scene);
                 createSceneGraph(svgitem);
             }});
     }
