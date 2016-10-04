@@ -6,11 +6,36 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
-   viewBox="0 0 253.58 190.60001"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 719.99999 540.00001"
    id="svg2"
-   height="190.60001mm"
-   width="253.58mm"
-   version="1.0">
+   height="540mm"
+   width="720mm"
+   version="1.0"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="slide4plain.svg">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1275"
+     inkscape:window-height="711"
+     id="namedview24"
+     showgrid="false"
+     showborder="true"
+     inkscape:zoom="0.26758848"
+     inkscape:cx="1275.5906"
+     inkscape:cy="1143.3272"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
   <metadata
      id="metadata53">
     <rdf:RDF>
@@ -35,19 +60,22 @@
   </defs>
   <text
      id="text11"
-     y="18.699562"
-     x="15.944544"
-     style="font-style:normal;font-variant:normal;font-weight:400;font-size:11.30652809px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
-     xml:space="preserve"><tspan
+     y="52.097965"
+     x="28.57542"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.58247375px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+     xml:space="preserve"
+     sodipodi:linespacing="125%"
+     transform="scale(0.97795569,1.0225412)"><tspan
        id="tspan13"
-       y="18.699562"
-       x="15.944544"><tspan
+       y="52.097965"
+       x="28.57542"><tspan
          id="tspan15"
-         style="font-style:normal;font-variant:normal;font-weight:400;font-size:11.30652809px;font-family:Arial;fill:#ff0000"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.58247375px;font-family:Arial;fill:#ff0000"
          dy="0"
          dx="0">Cross Section of a CMOS Image Sensor</tspan></tspan></text>
   <g
-     id="g3381">
+     id="g3381"
+     transform="matrix(2.7317192,0,0,2.8562598,-15.610521,-0.13844946)">
     <image
        y="28.524643"
        x="9.0144644"
@@ -61,7 +89,8 @@
        style="font-style:normal;font-variant:normal;font-weight:400;font-size:6.3499999px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
        x="172.70236"
        y="67.832466"
-       id="text33"><tspan
+       id="text33"
+       sodipodi:linespacing="125%"><tspan
          x="172.70236"
          y="67.832466"
          id="tspan35"><tspan
@@ -71,7 +100,8 @@
            id="tspan37">Sony</tspan></tspan></text>
   </g>
   <g
-     id="g3393">
+     id="g3393"
+     transform="matrix(2.7317192,0,0,2.8562598,-15.610521,-0.13844946)">
     <image
        y="100.25946"
        x="157.0125"
@@ -85,7 +115,8 @@
        style="font-style:normal;font-variant:normal;font-weight:400;font-size:6.3499999px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
        x="219.92081"
        y="186.96619"
-       id="text39"><tspan
+       id="text39"
+       sodipodi:linespacing="125%"><tspan
          x="219.92081"
          y="186.96619"
          id="tspan41"><tspan
@@ -95,7 +126,8 @@
            id="tspan43">Sony</tspan></tspan></text>
   </g>
   <g
-     id="g3387">
+     id="g3387"
+     transform="matrix(2.7317192,0,0,2.8562598,-15.610521,-0.13844946)">
     <image
        y="108.4275"
        x="19.171608"
@@ -109,7 +141,8 @@
        style="font-style:normal;font-variant:normal;font-weight:400;font-size:6.3499999px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
        x="126.28711"
        y="186.96619"
-       id="text45"><tspan
+       id="text45"
+       sodipodi:linespacing="125%"><tspan
          x="126.28711"
          y="186.96619"
          id="tspan47"><tspan
