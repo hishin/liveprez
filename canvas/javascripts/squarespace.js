@@ -217,8 +217,6 @@ function isBelow(target, query) {
 function createSceneGraph(svgitem) {
     var rootBox = new SceneBox(svgitem);
     var leafitems = getLeafItems(svgitem);
-    console.log(leafitems);
-
     // for (var i = 0; i < svgitem.children.length; i++) {
     //     rootBox.insertBox(svgitem.children[i]);
     // }
@@ -364,26 +362,6 @@ function getLeafItems(item) {
     return leafitems;
 };
 
-function getItemsIntersecting(rect, parent) {
-    var tl = rect.strokeBounds.topLeft;
-    var br = rect.strokeBounds.bottomRight;
-    var areaBelow = new paper.Path.Rectangle(new paper.Point(tl.x, br.y), new paper.Point(br.x, maxy));
-    if (!parent.children) return [];
-    var items = parent.children;
-    var itemsbelow  = [];
-    for (var i = 0; i < items.length; i++) {
-        var item = items[i];
-        if (areaBelow.bounds.intersects(item.bounds)) {
-            if (!item.children)
-                itemsbelow.push(item);
-            else {
-                itemsbelow.push.apply(itemsbelow, getItemsIntersecting(rect, item));
-            }
-        }
-    }
-    itemsbelow.sort(compareTop);
-    return itemsbelow;
-};
 
 function vertLineEnd(event) {
     if (curline) {
@@ -416,11 +394,11 @@ function expandRectangleVert(event) {
     if (currect) {
         var br = currect.strokeBounds.bottomRight;
         var tl = currect.strokeBounds.topLeft;
+        var itemsbelow = getItemsBelow(currect, scene);
         var scaley = (event.point.y - tl.y) / (br.y - tl.y);
         if (scaley > 1.0) {
             currect.scale(1.0, scaley, currect.bounds.topLeft);
         }
-        var itemsbelow = getItemsBelow(currect, scene);
         for (var i = 0; i < itemsbelow.length; i++) {
             pushItemDown(itemsbelow[i], currect);
         }
@@ -430,6 +408,8 @@ function expandRectangleVert(event) {
 function pushItemDown(item, rect) {
     var deltay = rect.strokeBounds.bottom - item.bounds.top;
     if (deltay > 0) {
+        expandContainers(item, deltay);
+
         item.translate(new paper.Point(0, deltay));
         var itemsbelow = getItemsBelow(item, scene);
         for (var i = 0; i < itemsbelow.length; i++) {
@@ -438,6 +418,18 @@ function pushItemDown(item, rect) {
     }
 };
 
+function expandContainers(item, deltay) {
+    if (item.parent) {
+        var siblings = item.parent.children;
+        for (var i = 0; i < siblings.length; i++) {
+            if (siblings[i] == item) continue;
+            if (siblings[i].bounds.contains(item.bounds) && !siblings[i].children) {
+                siblings[i].bounds.bottom = Math.max(siblings[i].bounds.bottom, item.bounds.bottom + deltay + 2.0)
+            }
+        }
+        expandContainers(item.parent, deltay);
+    }
+};
 
 function compareTop(item1, item2) {
     return item1.bounds.top - item2.bounds.top;
