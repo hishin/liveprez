@@ -63,12 +63,12 @@ function loadSlide() {
     if (img_type  == 'svg') {
         mypaper.project.importSVG(img_src, {expandShapes:true,
             onLoad: function(svgitem, data) {
-                // var wscale = parseFloat( mypaper.canvas.offsetWidth)/svgitem.bounds.width;
-                // var hscale = parseFloat( mypaper.canvas.offsetHeight)/svgitem.bounds.height;
-                // svgitem.scale(wscale, hscale);
-                // var delta = new paper.Point(parseFloat(mypaper.canvas.offsetLeft) - svgitem.bounds.left,
-                //     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
-                // svgitem.translate(delta);
+                var wscale = parseFloat( mypaper.canvas.offsetWidth)/svgitem.bounds.width;
+                var hscale = parseFloat( mypaper.canvas.offsetHeight)/svgitem.bounds.height;
+                svgitem.scale(wscale, hscale);
+                var delta = new paper.Point(parseFloat(mypaper.canvas.offsetLeft) - svgitem.bounds.left,
+                    parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
+                svgitem.translate(delta);
                 scene = svgitem;
                 createSceneGraph(svgitem);
             }});
