@@ -6,7 +6,8 @@ var scene;
 var scenegraph;
 var mypaper;
 var slide;
-var maxy = 1000;
+var maxy = 5000;
+var maxx = 5000;
 
 window.onload = function () {
     // setup paper canvas
@@ -47,11 +48,6 @@ function setupSlideCanvas() {
     horitool.onMouseUp = horiLineEnd;
     mypaper.horitool = horitool;
 
-    // Expand Vertical tool
-    var expandverttool = new mypaper.Tool();
-    expandverttool.onMouseDrag = expandRectangleVert;
-    mypaper.expandverttool = expandverttool;
-
     // Load Slide Image
    loadSlide();
 };
@@ -70,7 +66,6 @@ function loadSlide() {
                     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
-                createSceneGraph(svgitem);
             }});
     }
     else {
@@ -82,120 +77,6 @@ function loadSlide() {
         var delta = new paper.Point(parseFloat(contentbox.style.left) - raster.bounds.left,
             parseFloat(contentbox.style.top) - raster.bounds.top);
         raster.translate(delta);
-    }
-};
-
-function loadImage(contentbox, mypaper) {
-    var img, img_src, img_type;
-    var images = contentbox.getElementsByTagName('img');
-    contentbox.images = [];
-
-    for (var i = 0; i < images.length; i++) {
-        img = images[i];
-        img_src = img.getAttribute('src');
-        img_type = img.src.split('.').pop();
-        if (img_type  == 'svg') {
-            mypaper.project.importSVG(img_src, {expandShapes:true,
-            onLoad: function(svgitem, data) {
-                var wscale = parseFloat(contentbox.style.width)/svgitem.bounds.width;
-                var hscale = parseFloat(contentbox.style.height)/svgitem.bounds.height;
-                // svgitem.scale(3.0, 3.0);
-                svgitem.scale(wscale, hscale);
-                var delta = new paper.Point(parseFloat(contentbox.style.left) - svgitem.bounds.left,
-                    parseFloat(contentbox.style.top) - svgitem.bounds.top);
-                svgitem.translate(delta);
-                contentbox.images.push(svgitem);
-            }});
-
-        }
-        else {
-            var raster = new paper.Raster(img.id);
-            // scale and fit into target
-            var wscale = parseFloat(contentbox.style.width)/raster.width;
-            var hscale = parseFloat(contentbox.style.height)/raster.height;
-            raster.scale(wscale, hscale);
-            var delta = new paper.Point(parseFloat(contentbox.style.left) - raster.bounds.left,
-                parseFloat(contentbox.style.top) - raster.bounds.top);
-            raster.translate(delta);
-            contentbox.images.push(raster);
-        }
-    }
-};
-
-function setupExpansionBars() {
-    var targets = document.querySelectorAll('.target');
-    for (var i = 0; i < targets.length; i++) {
-        targets[i].addEventListener("mouseover", showTargetExpansionBar, true);
-        targets[i].addEventListener("click", expandTarget, true);
-    }
-};
-
-function expandTarget(event) {
-    var target = event.currentTarget;
-    expandBottom(target, 10);
-};
-
-function showTargetExpansionBar(event) {
-    var target = event.currentTarget;
-    var hb = document.getElementById('horizontal-bar');
-    hb.style.width = target.offsetWidth + 'px';
-    hb.style.position = 'absolute';
-    hb.style.left = target.style.left;
-    hb.style.top = target.style.top;
-    hb.style.display = 'inline-block';
-
-    var hba = document.getElementById('hb-arrow');
-    hba.style.position = 'absolute';
-    hba.style.left = hb.style.left;
-    hba.style.top = parseFloat(hb.style.top) - hba.offsetHeight/2.0 + 1.0 + 'px';
-    hba.style.display = 'inline-block';
-
-    var hb2 = document.getElementById('horizontal-bar-bottom');
-    hb2.style.width = target.offsetWidth + 'px';
-    hb2.style.position = 'absolute';
-    hb2.style.left = target.style.left;
-    hb2.style.top = parseFloat(target.style.top) + target.offsetHeight + 'px';
-    hb2.style.display = 'inline-block';
-
-    var hba2 = document.getElementById('hb-arrow-bottom');
-    hba2.style.position = 'absolute';
-    hba2.style.left = hb2.style.left;
-    hba2.style.top = parseFloat(hb2.style.top) - hba2.offsetHeight/2.0 + 'px';
-    hba2.style.display = 'inline-block';
-};
-
-function expandBottom(target, pixels) {
-    if (!target.scenebox) 
-        return;
-
-    var parentbox = target.scenebox.parent;
-    if (!parentbox)
-        return;
-
-    var siblingboxes = parentbox.children;
-
-    var sbox;
-    for (var i = 0; i < siblingboxes.length; i++) {
-        sbox = siblingboxes[i];
-
-        if (isBelow(target, sbox.target)) {
-            moveDown(sbox.target, pixels);
-        }
-    }
-
-    expandBottom(parentbox.target, pixels);
-    parentbox.target.style.height = parentbox.target.offsetHeight + pixels + 'px';
-
-};
-
-function moveDown(target, pixels) {
-    target.style.top = parseFloat(target.style.top) + pixels + 'px';
-    var children = target.scenebox.children;
-
-    var cbox;
-    for (var i = 0; i < children.length; i++) {
-        cbox = children[i];
-        moveDown(cbox.target, pixels);
     }
 };
 
@@ -211,15 +92,6 @@ function isBelow(target, query) {
     if (overlap >= 0.3 * query.offsetWidth)
         return true;
     return false;
-};
-
-function createSceneGraph(svgitem) {
-    var rootBox = new SceneBox(svgitem);
-    var leafitems = getLeafItems(svgitem);
-    // for (var i = 0; i < svgitem.children.length; i++) {
-    //     rootBox.insertBox(svgitem.children[i]);
-    // }
-    // return rootBox;
 };
 
 function SceneBox(item) {
@@ -255,12 +127,6 @@ function SceneBox(item) {
     };
 
     this.contains = function(otherbox) {
-        console.log("this.item");
-        console.log(this.item);
-        console.log("otherbox.item");
-        console.log(otherbox.item);
-        console.log(this.item.bounds)
-
         return (this.item.bounds.contains(otherbox.item.bounds));
     };
 };
@@ -300,6 +166,8 @@ var curline;
 var startp;
 var curslide;
 var currect;
+var timeout;
+var startexpand = false;
 
 function vertLineStart(event) {
     // get the target slide
@@ -308,21 +176,55 @@ function vertLineStart(event) {
     var start = event.point;
     var end = new paper.Point(start.x+0.1, start.y);
     var linepath = new paper.Path.Line(start, end);
-    linepath.strokeColor = '#000000';
+    linepath.strokeColor = '#3366ff';
     linepath.dashArray = [5, 3];
+    linepath.strokeWidth = 2;
     curline = linepath;
     startp = event.point;
 };
 
 function vertLineContinue(event) {
-    if (curline) {
+    if (curline && !startexpand) {
         var end = new paper.Point(event.point.x, startp.y);
         var linepath = new paper.Path.Line(startp, end);
-        linepath.strokeColor = '#000000';
+        linepath.strokeColor = '#3366ff';
         linepath.dashArray = [5, 3];
+        linepath.strokeWidth = 2;
         curline.remove();
         curline = linepath;
+        clearTimeout(timeout);
+        timeout = setTimeout(function(){startexpand = true; linepath.dashArray=[];}, 500);
+    } else if (curline && startexpand) {
+        // make thin rectangle
+        clearTimeout(timeout);
+        if (!currect) {
+            var rectstart = curline.strokeBounds.topLeft;
+            var rectend = new paper.Point(curline.strokeBounds.bottomRight.x, curline.strokeBounds.bottomRight.y + 1.0);
+            curline.remove();
+            var rect = new paper.Path.Rectangle(rectstart, rectend);
+            rect.strokeColor = '#3366ff';
+            rect.strokeWidth = 2;
+            rect.dashArray = [];
+            currect = rect;
+        } else {
+            var br = currect.strokeBounds.bottomRight;
+            var tl = currect.strokeBounds.topLeft;
+            var itemsbelow = getItemsBelow(currect, scene);
+            var scaley = (event.point.y - tl.y) / (br.y - tl.y);
+            if (scaley > 1.0) {
+                currect.scale(1.0, scaley, currect.bounds.topLeft);
+            }
+            for (var i = 0; i < itemsbelow.length; i++) {
+                pushItemDown(itemsbelow[i], currect);
+            }
+        }
     }
+};
+
+function vertLineEnd(event) {
+    startexpand = false;
+    currect = null;
+    activateDefaultTool();
 };
 
 /** Get descendant items of parent that is strictly below rectangle**/
@@ -343,71 +245,15 @@ function getItemsBelow(rect, parent) {
             }
         }
     }
+    areaBelow.remove();
     itemsbelow.sort(compareTop);
     return itemsbelow;
-};
-
-/** Get descendant items that have no children**/
-function getLeafItems(item) {
-    var leafitems = [];
-    if (!item.children) {
-        leafitems.push(item);
-    }
-    else {
-        for (var i = 0; i < item.children.length; i++) {
-            leafitems.push.apply(leafitems, getLeafItems(item.children[i]));
-        }
-    }
-    return leafitems;
-};
-
-
-function vertLineEnd(event) {
-    if (curline) {
-        // make thin rectangle
-        var rectstart = curline.strokeBounds.topLeft;
-        var rectend = new paper.Point(curline.strokeBounds.bottomRight.x, curline.strokeBounds.bottomRight.y + 5.0);
-        var rect = new paper.Path.Rectangle(rectstart, rectend);
-        rect.strokeColor = '#3366ff';
-        rect.strokeWidth = 5;
-        rect.dashArray = [];
-
-        // onmouseover: change to "expand" cursor
-        currect = rect;
-        rect.onMouseEnter  = function(event) {
-            document.body.style.cursor = 's-resize';
-            activateExpandVertTool();
-        };
-        rect.onMouseDown = function(event) {
-        };
-        rect.onMouseLeave = function(event) {
-            document.body.style.cursor = 'auto';
-        };
-
-    }
-    curline.remove();
-    activateDefaultTool();
-};
-
-function expandRectangleVert(event) {
-    if (currect) {
-        var br = currect.strokeBounds.bottomRight;
-        var tl = currect.strokeBounds.topLeft;
-        var itemsbelow = getItemsBelow(currect, scene);
-        var scaley = (event.point.y - tl.y) / (br.y - tl.y);
-        if (scaley > 1.0) {
-            currect.scale(1.0, scaley, currect.bounds.topLeft);
-        }
-        for (var i = 0; i < itemsbelow.length; i++) {
-            pushItemDown(itemsbelow[i], currect);
-        }
-    }
 };
 
 function pushItemDown(item, rect) {
     var deltay = rect.strokeBounds.bottom - item.bounds.top;
     if (deltay > 0) {
-        expandContainers(item, deltay);
+        expandContainers(item, 0, deltay);
 
         item.translate(new paper.Point(0, deltay));
         var itemsbelow = getItemsBelow(item, scene);
@@ -417,16 +263,21 @@ function pushItemDown(item, rect) {
     }
 };
 
-function expandContainers(item, deltay) {
+/**
+ * Check if sibling items contain item
+ * Expand sibling item to preserve containment relationship
+ **/
+function expandContainers(item, deltax, deltay) {
     if (item.parent) {
         var siblings = item.parent.children;
         for (var i = 0; i < siblings.length; i++) {
             if (siblings[i] == item) continue;
             if (siblings[i].bounds.contains(item.bounds) && !siblings[i].children) {
-                siblings[i].bounds.bottom = Math.max(siblings[i].bounds.bottom, item.bounds.bottom + deltay + 2.0)
+                siblings[i].bounds.bottom = Math.max(siblings[i].bounds.bottom, item.bounds.bottom + deltay + 2.0);
+                siblings[i].bounds.right = Math.max(siblings[i].bounds.right, item.bounds.right + deltax + 2.0);
             }
         }
-        expandContainers(item.parent, deltay);
+        expandContainers(item.parent, deltax, deltay);
     }
 };
 
@@ -441,33 +292,94 @@ function horiLineStart(event) {
     var start = event.point;
     var end = new paper.Point(start.x, start.y+0.1);
     var linepath = new paper.Path.Line(start, end);
-    linepath.strokeColor = '#000000';
+    linepath.strokeColor = '#3366ff';
     linepath.dashArray = [5, 3];
+    linepath.strokeWidth = 2;
     curline = linepath;
     startp = event.point;
 };
 
 function horiLineContinue(event) {
-    if (curline) {
+    if (curline && !startexpand) {
         var end = new paper.Point(startp.x, event.point.y);
         var linepath = new paper.Path.Line(startp, end);
-        linepath.strokeColor = '#000000';
+        linepath.strokeColor = '#3366ff';
         linepath.dashArray = [5, 3];
+        linepath.strokeWidth = 2;
         curline.remove();
         curline = linepath;
+        clearTimeout(timeout);
+        timeout = setTimeout(function() {startexpand = true; linepath.dashArray = [];}, 500);
+    } else if (curline && startexpand) {
+        // make thin rectangle
+        clearTimeout(timeout);
+        if (!currect) {
+            var rectstart = curline.strokeBounds.topLeft;
+            var rectend = new paper.Point(curline.strokeBounds.bottomRight.x + 1.0, curline.strokeBounds.bottomRight.y);
+            curline.remove();
+            var rect = new paper.Path.Rectangle(rectstart, rectend);
+            rect.strokeColor = '#3366ff';
+            rect.strokeWidth = 2;
+            rect.dashArray = [];
+            currect = rect;
+        } else {
+            var br = currect.strokeBounds.bottomRight;
+            var tl = currect.strokeBounds.topLeft;
+            var itemsright = getItemsRight(currect, scene);
+            var scalex = (event.point.x - tl.x) / (br.x - tl.x);
+            if (scalex > 1.0) {
+                currect.scale(scalex, 1.0, currect.bounds.topLeft);
+            }
+            for (var i = 0; i < itemsright.length; i++) {
+                pushItemRight(itemsright[i], currect);
+            }
+        }
     }
 };
 
 function horiLineEnd(event) {
-    if (curline) {
-        curline.strokeColor = '#3366ff';
-        curline.dashArray = [];
+    startexpand = false;
+    currect = null;
+    activateDefaultTool();
+};
+
+function getItemsRight(rect, parent) {
+    var tl = rect.strokeBounds.topLeft;
+    var br = rect.strokeBounds.bottomRight;
+    var areaRight = new paper.Path.Rectangle(new paper.Point(br.x, tl.y), new paper.Point(maxx, br.y));
+    if (!parent.children) return [];
+    var items = parent.children;
+    var itemsright = [];
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (areaRight.bounds.intersects(item.bounds)) {
+            if (rect.bounds.left < item.bounds.left) {
+                itemsright.push(item);
+            } else {
+                itemsright.push.apply(itemsright, getItemsRight(rect, item));
+            }
+        }
     }
-    // Translate items left of the vertical line by 100 pixels
-    curline.remove();
+    areaRight.remove();
+    itemsright.sort(compareLeft);
+    return itemsright;
+};
 
-    expandHorizontal(curslide, curline, 10);
+function pushItemRight(item, rect) {
+    var deltax = rect.strokeBounds.right - item.bounds.left;
+    if (deltax > 0) {
+        expandContainers(item, deltax, 0);
+        
+        item.translate(new paper.Point(deltax, 0));
+        var itemsright = getItemsRight(item, scene);
+        for (var i = 0; i < itemsright.length; i++) {
+            pushItemRight(itemsright[i], item);
+        }
+    }
+};
 
+function compareLeft(item1, item2) {
+    return item1.bounds.left - item2.bounds.left;
 };
 
 function deactivateTargetListener() {
@@ -483,93 +395,3 @@ function activateTargetListener() {
         speaker_targets[i].style.pointerEvents = "auto";
     }
 };
-
-function expandVertical(slide, line, pixels) {
-    // get all the paths below the line
-    var mypaper = slide.paper;
-    var items = mypaper.project.activeLayer.children;
-    var delta = new paper.Point(0, pixels);
-    var item;
-    var depth = 0;
-    for (var i = 0; i < items.length; i++) {
-        item = items[i];
-        translateIfBelow(line, item, delta, depth);
-    }
-};
-
-function expandHorizontal(slide, line, pixels) {
-    // get all the paths below the line
-    var mypaper = slide.paper;
-    var items = mypaper.project.activeLayer.children;
-    var delta = new paper.Point(pixels, 0);
-    var item;
-    var depth = 0;
-    for (var i = 0; i < items.length; i++) {
-        item = items[i];
-        translateIfRight(line, item, delta, depth);
-    }
-};
-
-function translateIfBelow(line, item, delta, depth) {
-
-    if (belowLine(item, line)) {
-        item.translate(delta);
-        // item.selected = true;
-    }
-    else if (item.hasChildren()) {
-        for (var j = 0; j < item.children.length; j++) {
-            translateIfBelow(line, item.children[j], delta, depth+1);
-        }
-    }
-};
-
-function translateIfRight(line, item, delta, depth) {
-
-    if (rightOfLine(item, line)) {
-        item.translate(delta);
-    }
-    else if (item.hasChildren()) {
-        for (var j = 0; j < item.children.length; j++) {
-            translateIfRight(line, item.children[j], delta, depth+1);
-        }
-    }
-};
-
-
-function belowLine(item, line) {
-    if (item.strokeBounds.top <= line.strokeBounds.bottom) {
-        return false;
-    }
-
-    var lr = line.strokeBounds.right;
-    var ll = line.strokeBounds.left;
-    var ir = item.strokeBounds.right;
-    var il = item.strokeBounds.left;
-
-    var overlap = Math.min(lr, ir) - Math.max(ll, il);
-    if (overlap >= 0.3 * item.strokeBounds.width) {
-        return true;
-    }
-    return false;
-
-};
-
-
-function rightOfLine(item, line) {
-    if (item.strokeBounds.left <= line.strokeBounds.right) {
-        return false;
-    }
-
-    var lt = line.strokeBounds.top;
-    var lb = line.strokeBounds.bottom;
-    var it = item.strokeBounds.top;
-    var ib = item.strokeBounds.bottom;
-
-    var overlap = Math.min(lb, ib) - Math.max(lt, it);
-    if (overlap >= 0.3 * item.strokeBounds.width) {
-        return true;
-    }
-    return false;
-
-};
-
