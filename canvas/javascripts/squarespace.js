@@ -67,7 +67,7 @@ function loadSlide() {
                     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
-                console.log(svgitem);
+                showHiddenItems(svgitem);
             }
         });
     }
@@ -80,6 +80,19 @@ function loadSlide() {
         var delta = new paper.Point(parseFloat(contentbox.style.left) - raster.bounds.left,
             parseFloat(contentbox.style.top) - raster.bounds.top);
         raster.translate(delta);
+    }
+};
+
+function showHiddenItems(item) {
+    if (!item.visible) {
+        console.log(item);
+        item.opacity = 0.8;
+        item.visible = true;
+    }
+    if (item.children) {
+        for (var i = 0; i < item.children.length; i++) {
+            showHiddenItems(item.children[i]);
+        }
     }
 };
 
