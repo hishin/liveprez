@@ -378,7 +378,7 @@ function drawContinue(event) {
 };
 
 function drawEnd(event) {
-    curstroke.smooth();
+    // curstroke.smooth();
     // Add to sibling layer
    cloneToSiblingLayer();
 };

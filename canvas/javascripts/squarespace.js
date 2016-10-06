@@ -66,7 +66,8 @@ function loadSlide() {
                     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
-            }});
+                console.log(svgitem);
+        }});
     }
     else {
         var raster = new paper.Raster(img_src);
@@ -193,7 +194,7 @@ function vertLineContinue(event) {
         curline.remove();
         curline = linepath;
         clearTimeout(timeout);
-        timeout = setTimeout(function(){startexpand = true; linepath.dashArray=[];}, 500);
+        timeout = setTimeout(function(){startexpand = true; linepath.dashArray=[];}, 300);
     } else if (curline && startexpand) {
         // make thin rectangle
         clearTimeout(timeout);
@@ -309,7 +310,7 @@ function horiLineContinue(event) {
         curline.remove();
         curline = linepath;
         clearTimeout(timeout);
-        timeout = setTimeout(function() {startexpand = true; linepath.dashArray = [];}, 500);
+        timeout = setTimeout(function() {startexpand = true; linepath.dashArray = [];}, 300);
     } else if (curline && startexpand) {
         // make thin rectangle
         clearTimeout(timeout);
