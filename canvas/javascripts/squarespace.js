@@ -57,17 +57,19 @@ function loadSlide() {
     var img_src = document.getElementById('slide-src').value;
     var img_type = img_src.split('.').pop();
     if (img_type  == 'svg') {
-        mypaper.project.importSVG(img_src, {expandShapes:true,
-            onLoad: function(svgitem, data) {
-                var wscale = parseFloat( mypaper.canvas.offsetWidth)/svgitem.bounds.width;
-                var hscale = parseFloat( mypaper.canvas.offsetHeight)/svgitem.bounds.height;
+        mypaper.project.importSVG(img_src, {
+            expandShapes: true,
+            onLoad: function (svgitem, data) {
+                var wscale = parseFloat(mypaper.canvas.offsetWidth) / svgitem.bounds.width;
+                var hscale = parseFloat(mypaper.canvas.offsetHeight) / svgitem.bounds.height;
                 svgitem.scale(wscale, hscale);
                 var delta = new paper.Point(parseFloat(mypaper.canvas.offsetLeft) - svgitem.bounds.left,
                     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
                 console.log(svgitem);
-        }});
+            }
+        });
     }
     else {
         var raster = new paper.Raster(img_src);
@@ -105,12 +107,10 @@ function SceneBox(item) {
         var otherbox = new SceneBox(otherItem);
         for (var i = 0; i < this.children.length; i++) {
             var childbox = this.children[i];
-            console.log("childbox: " + childbox);
             if (childbox.contains(otherbox)) {
                 childbox.insertBox(otherbox);
                 return;
             }
-            console.log("otherbox:" + otherbox);
             if (otherbox.contains(childbox)) {
                 otherbox.parent = childbox.parent;
                 childbox.parent = otherbox;
@@ -255,12 +255,13 @@ function pushItemDown(item, rect) {
     var deltay = rect.strokeBounds.bottom - item.bounds.top;
     if (deltay > 0) {
         expandContainers(item, 0, deltay);
-
         item.translate(new paper.Point(0, deltay));
         var itemsbelow = getItemsBelow(item, scene);
         for (var i = 0; i < itemsbelow.length; i++) {
             pushItemDown(itemsbelow[i], item);
         }
+        paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
+        paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
     }
 };
 
@@ -276,6 +277,9 @@ function expandContainers(item, deltax, deltay) {
             if (siblings[i].bounds.contains(item.bounds) && !siblings[i].children) {
                 siblings[i].bounds.bottom = Math.max(siblings[i].bounds.bottom, item.bounds.bottom + deltay + 2.0);
                 siblings[i].bounds.right = Math.max(siblings[i].bounds.right, item.bounds.right + deltax + 2.0);
+
+                paper.view.viewSize.width = Math.max(paper.view.viewSize.width, siblings[i].strokeBounds.right);
+                paper.view.viewSize.height = Math.max(paper.view.viewSize.height, siblings[i].strokeBounds.bottom);
             }
         }
         expandContainers(item.parent, deltax, deltay);
@@ -327,6 +331,8 @@ function horiLineContinue(event) {
             var br = currect.strokeBounds.bottomRight;
             var tl = currect.strokeBounds.topLeft;
             var itemsright = getItemsRight(currect, scene);
+            console.log("items to the right: ");
+            console.log(itemsright);
             var scalex = (event.point.x - tl.x) / (br.x - tl.x);
             if (scalex > 1.0) {
                 currect.scale(scalex, 1.0, currect.bounds.topLeft);
@@ -351,12 +357,21 @@ function getItemsRight(rect, parent) {
     if (!parent.children) return [];
     var items = parent.children;
     var itemsright = [];
+    // console.log("parent");
+    // console.log(parent);
+    // console.log("rect.bounds.left");
+    // console.log(rect.bounds.left);
     for (var i = 0; i < items.length; i++) {
         var item = items[i];
         if (areaRight.bounds.intersects(item.bounds)) {
+            // console.log("item");
+            // console.log(item);
+            // console.log("item.bounds.left");
+            // console.log(item.bounds.left);
             if (rect.bounds.left < item.bounds.left) {
                 itemsright.push(item);
             } else {
+                // item.selected = true;
                 itemsright.push.apply(itemsright, getItemsRight(rect, item));
             }
         }
@@ -370,7 +385,6 @@ function pushItemRight(item, rect) {
     var deltax = rect.strokeBounds.right - item.bounds.left;
     if (deltax > 0) {
         expandContainers(item, deltax, 0);
-        
         item.translate(new paper.Point(deltax, 0));
         var itemsright = getItemsRight(item, scene);
         for (var i = 0; i < itemsright.length; i++) {
