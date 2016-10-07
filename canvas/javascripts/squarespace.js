@@ -548,6 +548,16 @@ function updateViewSize(view) {
     return msg;
 };
 
+function drawMessage(item) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'draw',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        content: JSON.stringify(item)
+    } );
+    return msg;
+};
+
 var curstroke;
 function drawStart(event) {
     curstroke = new paper.Path();
@@ -562,4 +572,6 @@ function drawContinue(event) {
 
 function drawEnd(event) {
     curstroke.add(event.point);
+    var msg = drawMessage(curstroke);
+    post(msg);
 };

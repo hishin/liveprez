@@ -98,7 +98,7 @@ canvas {
 }
 
 #speaker-view .speaker-only.content.notvis{
-    visibility: hidden;
+    visibility: visible;
     opacity: 0.3;
 }
 

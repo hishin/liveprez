@@ -18,6 +18,8 @@ window.addEventListener('message', function(event) {
             handleMoveItemMessage(data);
         } else if (data.type === 'update-view') {
             handleUpdateViewMessage(data);
+        } else if (data.type === 'draw') {
+            handleDrawMessage(data);
         }
 
     }
@@ -106,4 +108,8 @@ function handleMoveItemMessage(data) {
 function handleUpdateViewMessage(data) {
     apaper.view.viewSize.width = data.width;
     apaper.view.viewSize.height = data.height;
+};
+
+function handleDrawMessage(data) {
+    item = apaper.project.activeLayer.importJSON(data.content);
 };
