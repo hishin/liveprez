@@ -370,14 +370,17 @@ function deactivateLayer() {
 var curstroke;
 function drawStart(event) {
     curstroke = new paper.Path();
+    curstroke.strokeWidth = 2;
     curstroke.strokeColor = 'black';
+    curstroke.add(event.point);
 };
 
 function drawContinue(event) {
     curstroke.add(event.point);
 };
 
-function drawEnd(event) {
+function drawEnd(event){
+    curstroke.add(event.point);
     // curstroke.smooth();
     // Add to sibling layer
    cloneToSiblingLayer();

@@ -4,19 +4,20 @@
     <script src="javascripts/paper-full.js"></script>
     <link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
     <link href="stylesheets/squarespace.css" rel="stylesheet" type="text/css">
-    <link href="">
     <meta charset="UTF-8">
-    <title>SquareSpace Style Expansion Test</title>
+    <title>Speaker View</title>
 </head>
 <body>
 <div class="col-md-8">
     <div class="col-md-3" >
         <nav class="">
-        <button type="button" class="btn btn-default"><a onclick="makeVerticalSpace()"><i
-                class="glyphicon glyphicon-option-horizontal"></i> Expand Space Horizontally</a></button>
+        <button type="button" class="btn btn-default" onclick="makeVerticalSpace()"><i
+                class="glyphicon glyphicon-option-horizontal"></i> Insert Line</button>
 
-        <button type="button" class="btn btn-default"><a onclick="makeHorizontalSpace()"><i
-                class="glyphicon glyphicon-option-vertical"></i> Expand Space Vertically</a></button>
+        <button type="button" class="btn btn-default" onclick="makeHorizontalSpace()"><i
+                class="glyphicon glyphicon-option-vertical"></i> Insert Column</button>
+        <button type="button" class="btn btn-default" onclick="popupAudienceView()"><i class="glyphicon glyphicon-play"> Present</i></button>
+
         </nav>
 
 
@@ -46,14 +47,6 @@
 
     <div class="container col-md-9" style="position:relative;">
         <div class="slide-container" id="slide" style="left:50px; top:50px;">
-            <!--<div id="speaker-target-box" class="target" style="position: absolute; left:0px; top:0px;">-->
-                <!--<div class="slide" style="width:720px; height: 540px">-->
-                    <!--<div id="speaker-target-box-1" class="contentbox speaker-only target" data-block-type="image"-->
-                         <!--style="position:absolute; width:720px; height: 540px; left: 0px; top: 0px;">-->
-
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

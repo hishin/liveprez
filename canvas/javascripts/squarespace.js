@@ -8,6 +8,7 @@ var mypaper;
 var slide;
 var maxy = 5000;
 var maxx = 5000;
+var awindow;
 
 window.onload = function () {
     // setup paper canvas
@@ -85,9 +86,13 @@ function loadSlide() {
 
 function showHiddenItems(item) {
     if (!item.visible) {
-        console.log(item);
-        item.opacity = 0.8;
-        item.visible = true;
+        if (item.className == 'PointText') {
+            item.fillColor.alpha = 0.3;
+            item.visible = true;
+        } else {
+            item.opacity = 0.3;
+            item.visible = true;
+        }
     }
     if (item.children) {
         for (var i = 0; i < item.children.length; i++) {
@@ -422,4 +427,8 @@ function activateTargetListener() {
     for (var i = 0; i < speaker_targets.length; i++) {
         speaker_targets[i].style.pointerEvents = "auto";
     }
+};
+
+function popupAudienceView() {
+    awindow = window.open('audienceview.html', 'Audience View');
 };
