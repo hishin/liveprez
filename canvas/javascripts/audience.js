@@ -4,6 +4,24 @@
 
 var aslide;
 var apaper;
+var connected;
+
+window.addEventListener('message', function(event) {
+    var data = JSON.parse(event.data);
+    // console.log(data);
+    if (data && data.namespace === 'liveprez') {
+        if (data.type === 'connect') {
+            handleConnectMessage(data);
+        } else if (data.type === 'toggle-reveal') {
+            handleToggleRevealMessage(data);
+        } else if (data.type === 'move-item') {
+            handleMoveItemMessage(data);
+        } else if (data.type === 'update-view') {
+            handleUpdateViewMessage(data);
+        }
+
+    }
+});
 
 window.onload = function() {
     aslide = document.getElementById('slide');
@@ -20,26 +38,72 @@ window.onload = function() {
     acanvas.slide = aslide;
     apaper.slide = aslide;
     apaper.canvas = acanvas;
+};
 
-    // Load current Slide
+function hideItems(item) {
+    if (item.data.isHidden) {
+        item.visible = false;
+    }
+    if (item.children) {
+        for (var i = 0; i < item.children.length; i++) {
+            hideItems(item.children[i]);
+        }
+    }
+};
+
+function handleConnectMessage(data) {
+    if (connected === false) {
+        connected = true;
+    }
+    window.opener.postMessage(JSON.stringify({namespace: 'audience', type: 'connected'}), '*');
+    aslide = apaper.project.activeLayer.importJSON(data.state);
+    console.log(aslide);
+    hideItems(aslide);
+};
+
+
+function handleToggleRevealMessage(data) {
+    var itemname = data.item;
+    var item = apaper.project.getItem({
+        data: {
+            id: itemname
+        }
+    });
+    toggleReveal(item);
+};
+
+function toggleReveal(item) {
+    if (item.visible) {
+        item.visible = false;
+        item.data.isHidden = true;
+    }
+    else {
+        if (item.className == 'PointText') {
+            item.fillColor.alpha = 1.0;
+        }
+        else {
+            item.opacity = 1.0;
+        }
+        item.visible = true;
+        item.data.isHidden = false;
+    }
+};
+
+function handleMoveItemMessage(data) {
+    var itemname = data.item;
+    var item = apaper.project.getItem({
+        data: {
+            id: itemname
+        }
+    });
+    item.bounds.top = data.top;
+    item.bounds.left = data.left;
+    item.bounds.bottom = data.bottom;
+    item.bounds.right = data.right;
 
 };
-// // Load current slide
-// var img_src = document.getElementById('slide-src').value;
-// console.log(img_src);
-// apaper.project.clear();
-// var img_type = img_src.split('.').pop();
-// if (img_type  == 'svg') {
-//     apaper.project.importSVG(img_src, {
-//         expandShapes: true,
-//         onLoad: function (svgitem, data) {
-//             var wscale = parseFloat(apaper.canvas.offsetWidth) / svgitem.bounds.width;
-//             var hscale = parseFloat(apaper.canvas.offsetHeight) / svgitem.bounds.height;
-//             svgitem.scale(wscale, hscale);
-//             var delta = new paper.Point(parseFloat(apaper.canvas.offsetLeft) - svgitem.bounds.left,
-//                 parseFloat(apaper.canvas.offsetTop) - svgitem.bounds.top);
-//             svgitem.translate(delta);
-//         }
-//     });
-// }
-// // }
+
+function handleUpdateViewMessage(data) {
+    apaper.view.viewSize.width = data.width;
+    apaper.view.viewSize.height = data.height;
+};

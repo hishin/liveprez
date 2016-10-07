@@ -58,7 +58,7 @@ function loadSlide() {
     var img_src = document.getElementById('slide-src').value;
     var img_type = img_src.split('.').pop();
     if (img_type  == 'svg') {
-        mypaper.project.importSVG(img_src, {
+        mypaper.project.activeLayer.importSVG(img_src, {
             expandShapes: true,
             onLoad: function (svgitem, data) {
                 var wscale = parseFloat(mypaper.canvas.offsetWidth) / svgitem.bounds.width;
@@ -68,6 +68,8 @@ function loadSlide() {
                     parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
+                assignDataIDs(svgitem);
+                console.log(scene);
                 showHiddenItems(svgitem);
             }
         });
@@ -84,6 +86,18 @@ function loadSlide() {
     }
 };
 
+function assignDataIDs(item, id) {
+    if (!id) id = 0;
+    item.data.id = id;
+    id += 1;
+    if (item.children) {
+        for (var i = 0; i < item.children.length; i++) {
+            id = assignDataIDs(item.children[i], id);
+        }
+    }
+    return id;
+};
+
 function showHiddenItems(item) {
     if (!item.visible) {
         if (item.className == 'PointText') {
@@ -93,12 +107,40 @@ function showHiddenItems(item) {
             item.opacity = 0.3;
             item.visible = true;
         }
+        item.data.isHidden = true;
+        item.onDoubleClick = toggleReveal;
+
+    }
+    else {
+        item.data.isHidden = false;
     }
     if (item.children) {
         for (var i = 0; i < item.children.length; i++) {
             showHiddenItems(item.children[i]);
         }
     }
+};
+
+function toggleReveal(event) {
+    if (this.data.isHidden) {
+        this.data.isHidden = false;
+        if (this.className == 'PointText') {
+            this.fillColor.alpha = 1.0;
+        }
+        else {
+            this.opacity = 1.0;
+        }
+    } else {
+        this.data.isHidden = true;
+        if (this.className == 'PointText') {
+            this.fillColor.alpha = 0.3;        }
+        else {
+            this.opacity = 0.3;
+        }
+    }
+
+    var msg = revealMessage(this);
+    post(msg);
 };
 
 function isBelow(target, query) {
@@ -274,12 +316,16 @@ function pushItemDown(item, rect) {
     if (deltay > 0) {
         expandContainers(item, 0, deltay);
         item.translate(new paper.Point(0, deltay));
+        var msg = moveMessage(item);
+        post(msg);
         var itemsbelow = getItemsBelow(item, scene);
         for (var i = 0; i < itemsbelow.length; i++) {
             pushItemDown(itemsbelow[i], item);
         }
         paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
         paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
+        msg = updateViewSize(paper.view);
+        post(msg);
     }
 };
 
@@ -296,8 +342,12 @@ function expandContainers(item, deltax, deltay) {
                 siblings[i].bounds.bottom = Math.max(siblings[i].bounds.bottom, item.bounds.bottom + deltay + 2.0);
                 siblings[i].bounds.right = Math.max(siblings[i].bounds.right, item.bounds.right + deltax + 2.0);
 
+                var msg = moveMessage(siblings[i]);
+                post(msg);
                 paper.view.viewSize.width = Math.max(paper.view.viewSize.width, siblings[i].strokeBounds.right);
                 paper.view.viewSize.height = Math.max(paper.view.viewSize.height, siblings[i].strokeBounds.bottom);
+                msg = updateViewSize(paper.view);
+                post(msg);
             }
         }
         expandContainers(item.parent, deltax, deltay);
@@ -349,8 +399,6 @@ function horiLineContinue(event) {
             var br = currect.strokeBounds.bottomRight;
             var tl = currect.strokeBounds.topLeft;
             var itemsright = getItemsRight(currect, scene);
-            console.log("items to the right: ");
-            console.log(itemsright);
             var scalex = (event.point.x - tl.x) / (br.x - tl.x);
             if (scalex > 1.0) {
                 currect.scale(scalex, 1.0, currect.bounds.topLeft);
@@ -375,21 +423,12 @@ function getItemsRight(rect, parent) {
     if (!parent.children) return [];
     var items = parent.children;
     var itemsright = [];
-    // console.log("parent");
-    // console.log(parent);
-    // console.log("rect.bounds.left");
-    // console.log(rect.bounds.left);
     for (var i = 0; i < items.length; i++) {
         var item = items[i];
         if (areaRight.bounds.intersects(item.bounds)) {
-            // console.log("item");
-            // console.log(item);
-            // console.log("item.bounds.left");
-            // console.log(item.bounds.left);
             if (rect.bounds.left < item.bounds.left) {
                 itemsright.push(item);
             } else {
-                // item.selected = true;
                 itemsright.push.apply(itemsright, getItemsRight(rect, item));
             }
         }
@@ -404,10 +443,16 @@ function pushItemRight(item, rect) {
     if (deltax > 0) {
         expandContainers(item, deltax, 0);
         item.translate(new paper.Point(deltax, 0));
+        var msg = moveMessage(item);
+        post(msg);
         var itemsright = getItemsRight(item, scene);
         for (var i = 0; i < itemsright.length; i++) {
             pushItemRight(itemsright[i], item);
         }
+        paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
+        paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
+        msg = updateViewSize(paper.view);
+        post(msg);
     }
 };
 
@@ -431,4 +476,80 @@ function activateTargetListener() {
 
 function popupAudienceView() {
     awindow = window.open('audienceview.html', 'Audience View');
+    /**
+     * Connect to the audience view window through a postmessage handshake.
+     * Using postmessage enables us to work in situations where the
+     * origins differ, such as a presentation being opened from the
+     * file system.
+     */
+    function connect() {
+        // Keep trying to connect until we get a 'connected' message back
+        var connectInterval = setInterval( function() {
+            awindow.postMessage( JSON.stringify( {
+                namespace: 'liveprez',
+                type: 'connect',
+                url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+                state: getState()
+            } ), '*' );
+        }, 500 );
+
+        window.addEventListener( 'message', function( event ) {
+            var data = JSON.parse( event.data );
+            if( data && data.namespace === 'audience' && data.type === 'connected' ) {
+                clearInterval( connectInterval );
+                onConnected();
+            }
+        } );
+    }
+
+    function onConnected() {
+        console.log("connected");
+    }
+
+    connect();
 };
+
+function getState() {
+    return JSON.stringify(scene);
+};
+
+function post(msg) {
+    if (awindow)
+        awindow.postMessage( msg, '*' );
+};
+
+function revealMessage(item) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'toggle-reveal',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        item: item.data.id
+    } );
+    return msg;
+};
+
+function moveMessage(item) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'move-item',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        item: item.data.id,
+        top: item.bounds.top,
+        left: item.bounds.left,
+        bottom: item.bounds.bottom,
+        right: item.bounds.right
+    } );
+    return msg;
+};
+
+function updateViewSize(view) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'update-view',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        width: view.viewSize.width,
+        height: view.viewSize.height
+    } );
+    return msg;
+};
+
