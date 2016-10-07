@@ -49,6 +49,13 @@ function setupSlideCanvas() {
     horitool.onMouseUp = horiLineEnd;
     mypaper.horitool = horitool;
 
+    // Drawing tool
+    var drawtool = new mypaper.Tool();
+    drawtool.onMouseDown = drawStart;
+    drawtool.onMouseDrag = drawContinue;
+    drawtool.onMouseUp = drawEnd;
+    mypaper.drawtool = drawtool;
+
     // Load Slide Image
    loadSlide();
 };
@@ -194,32 +201,20 @@ function SceneBox(item) {
 
 function makeVerticalSpace() {
     deactivateTargetListener();
-    var slides = document.querySelectorAll('.slide-container');
-    for (var i = 0; i < slides.length; i++) {
-        slides[i].paper.verttool.activate();
-    }
+    mypaper.verttool.activate();
 };
 
 function makeHorizontalSpace() {
     deactivateTargetListener();
-    var slides = document.querySelectorAll('.slide-container');
-    for (var i = 0; i < slides.length; i++) {
-        slides[i].paper.horitool.activate();
-    }
+    mypaper.horitool.activate();
 };
 
 function activateDefaultTool() {
-    var slides = document.querySelectorAll('.slide-container');
-    for (var i = 0; i < slides.length; i++) {
-        slides[i].paper.defaulttool.activate();
-    }
+    mypaper.defaulttool.activate();
 };
 
-function activateExpandVertTool() {
-    var slides = document.querySelectorAll('.slide-container');
-    for (var i = 0; i < slides.length; i++) {
-        slides[i].paper.expandverttool.activate();
-    }
+function activateDrawTool() {
+    mypaper.drawtool.activate();
 };
 
 
@@ -285,7 +280,7 @@ function vertLineContinue(event) {
 function vertLineEnd(event) {
     startexpand = false;
     currect = null;
-    activateDefaultTool();
+    activateDrawTool();
 };
 
 /** Get descendant items of parent that is strictly below rectangle**/
@@ -413,7 +408,7 @@ function horiLineContinue(event) {
 function horiLineEnd(event) {
     startexpand = false;
     currect = null;
-    activateDefaultTool();
+    activateDrawTool();
 };
 
 function getItemsRight(rect, parent) {
@@ -553,3 +548,18 @@ function updateViewSize(view) {
     return msg;
 };
 
+var curstroke;
+function drawStart(event) {
+    curstroke = new paper.Path();
+    curstroke.strokeWidth = 2;
+    curstroke.strokeColor = 'red';
+    curstroke.add(event.point);
+};
+
+function drawContinue(event) {
+    curstroke.add(event.point);
+};
+
+function drawEnd(event) {
+    curstroke.add(event.point);
+};
