@@ -12,6 +12,8 @@ window.addEventListener('message', function(event) {
     if (data && data.namespace === 'liveprez') {
         if (data.type === 'connect') {
             handleConnectMessage(data);
+        } else if (data.type === 'slide-change') {
+            handleSlideChangeMessage(data);
         } else if (data.type === 'toggle-reveal') {
             handleToggleRevealMessage(data);
         } else if (data.type === 'move-item') {
@@ -20,6 +22,8 @@ window.addEventListener('message', function(event) {
             handleUpdateViewMessage(data);
         } else if (data.type === 'draw') {
             handleDrawMessage(data);
+        } else if (data.type === 'release-target') {
+            handleReleaseTargetMessage(data);
         }
 
     }
@@ -58,11 +62,15 @@ function handleConnectMessage(data) {
         connected = true;
     }
     window.opener.postMessage(JSON.stringify({namespace: 'audience', type: 'connected'}), '*');
-    aslide = apaper.project.activeLayer.importJSON(data.state);
-    console.log(aslide);
-    hideItems(aslide);
+    handleSlideChangeMessage(data);
 };
 
+
+function handleSlideChangeMessage(data) {
+    apaper.project.activeLayer.clear();
+    aslide = apaper.project.activeLayer.importJSON(data.state);
+    hideItems(aslide);
+};
 
 function handleToggleRevealMessage(data) {
     var itemname = data.item;
@@ -110,6 +118,13 @@ function handleUpdateViewMessage(data) {
     apaper.view.viewSize.height = data.height;
 };
 
+var curtargetitem;
 function handleDrawMessage(data) {
-    item = apaper.project.activeLayer.importJSON(data.content);
+    // Remove current items
+    if (curtargetitem) curtargetitem.remove();
+    curtargetitem = apaper.project.activeLayer.importJSON(data.content);
 };
+
+function handleReleaseTargetMessage(data) {
+    curtargetitem = null;
+}

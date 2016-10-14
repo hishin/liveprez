@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   viewBox="0 0 762.32001 570.65002"
+   id="svg2"
+   height="570.65002mm"
+   width="762.32001mm"
+   version="1.0">
+  <metadata
+     id="metadata35">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4">
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern" />
+  </defs>
+  <text
+     id="text9"
+     y="118.48836"
+     x="187.13397"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:53.60458374px;line-height:125%;font-family:Helvetica;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+     xml:space="preserve"><tspan
+       id="tspan11"
+       y="118.48836"
+       x="187.13397"><tspan
+         id="tspan13"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:53.60458374px;font-family:Helvetica;fill:#000000"
+         dy="0"
+         dx="0">Current Practice</tspan></tspan></text>
+  <text
+     id="text15"
+     y="556.21912"
+     x="376.64871"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:13.3702774px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+     xml:space="preserve"><tspan
+       id="tspan17"
+       y="556.21912"
+       x="376.64871"><tspan
+         id="tspan19"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:13.3702774px;font-family:Arial;fill:#000000"
+         dy="0"
+         dx="0">2</tspan></tspan></text>
+  <g
+     id="g3363">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="96.471504"
+       y="332.49591"
+       id="text21"><tspan
+         x="96.471504"
+         y="332.49591"
+         id="tspan23"><tspan
+           dx="0"
+           dy="0"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;font-family:Arial;fill:#000000"
+           id="tspan25">Slides and blackboards are the most </tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       x="96.471504"
+       y="369.72665"
+       id="text27"><tspan
+         x="96.471504"
+         y="369.72665"
+         id="tspan29"><tspan
+           dx="0"
+           dy="0"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;font-family:Arial;fill:#000000"
+           id="tspan31">widely used tools for presentation.</tspan></tspan></text>
+  </g>
+</svg>

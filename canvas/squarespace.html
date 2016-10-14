@@ -8,22 +8,32 @@
     <title>Speaker View</title>
 </head>
 <body>
-<div class="col-md-8">
-    <div class="col-md-3" >
+
+    <div class="container col-md-12">
         <nav class="">
-        <button type="button" class="btn btn-default" onclick="makeVerticalSpace()"><i
-                class="glyphicon glyphicon-option-horizontal"></i> Insert Line</button>
+            <button type="button" class="btn btn-default" onclick="makeVerticalSpace()"><i
+                    class="glyphicon glyphicon-option-horizontal"></i> Insert Line</button>
 
-        <button type="button" class="btn btn-default" onclick="makeHorizontalSpace()"><i
-                class="glyphicon glyphicon-option-vertical"></i> Insert Column</button>
-        <button type="button" class="btn btn-default" onclick="popupAudienceView()"><i class="glyphicon glyphicon-play"> Present</i></button>
+            <button type="button" class="btn btn-default" onclick="makeHorizontalSpace()"><i
+                    class="glyphicon glyphicon-option-vertical"></i> Insert Column</button>
+            <button type="button" class="btn btn-default" onclick="popupAudienceView()"><i class="glyphicon glyphicon-play"> Present</i></button>
 
-        <button type="button" class="btn btn-default" onclick="activateDefaultTool()"><i class="glyphicon glyphicon-check">Done</i></button>
+            <button type="button" class="btn btn-default" onclick="doneDrawing()"><i class="glyphicon glyphicon-check">Done</i></button>
         </nav>
 
 
         <select id="slide-src" onchange="loadSlide()">
-
+            <option value="samplepresentations/cggar/Slide7.svg">CGGAR-Slide 7</option>
+            <option value="samplepresentations/cggar/Slide14.svg">CGGAR-Slide 11</option>
+            <option value="samplepresentations/cggar/Slide10.svg">CGGAR-Slide 8</option>
+            <option value="samplepresentations/cggar/Slide1.svg">CGGAR-Slide 1</option>
+            <option value="samplepresentations/cggar/Slide2.svg">CGGAR-Slide 2</option>
+            <option value="samplepresentations/cggar/Slide3.svg">CGGAR-Slide 3</option>
+            <option value="samplepresentations/cggar/Slide4.svg">CGGAR-Slide 4</option>
+            <option value="samplepresentations/cggar/Slide5.svg">CGGAR-Slide 5</option>
+            <option value="samplepresentations/cggar/Slide6.svg">CGGAR-Slide 6</option>
+            <option value="samplepresentations/cggar/Slide11.svg">CGGAR-Slide 9
+            <option value="samplepresentations/cggar/Slide12.svg">CGGAR-Slide 10</option>
             <option value="samplepresentations/KeepinItReal/Slide1.svg">KeepinItReal-Slide 1</option>
             <option value="samplepresentations/KeepinItReal/Slide2.svg">KeepinItReal-Slide 2</option>
             <option value="samplepresentations/KeepinItReal/Slide3.svg">KeepinItReal-Slide 3</option>
@@ -40,18 +50,14 @@
             <option value="samplepresentations/siggraph2016/Slide8.svg">SIGGRAPH2016-Slide 8</option>
             <option value="samplepresentations/filters/Slide9.svg">Fliters-Slide 9</option>
             <option value="samplepresentations/other/Slide1.svg">Other-Slide 9</option>
-
-
         </select>
-
     </div>
 
-    <div class="container col-md-9" style="position:relative;">
-        <div class="slide-container" id="slide" style="left:50px; top:50px;">
+
+    <div class="container col-md-12" style="position:relative;">
+        <div class="slide-container" id="slide" style="left:10px; top:10px;">
         </div>
     </div>
-</div>
-
 
 
 

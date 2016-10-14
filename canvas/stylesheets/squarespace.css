@@ -6,9 +6,9 @@ html, body {
 }
 
 .slide-container {
-    width: 740px;
-    height: 560px;
-    overflow: scroll;
+    width: 410px;
+    height: 310px;
+    overflow: auto;
 }
 
 h1 {
@@ -19,9 +19,9 @@ h1 {
 .slide-container {
 
     position: relative;
-    /*target-shadow: 0 0 30px grey;*/
     margin: 0 auto;
     background: white;
+    border: 1px solid black;
     /*padding-bottom: 50px;*/
 
 
@@ -35,8 +35,8 @@ h1 {
 }
 
 canvas {
-    width: 720px;
-    height: 540px;
+    width: 400px;
+    height: 300px;
     z-index: 100;
 }
 
