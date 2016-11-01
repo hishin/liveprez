@@ -73,10 +73,13 @@ function loadSlide() {
                 svgitem.scale(wscale, hscale);
                 var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
-                scene = svgitem;
-                assignDataIDs(svgitem);
+                scene =svgitem;
                 console.log(scene);
+                assignDataIDs(svgitem);
                 showHiddenItems(svgitem);
+
+                var msg = slideChangeMessage();;
+                post(msg);
             }
         });
     }
@@ -90,10 +93,15 @@ function loadSlide() {
             parseFloat(contentbox.style.top) - raster.bounds.top);
         raster.translate(delta);
     }
+
 };
 
+var curid;
 function assignDataIDs(item, id) {
-    if (!id) id = 0;
+    if (!id) {
+        id = 0;
+        curid = 0;
+    }
     item.data.id = id;
     id += 1;
     if (item.children) {
@@ -101,6 +109,7 @@ function assignDataIDs(item, id) {
             id = assignDataIDs(item.children[i], id);
         }
     }
+    curid++;
     return id;
 };
 
@@ -115,6 +124,8 @@ function showHiddenItems(item) {
         }
         item.data.isHidden = true;
         item.onDoubleClick = toggleReveal;
+        item.onClick = inkOver;
+
     }
     else {
         item.data.isHidden = false;
@@ -126,25 +137,42 @@ function showHiddenItems(item) {
     }
 };
 
-function toggleReveal(event) {
-    if (this.data.isHidden) {
-        this.data.isHidden = false;
-        if (this.className == 'PointText') {
-            this.fillColor.alpha = 1.0;
+var timer;
+function inkOver(event) {
+    console.log(event.modifiers.control);
+    if (event.modifiers.control) {
+        toggleReveal(this);
+    } else {
+        // highlight a rectangle over the boundary of this item
+        // assign target rect and activate draw tool
+        currect = new paper.Path.Rectangle(this.bounds);
+        currect.strokeColor = '#3366ff';
+        currect.dashArray = [5, 3];
+        currect.strokeWidth = 2;
+        curtargetrect = this.bounds;
+        activateDrawTool();
+    }
+};
+
+function toggleReveal(item) {
+    if (item.data.isHidden) {
+        item.data.isHidden = false;
+        if (item.className == 'PointText') {
+            item.fillColor.alpha = 1.0;
         }
         else {
-            this.opacity = 1.0;
+            item.opacity = 1.0;
         }
     } else {
-        this.data.isHidden = true;
-        if (this.className == 'PointText') {
-            this.fillColor.alpha = 0.3;        }
+        item.data.isHidden = true;
+        if (item.className == 'PointText') {
+            item.fillColor.alpha = 0.3;        }
         else {
-            this.opacity = 0.3;
+            item.opacity = 0.3;
         }
     }
 
-    var msg = revealMessage(this);
+    var msg = revealMessage(item);
     post(msg);
 };
 
@@ -207,7 +235,10 @@ function makeHorizontalSpace() {
     mypaper.horitool.activate();
 };
 
+
+
 function activateDefaultTool() {
+    deactivateTargetListener();
     mypaper.defaulttool.activate();
 };
 
@@ -215,6 +246,29 @@ function activateDrawTool() {
     mypaper.drawtool.activate();
 };
 
+function doneDrawing() {
+  // erase target rect from canvas if present
+    if (currect) {
+        currect.remove();
+        currect = null;
+    }
+    if (curtargetrect) {
+        var fititem = fitItemsToRect(curtargetitems, curtargetrect);
+        for (var i = 0; i < curtargetitems.length; i++) {
+            curtargetitems[i].remove();
+        }
+        curtargetitems = [];
+        scene.addChild(fititem);
+        assignDataIDs(fititem, curid);
+        var msg = drawMessage(fititem);
+        post(msg);
+
+    }
+    // clear curtargetstrokes in audience view
+    var msg = releaseTargetMessage();
+    post(msg);
+    activateDefaultTool();
+};
 
 var curline;
 var startp;
@@ -277,7 +331,8 @@ function vertLineContinue(event) {
 
 function vertLineEnd(event) {
     startexpand = false;
-    currect = null;
+    if (currect)
+        curtargetrect = currect.bounds;
     activateDrawTool();
 };
 
@@ -405,7 +460,9 @@ function horiLineContinue(event) {
 
 function horiLineEnd(event) {
     startexpand = false;
-    currect = null;
+    if (currect) {
+        curtargetrect = currect.bounds;
+    }
     activateDrawTool();
 };
 
@@ -511,6 +568,26 @@ function post(msg) {
         awindow.postMessage( msg, '*' );
 };
 
+function releaseTargetMessage() {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'release-target',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search
+    } );
+    return msg;
+};
+
+function slideChangeMessage() {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'slide-change',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        state: getState()
+    } );
+    return msg;
+
+};
+
 function revealMessage(item) {
     var msg = JSON.stringify( {
         namespace: 'liveprez',
@@ -546,18 +623,77 @@ function updateViewSize(view) {
     return msg;
 };
 
+function drawMessage(item) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'draw',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        content: JSON.stringify(item)
+    } );
+    return msg;
+};
+
 var curstroke;
+var curtargetrect;
+var curtargetitems = [];
 function drawStart(event) {
     curstroke = new paper.Path();
-    curstroke.strokeWidth = 2;
-    curstroke.strokeColor = 'red';
     curstroke.add(event.point);
+    curstroke.strokeWidth = 2;
+    curstroke.strokeColor = '#45a4fc';
 };
 
 function drawContinue(event) {
     curstroke.add(event.point);
+    curstroke.smooth();
 };
 
 function drawEnd(event) {
     curstroke.add(event.point);
+    curtargetitems.push(curstroke);
+    var fititem = fitItemsToRect(curtargetitems, curtargetrect); //cloned and fit items
+    var msg = drawMessage(fititem);
+    fititem.remove();
+    post(msg);
+};
+
+function fitItemsToRect(items, rect) {
+    var group = new paper.Group();
+    for (var i = 0; i < items.length; i++) {
+        group.addChild(items[i].clone());
+    }
+
+    // scale items to fit rect
+    var scale = 1.0;
+    var origtop = group.bounds.top;
+    var origleft = group.bounds.left;
+    if (group.bounds.width > rect.width || group.bounds.height > rect.height) {
+        scale = Math.min(rect.width/group.bounds.width, rect.height/group.bounds.height);
+        group.scale(scale);
+        // scale back to original top-left corner of group
+        group.translate(origleft - group.bounds.left, origtop - group.bounds.top);
+    }
+
+    // move item if necessary
+    var delta;
+    if (group.bounds.left < rect.left) {
+        delta = new paper.Point(rect.left - group.bounds.left, 0);
+        group.translate(delta);
+    }
+
+    if (group.bounds.top < rect.top) {
+        delta = new paper.Point(0, rect.top - group.bounds.top);
+        group.translate(delta);
+    }
+
+    if (group.bounds.right > rect.right) {
+        delta = new paper.Point(rect.right - group.bounds.right, 0);
+        group.translate(delta);
+    }
+
+    if (group.bounds.bottom > rect.bottom) {
+        delta = new paper.Point(0, rect.bottom - group.bounds.bottom);
+        group.translate(delta);
+    }
+    return group;
 };
