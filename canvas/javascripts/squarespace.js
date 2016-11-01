@@ -71,8 +71,7 @@ function loadSlide() {
                 var wscale = parseFloat(mypaper.canvas.offsetWidth) / svgitem.bounds.width;
                 var hscale = parseFloat(mypaper.canvas.offsetHeight) / svgitem.bounds.height;
                 svgitem.scale(wscale, hscale);
-                var delta = new paper.Point(parseFloat(mypaper.canvas.offsetLeft) - svgitem.bounds.left,
-                    parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
+                var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene = svgitem;
                 assignDataIDs(svgitem);
@@ -116,7 +115,6 @@ function showHiddenItems(item) {
         }
         item.data.isHidden = true;
         item.onDoubleClick = toggleReveal;
-
     }
     else {
         item.data.isHidden = false;

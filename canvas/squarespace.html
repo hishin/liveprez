@@ -8,54 +8,48 @@
     <title>Speaker View</title>
 </head>
 <body>
-<div class="col-md-8">
-    <div class="col-md-3" >
-        <nav class="">
-        <button type="button" class="btn btn-default" onclick="makeVerticalSpace()"><i
-                class="glyphicon glyphicon-option-horizontal"></i> Insert Line</button>
+<div class="container">
+    <div class="row" id="div-menus">
+        <div class="col-md-12">
+            <button type="button" class="btn btn-default" onclick="makeVerticalSpace()"><i
+                    class="glyphicon glyphicon-option-horizontal"></i> Insert Line
+            </button>
 
-        <button type="button" class="btn btn-default" onclick="makeHorizontalSpace()"><i
-                class="glyphicon glyphicon-option-vertical"></i> Insert Column</button>
-        <button type="button" class="btn btn-default" onclick="popupAudienceView()"><i class="glyphicon glyphicon-play"> Present</i></button>
+            <button type="button" class="btn btn-default" onclick="makeHorizontalSpace()"><i
+                    class="glyphicon glyphicon-option-vertical"></i> Insert Column
+            </button>
+            <button type="button" class="btn btn-default" onclick="popupAudienceView()"><i
+                    class="glyphicon glyphicon-play"> Present</i></button>
+            <select id="slide-src" onchange="loadSlide()">
+                <option value="samplepresentations/KeepinItReal/Slide1.svg">KeepinItReal-Slide 1</option>
+                <option value="samplepresentations/KeepinItReal/Slide2.svg">KeepinItReal-Slide 2</option>
+                <option value="samplepresentations/KeepinItReal/Slide3.svg">KeepinItReal-Slide 3</option>
+                <option value="samplepresentations/KeepinItReal/Slide4.svg">KeepinItReal-Slide 4</option>
+                <option value="samplepresentations/KeepinItReal/Slide5.svg">KeepinItReal-Slide 5</option>
+                <option value="samplepresentations/KeepinItReal/Slide6.svg">KeepinItReal-Slide 6</option>
+                <option value="samplepresentations/KeepinItReal/Slide7.svg">KeepinItReal-Slide 7</option>
+                <option value="samplepresentations/KeepinItReal/Slide8.svg">KeepinItReal-Slide 8</option>
+                <option value="samplepresentations/KeepinItReal/Slide10.svg">KeepinItReal-Slide 10</option>
+                <option value="samplepresentations/KeepinItReal/Slide11.svg">KeepinItReal-Slide 11</option>
+                <option value="samplepresentations/KeepinItReal/Slide12.svg">KeepinItReal-Slide 12</option>
+                <option value="samplepresentations/KeepinItReal/Slide13.svg">KeepinItReal-Slide 13</option>
+                <option value="samplepresentations/KeepinItReal/Slide14.svg">KeepinItReal-Slide 14</option>
+                <option value="samplepresentations/siggraph2016/Slide8.svg">SIGGRAPH2016-Slide 8</option>
+                <option value="samplepresentations/filters/Slide9.svg">Fliters-Slide 9</option>
+                <option value="samplepresentations/other/Slide1.svg">Other-Slide 9</option>
+            </select>
 
-        </nav>
-
-
-        <select id="slide-src" onchange="loadSlide()">
-
-            <option value="samplepresentations/KeepinItReal/Slide1.svg">KeepinItReal-Slide 1</option>
-            <option value="samplepresentations/KeepinItReal/Slide2.svg">KeepinItReal-Slide 2</option>
-            <option value="samplepresentations/KeepinItReal/Slide3.svg">KeepinItReal-Slide 3</option>
-            <option value="samplepresentations/KeepinItReal/Slide4.svg">KeepinItReal-Slide 4</option>
-            <option value="samplepresentations/KeepinItReal/Slide5.svg">KeepinItReal-Slide 5</option>
-            <option value="samplepresentations/KeepinItReal/Slide6.svg">KeepinItReal-Slide 6</option>
-            <option value="samplepresentations/KeepinItReal/Slide7.svg">KeepinItReal-Slide 7</option>
-            <option value="samplepresentations/KeepinItReal/Slide8.svg">KeepinItReal-Slide 8</option>
-            <option value="samplepresentations/KeepinItReal/Slide10.svg">KeepinItReal-Slide 10</option>
-            <option value="samplepresentations/KeepinItReal/Slide11.svg">KeepinItReal-Slide 11</option>
-            <option value="samplepresentations/KeepinItReal/Slide12.svg">KeepinItReal-Slide 12</option>
-            <option value="samplepresentations/KeepinItReal/Slide13.svg">KeepinItReal-Slide 13</option>
-            <option value="samplepresentations/KeepinItReal/Slide14.svg">KeepinItReal-Slide 14</option>
-            <option value="samplepresentations/siggraph2016/Slide8.svg">SIGGRAPH2016-Slide 8</option>
-            <option value="samplepresentations/filters/Slide9.svg">Fliters-Slide 9</option>
-            <option value="samplepresentations/other/Slide1.svg">Other-Slide 9</option>
-
-
-        </select>
-
+        </div>
     </div>
+    <div class="row" id="div-main">
+        <div class="col-md-8" id="div-slide">
+            <div id="slide"></div>
+        </div>
+        <div class="col-md-4" id="div-notes">
 
-    <div class="container col-md-9" style="position:relative;">
-        <div class="slide-container" id="slide" style="left:50px; top:50px;">
         </div>
     </div>
 </div>
-
-
-
-
-
-
 
 <script src="javascripts/squarespace.js"></script>
 </body>

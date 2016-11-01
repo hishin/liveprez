@@ -5,38 +5,28 @@ html, body {
     padding: 0px;
 }
 
-.slide-container {
-    width: 740px;
-    height: 560px;
-    overflow: scroll;
+#div-menus {
+    background-color: #CFCBCA;
 }
 
-h1 {
-    text-align: center;
-    margin-bottom: 50px;
+#div-main {
+    background-color: #FFFFFF;
+    border-right: 3px solid #CFCBCA;
+    border-left: 3px solid #CFCBCA;
 }
 
-.slide-container {
-
-    position: relative;
-    /*target-shadow: 0 0 30px grey;*/
-    margin: 0 auto;
-    background: white;
-    /*padding-bottom: 50px;*/
-
-
-}
-
-.slide {
-    /*width: 100%;*/
-    /*height: 100%;*/
-    display: inline-block;
-    border: 1px solid darkred;
+#slide {
+    box-sizing: content-box;
+    width: 720px;
+    height: 540px;
+    /*overflow: scroll;*/
 }
 
 canvas {
+    box-sizing: content-box;
     width: 720px;
     height: 540px;
+    border: 5px solid #d18282;
     z-index: 100;
 }
 
@@ -52,13 +42,6 @@ canvas {
 
 .content.notvis {
     visibility: hidden;
-}
-
-
-.menu {
-    list-style: none;
-    margin: 0;
-    padding: 0;
 }
 
 .btn {
