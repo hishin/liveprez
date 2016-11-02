@@ -123,27 +123,7 @@ function showHiddenItems(item) {
             item.visible = true;
         }
         item.data.isHidden = true;
-        item.onDoubleClick = toggleReveal;
 
-
-        console.log('item.classname');
-        console.log(item.className);
-        console.log(item.image);
-        console.log(item.width);
-        // item.border = new paper.Path.Rectangle(item.bounds);
-        // console.log("item.width");
-        // console.log(item.width);
-        console.log("item.size");
-        console.log(item.size);
-        console.log(parseInt(item.size.width));
-        console.log('item');
-        console.log(item);
-        console.log("item-bounds");
-        console.log(item.bounds);
-        console.log(item.bounds.width);
-        // item.border.strokeColor = 'red';
-        // item.border.dashArray = [3,5];
-        // item.moveAbove(item.border);
 
     }
     else {
