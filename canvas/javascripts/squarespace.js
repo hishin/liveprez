@@ -71,8 +71,7 @@ function loadSlide() {
                 var wscale = parseFloat(mypaper.canvas.offsetWidth) / svgitem.bounds.width;
                 var hscale = parseFloat(mypaper.canvas.offsetHeight) / svgitem.bounds.height;
                 svgitem.scale(wscale, hscale);
-                var delta = new paper.Point(parseFloat(mypaper.canvas.offsetLeft) - svgitem.bounds.left,
-                    parseFloat(mypaper.canvas.offsetTop) - svgitem.bounds.top);
+                var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene =svgitem;
                 console.log(scene);
@@ -124,8 +123,27 @@ function showHiddenItems(item) {
             item.visible = true;
         }
         item.data.isHidden = true;
-        // item.onDoubleClick = toggleReveal;
-        item.onClick = inkOver;
+        item.onDoubleClick = toggleReveal;
+
+
+        console.log('item.classname');
+        console.log(item.className);
+        console.log(item.image);
+        console.log(item.width);
+        // item.border = new paper.Path.Rectangle(item.bounds);
+        // console.log("item.width");
+        // console.log(item.width);
+        console.log("item.size");
+        console.log(item.size);
+        console.log(parseInt(item.size.width));
+        console.log('item');
+        console.log(item);
+        console.log("item-bounds");
+        console.log(item.bounds);
+        console.log(item.bounds.width);
+        // item.border.strokeColor = 'red';
+        // item.border.dashArray = [3,5];
+        // item.moveAbove(item.border);
 
     }
     else {
@@ -140,7 +158,7 @@ function showHiddenItems(item) {
 
 var timer;
 function inkOver(event) {
-    console.log(event.modifiers.control);
+    // console.log(event.modifiers.control);
     if (event.modifiers.control) {
         toggleReveal(this);
     } else {
@@ -155,8 +173,9 @@ function inkOver(event) {
     }
 };
 
-function toggleReveal(item) {
-    if (item.data.isHidden) {
+function toggleReveal(event) {
+    var item = this;
+    if (item.data && item.data.isHidden) {
         item.data.isHidden = false;
         if (item.className == 'PointText') {
             item.fillColor.alpha = 1.0;
@@ -164,13 +183,17 @@ function toggleReveal(item) {
         else {
             item.opacity = 1.0;
         }
-    } else {
+    } else if (item.data && !item.data.isHidden){
         item.data.isHidden = true;
         if (item.className == 'PointText') {
             item.fillColor.alpha = 0.3;        }
         else {
             item.opacity = 0.3;
         }
+    }
+    else {
+        console.log(item);
+        return;
     }
 
     var msg = revealMessage(item);
