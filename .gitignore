@@ -12,5 +12,6 @@ fabric.js-1.6.3\
 ExamplePresentations\
 */.idea/*\
 canvas/.idea\
+bib/*\
 samplepresentations/*.pptx\
 samplepresentations/*/*.pptx}

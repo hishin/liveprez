@@ -9,15 +9,21 @@ var slide;
 var maxy = 5000;
 var maxx = 5000;
 var awindow;
+var canvas;
 
 window.onload = function () {
     // setup paper canvas
     setupSlideCanvas();
+
+    // enable drag and drop
+    enableDnD();
 };
 
 function setupSlideCanvas() {
     slide = document.getElementById('slide');
-    var canvas = document.createElement('canvas');
+    canvas = document.createElement('canvas');
+    canvas.height = 540;
+    canvas.width = 720;
     canvas.setAttribute('id', slide.id.replace('slide', 'canvas'));
     slide.appendChild(canvas);
 
@@ -68,13 +74,12 @@ function loadSlide() {
         mypaper.project.activeLayer.importSVG(img_src, {
             expandShapes: true,
             onLoad: function (svgitem, data) {
-                var wscale = parseFloat(mypaper.canvas.offsetWidth) / svgitem.bounds.width;
-                var hscale = parseFloat(mypaper.canvas.offsetHeight) / svgitem.bounds.height;
+                var wscale = parseFloat(mypaper.canvas.width) / svgitem.bounds.width;
+                var hscale = parseFloat(mypaper.canvas.height) / svgitem.bounds.height;
                 svgitem.scale(wscale, hscale);
                 var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene =svgitem;
-                console.log(scene);
                 assignDataIDs(svgitem);
                 showHiddenItems(svgitem);
 
@@ -232,11 +237,19 @@ function SceneBox(item) {
 function makeVerticalSpace() {
     deactivateTargetListener();
     mypaper.verttool.activate();
+    if (currect) {
+        currect.remove();
+        currect = null;
+    }
 };
 
 function makeHorizontalSpace() {
     deactivateTargetListener();
     mypaper.horitool.activate();
+    if (currect) {
+        currect.remove();
+        currect = null;
+    }
 };
 
 
@@ -337,7 +350,7 @@ function vertLineEnd(event) {
     startexpand = false;
     if (currect)
         curtargetrect = currect.bounds;
-    activateDrawTool();
+    // activateDrawTool();
 };
 
 /** Get descendant items of parent that is strictly below rectangle**/
@@ -365,8 +378,10 @@ function getItemsBelow(rect, parent) {
 
 function pushItemDown(item, rect) {
     var deltay = rect.strokeBounds.bottom - item.bounds.top;
+
     if (deltay > 0) {
         expandContainers(item, 0, deltay);
+
         item.translate(new paper.Point(0, deltay));
         var msg = moveMessage(item);
         post(msg);
@@ -376,6 +391,10 @@ function pushItemDown(item, rect) {
         }
         paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
         paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
+        // Also change canvas size
+        canvas.width = Math.max(canvas.width, paper.view.viewSize.width);
+        canvas.height = Math.max(canvas.height, paper.view.viewSize.height);
+
         msg = updateViewSize(paper.view);
         post(msg);
     }
@@ -467,7 +486,8 @@ function horiLineEnd(event) {
     if (currect) {
         curtargetrect = currect.bounds;
     }
-    activateDrawTool();
+
+    // activateDrawTool();
 };
 
 function getItemsRight(rect, parent) {
@@ -505,6 +525,9 @@ function pushItemRight(item, rect) {
         }
         paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
         paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
+        // Also change canvas size
+        canvas.width = Math.max(canvas.width, paper.view.viewSize.width);
+        canvas.height = Math.max(canvas.height, paper.view.viewSize.height);
         msg = updateViewSize(paper.view);
         post(msg);
     }
@@ -700,4 +723,43 @@ function fitItemsToRect(items, rect) {
         group.translate(delta);
     }
     return group;
+};
+
+function enableDnD() {
+    var images = document.getElementsByClassName('extra-img');
+    for (var i = 0; i < images.length; i++) {
+        images[i].draggable = true;
+        images[i].addEventListener('dragstart', handleDragStart, false);
+    }
+    canvas.addEventListener('dragenter', handleDragEnter, false);
+    canvas.addEventListener('dragover', handleDragOver, false);
+    canvas.addEventListener('drop', handleDrop, false);
+};
+
+function handleDragStart(e) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.src);
+};
+
+function handleDragEnter(e) {
+    console.log("Drag enter");
+    e.preventDefault();
+    return true;
+};
+
+function handleDragOver(e) {
+    console.log("Drag over");
+    e.preventDefault();
+    return true;
+};
+
+function handleDrop(e) {
+    e.preventDefault();
+    if (e.stopPropagation) {
+        e.stopPropagation();
+    }
+
+    var raster = new paper.Raster(e.dataTransfer.getData('text/html'));
+
+
 };
