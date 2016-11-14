@@ -54,6 +54,13 @@ canvas {
     width: 150px;
 }
 
-[draggable] {
-    cursor: move;
+.img-box {
+    display: inline-block;
+}
+.imb-overlay {
+    display: inline-block;
+}
+
+.symbol-insert {
+    position: absolute; 
 }

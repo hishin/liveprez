@@ -738,17 +738,15 @@ function enableDnD() {
 
 function handleDragStart(e) {
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', this.src);
+    e.dataTransfer.setData('text', this.getAttribute('src'));
 };
 
 function handleDragEnter(e) {
-    console.log("Drag enter");
     e.preventDefault();
     return true;
 };
 
 function handleDragOver(e) {
-    console.log("Drag over");
     e.preventDefault();
     return true;
 };
@@ -758,8 +756,6 @@ function handleDrop(e) {
     if (e.stopPropagation) {
         e.stopPropagation();
     }
-
-    var raster = new paper.Raster(e.dataTransfer.getData('text/html'));
-
+    var raster = new paper.Raster(e.dataTransfer.getData('text'));
 
 };
