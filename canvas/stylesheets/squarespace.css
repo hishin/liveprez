@@ -51,16 +51,40 @@ canvas {
 }
 
 .thumbnail {
-    width: 150px;
+    height: 150px;
+    margin: 0;
 }
 
 .img-box {
     display: inline-block;
+    overflow: hidden;
 }
-.imb-overlay {
+
+.img-box:hover .img-overlay{
+    opacity: 1;
+    border: solid dimgrey 5px;
+    cursor: pointer;
+}
+
+.img-box:hover .symbol-insert{
+    opacity: 1;
+}
+
+.img-overlay {
+    border-radius: 5px;
+    border: solid #fff 5px;
     display: inline-block;
+    text-align: center;
+    opacity: 1;
+    -webkit-transition: opacity .25s ease;
 }
 
 .symbol-insert {
-    position: absolute; 
+    position: absolute;
+    font-family: Helvetica;
+    font-weight: 900;
+    color: rgba(0,0,0,.75);
+    opacity: 0;
+    font-size: 90px;
+    margin-left: -25px;
 }

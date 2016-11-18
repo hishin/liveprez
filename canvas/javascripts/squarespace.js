@@ -16,7 +16,7 @@ window.onload = function () {
     setupSlideCanvas();
 
     // enable drag and drop
-    enableDnD();
+    enableInsert();
 };
 
 function setupSlideCanvas() {
@@ -62,6 +62,12 @@ function setupSlideCanvas() {
     drawtool.onMouseUp = drawEnd;
     mypaper.drawtool = drawtool;
 
+    var inserttool = new mypaper.Tool();
+    inserttool.onMouseDown = insertStart;
+    inserttool.onMouseDrag = insertContinue;
+    inserttool.onMouseUp = insertEnd;
+    mypaper.inserttool = inserttool;
+
     // Load Slide Image
    loadSlide();
 };
@@ -83,7 +89,7 @@ function loadSlide() {
                 assignDataIDs(svgitem);
                 showHiddenItems(svgitem);
 
-                var msg = slideChangeMessage();;
+                var msg = slideChangeMessage();
                 post(msg);
             }
         });
@@ -252,7 +258,18 @@ function makeHorizontalSpace() {
     }
 };
 
-
+var selimg;
+function activateInsertTool(event) {
+    console.log("Insert Tool Activated");
+    console.log(event.currentTarget);
+    deactivateTargetListener();
+    mypaper.inserttool.activate();
+    if (currect) {
+        currect.remove();
+        currect = null;
+    }
+    selimg = event.currentTarget.getElementsByTagName('img')[0];
+};
 
 function activateDefaultTool() {
     deactivateTargetListener();
@@ -431,7 +448,7 @@ function compareTop(item1, item2) {
 
 function horiLineStart(event) {
     // get the target slide
-    var canvas = event.event.target;
+    var canvas = event.target;
     curslide = canvas.slide;
     var start = event.point;
     var end = new paper.Point(start.x, start.y+0.1);
@@ -725,37 +742,66 @@ function fitItemsToRect(items, rect) {
     return group;
 };
 
-function enableDnD() {
-    var images = document.getElementsByClassName('extra-img');
+function enableInsert() {
+    var images = document.getElementsByClassName('img-box');
     for (var i = 0; i < images.length; i++) {
-        images[i].draggable = true;
-        images[i].addEventListener('dragstart', handleDragStart, false);
+        images[i].addEventListener('click', activateInsertTool, true);
     }
-    canvas.addEventListener('dragenter', handleDragEnter, false);
-    canvas.addEventListener('dragover', handleDragOver, false);
-    canvas.addEventListener('drop', handleDrop, false);
 };
 
-function handleDragStart(e) {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text', this.getAttribute('src'));
+function insertStart(event) {
+    startp = event.point;
 };
 
-function handleDragEnter(e) {
-    e.preventDefault();
-    return true;
-};
+var hori = false;
+function insertContinue(event) {
+    var endp = event.point;
+    if (!curline) {
+        // check if this is a horizontal line or a vertical line
+        var dx = Math.abs(endp.x - startp.x);
+        var dy = Math.abs(endp.y - startp.y);
+        if (dx > dy) { // its a horizontal line
+            endp = new paper.Point(endp.x, startp.y);
+            curline = new paper.Path.Line(startp, endp);
+            curline.strokeColor = '#3366ff';
+            curline.dashArray = [5, 3];
+            curline.strokeWidth = 2;
+            hori = true;
+        } else if (dx < dy) { // its a vertical line
+            endp = new paper.Point(startp.x, endp.y);
+            curline = new paper.Path.Line(startp, endp);
+            curline.strokeColor = '#3366ff';
+            curline.dashArray = [5, 3];
+            curline.strokeWidth = 2;
+            hori = false;
+        }
+    } else if (curline && !startexpand){
+        if (hori) {
+            endp = new paper.Point(event.point.x, startp.y);
+            // imgw = Math.abs(startp.x - endp.x);
+            // imgposx = Math.min(startp.x, endp.x);
+            // imgposy = startp.y;
+        } else {
+            endp = new paper.Point(startp.x, event.point.y);
+            // imgh = Math.abs(startp.y - endp.y);
+            // imgposx = stratp.x
+            // imgposy = Math.min(startp.y, endp.y);
+        }
+        var linepath = new paper.Path.Line(startp, endp);
+        linepath.strokeColor = '#3366ff';
+        linepath.dashArray = [5, 3];
+        linepath.strokeWidth = 2;
+        curline.remove();
+        curline = linepath;
 
-function handleDragOver(e) {
-    e.preventDefault();
-    return true;
-};
+        // Draw the image
+        
 
-function handleDrop(e) {
-    e.preventDefault();
-    if (e.stopPropagation) {
-        e.stopPropagation();
     }
-    var raster = new paper.Raster(e.dataTransfer.getData('text'));
+
+
+};
+
+function insertEnd(event) {
 
 };
