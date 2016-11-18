@@ -79,6 +79,7 @@ function loadSlide() {
     if (img_type  == 'svg') {
         mypaper.project.activeLayer.importSVG(img_src, {
             expandShapes: true,
+            applyMatrix: true,
             onLoad: function (svgitem, data) {
                 var wscale = parseFloat(mypaper.canvas.width) / svgitem.bounds.width;
                 var hscale = parseFloat(mypaper.canvas.height) / svgitem.bounds.height;
@@ -88,7 +89,6 @@ function loadSlide() {
                 scene =svgitem;
                 assignDataIDs(svgitem);
                 showHiddenItems(svgitem);
-
                 var msg = slideChangeMessage();
                 post(msg);
             }
@@ -134,6 +134,9 @@ function showHiddenItems(item) {
             item.visible = true;
         }
         item.data.isHidden = true;
+        // var bound = new paper.Path.Rectangle(item.bounds);
+        // bound.strokeColor = 'red';
+        // bound.strokeWidth = 2;
 
 
     }
@@ -260,8 +263,6 @@ function makeHorizontalSpace() {
 
 var selimg;
 function activateInsertTool(event) {
-    console.log("Insert Tool Activated");
-    console.log(event.currentTarget);
     deactivateTargetListener();
     mypaper.inserttool.activate();
     if (currect) {
@@ -448,7 +449,7 @@ function compareTop(item1, item2) {
 
 function horiLineStart(event) {
     // get the target slide
-    var canvas = event.target;
+    var canvas = event.event.target;
     curslide = canvas.slide;
     var start = event.point;
     var end = new paper.Point(start.x, start.y+0.1);
@@ -504,7 +505,7 @@ function horiLineEnd(event) {
         curtargetrect = currect.bounds;
     }
 
-    // activateDrawTool();
+    activateDrawTool();
 };
 
 function getItemsRight(rect, parent) {
@@ -579,13 +580,16 @@ function popupAudienceView() {
     function connect() {
         // Keep trying to connect until we get a 'connected' message back
         var connectInterval = setInterval( function() {
-            awindow.postMessage( JSON.stringify( {
-                namespace: 'liveprez',
-                type: 'connect',
-                url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
-                state: getState()
-            } ), '*' );
+            awindow.postMessage( slideChangeMessage(), '*' );
         }, 500 );
+        // var connectInterval = setInterval( function() {
+        //     awindow.postMessage( JSON.stringify( {
+        //         namespace: 'liveprez',
+        //         type: 'connect',
+        //         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        //         state: getState()
+        //     } ), '*' );
+        // }, 500 );
 
         window.addEventListener( 'message', function( event ) {
             var data = JSON.parse( event.data );
@@ -608,8 +612,9 @@ function getState() {
 };
 
 function post(msg) {
-    if (awindow)
+    if (awindow) {
         awindow.postMessage( msg, '*' );
+    }
 };
 
 function releaseTargetMessage() {
@@ -775,33 +780,54 @@ function insertContinue(event) {
             curline.strokeWidth = 2;
             hori = false;
         }
-    } else if (curline && !startexpand){
+    } else if (curline){
+        var imgw, imgh, rectstart, rectend;
         if (hori) {
             endp = new paper.Point(event.point.x, startp.y);
-            // imgw = Math.abs(startp.x - endp.x);
+            imgw = Math.abs(startp.x - endp.x);
+            imgh = imgw * (selimg.naturalHeight/selimg.naturalWidth);
+            rectstart = new paper.Point(Math.min(startp.x, endp.x), startp.y);
+            rectend = new paper.Point(Math.max(startp.x, endp.x), startp.y + imgh);
             // imgposx = Math.min(startp.x, endp.x);
             // imgposy = startp.y;
         } else {
             endp = new paper.Point(startp.x, event.point.y);
-            // imgh = Math.abs(startp.y - endp.y);
-            // imgposx = stratp.x
+            imgh = Math.abs(startp.y - endp.y);
+            imgw = imgh * (selimg.naturalWidth/selimg.naturalHeight);
+            rectstart = new paper.Point(startp.x, Math.min(startp.y, endp.y));
+            rectend = new paper.Point(startp.x + imgw, Math.max(startp.y, endp.y));
+             // imgposx = stratp.x
             // imgposy = Math.min(startp.y, endp.y);
         }
-        var linepath = new paper.Path.Line(startp, endp);
-        linepath.strokeColor = '#3366ff';
-        linepath.dashArray = [5, 3];
-        linepath.strokeWidth = 2;
+        if (currect)
+            currect.remove();
+        currect = new paper.Path.Rectangle(rectstart, rectend);
+        currect.strokeColor = '#3366ff';
+        currect.dashArray = [5,3];
+        currect.strokeWidth = 2;
         curline.remove();
-        curline = linepath;
-
-        // Draw the image
-        
-
+        var itemsbelow = getItemsBelow(currect, scene);
+        for (var i = 0; i < itemsbelow.length ;i++) {
+            pushItemDown(itemsbelow[i], currect);
+        }
+        var itemsright = getItemsRight(currect, scene);
+        for (var i = 0; i < itemsright.length; i++) {
+            pushItemRight(itemsright[i], currect);
+        }
     }
-
-
 };
 
 function insertEnd(event) {
+    // insert the iamge at the currect position
+    var raster = new paper.Raster(selimg.src);
+    var wscale = parseFloat(currect.bounds.width/raster.width);
+    var hscale = parseFloat(currect.bounds.height/raster.height);
+    raster.scale(wscale, hscale);
+    var delta = new paper.Point(parseFloat(currect.bounds.left - raster.bounds.left),
+        parseFloat(currect.bounds.top - raster.bounds.top));
+    raster.translate(delta);
 
+    curline = null;
+    currect.remove();
+    currect = null;
 };

@@ -32,6 +32,8 @@ window.addEventListener('message', function(event) {
 window.onload = function() {
     aslide = document.getElementById('slide');
     var acanvas = document.createElement('canvas');
+    acanvas.height = 540;
+    acanvas.width = 720;
     acanvas.setAttribute('id', aslide.id.replace('slide', 'acanvas'));
     aslide.appendChild(acanvas);
 
@@ -67,7 +69,7 @@ function handleConnectMessage(data) {
 
 
 function handleSlideChangeMessage(data) {
-    apaper.project.activeLayer.clear();
+    apaper.project.clear();
     aslide = apaper.project.activeLayer.importJSON(data.state);
     hideItems(aslide);
 };
