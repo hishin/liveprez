@@ -22,14 +22,16 @@ window.onload = function () {
 function setupSlideCanvas() {
     slide = document.getElementById('slide');
     canvas = document.createElement('canvas');
-    canvas.height = 540;
-    canvas.width = 720;
     canvas.setAttribute('id', slide.id.replace('slide', 'canvas'));
     slide.appendChild(canvas);
 
     mypaper = new paper.PaperScope();
     mypaper.setup(canvas);
 
+    mypaper.view.viewSize.width = 720;
+    mypaper.view.viewSize.height = 540;
+    canvas.height = 540;
+    canvas.width = 720;
     slide.paper = mypaper;
     slide.canvas = canvas;
     canvas.paper = mypaper;
@@ -83,6 +85,9 @@ function loadSlide() {
             onLoad: function (svgitem, data) {
                 var wscale = parseFloat(mypaper.canvas.width) / svgitem.bounds.width;
                 var hscale = parseFloat(mypaper.canvas.height) / svgitem.bounds.height;
+                console.log("wscale = " + wscale);
+                console.log("hscale = " + hscale);
+                console.log("paper.canvas.width = " + mypaper.canvas.width);
                 svgitem.scale(wscale, hscale);
                 var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
