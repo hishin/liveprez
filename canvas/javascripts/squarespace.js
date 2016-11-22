@@ -68,6 +68,12 @@ function setupSlideCanvas() {
     inserttool.onMouseUp = insertEnd;
     mypaper.inserttool = inserttool;
 
+    var revealpen = new mypaper.Tool();
+    revealpen.onMouseDown = revealStart;
+    revealpen.onMouseDrag = revealContinue;
+    revealpen.onMouseUp = revealEnd;
+    mypaper.revealpen = revealpen;
+
     // Load Slide Image
    loadSlide();
 };
@@ -87,6 +93,7 @@ function loadSlide() {
                 var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene =svgitem;
+                console.log(scene);
                 assignDataIDs(svgitem);
                 showHiddenItems(svgitem);
                 var msg = slideChangeMessage();
@@ -280,6 +287,11 @@ function activateDefaultTool() {
 function activateDrawTool() {
     mypaper.drawtool.activate();
 };
+
+function activateRevealPen() {
+    mypaper.revealpen.activate();
+};
+
 
 function doneDrawing() {
   // erase target rect from canvas if present
@@ -706,6 +718,30 @@ function drawEnd(event) {
     post(msg);
 };
 
+var revealpath;
+function revealStart(event) {
+    if (!revealpath)
+        revealpath = new paper.CompoundPath();
+    revealpath.addChild(new paper.Path.Circle({
+        center: event.point,
+        radius: 10
+    }));
+    var group = new paper.Group(revealpath, scene);
+    group.clipped = true;
+
+};
+
+function revealContinue(event) {
+    revealpath.addChild(new paper.Path.Circle({
+        center: event.point,
+        radius: 10
+    }));
+};
+
+function revealEnd(event) {
+
+};
+
 function fitItemsToRect(items, rect) {
     var group = new paper.Group();
     for (var i = 0; i < items.length; i++) {
@@ -831,3 +867,5 @@ function insertEnd(event) {
     currect.remove();
     currect = null;
 };
+
+
