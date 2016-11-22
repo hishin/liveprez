@@ -48,6 +48,7 @@ window.onload = function() {
     apaper.canvas = acanvas;
 };
 
+
 function hideItems(item) {
     if (item.data.isHidden) {
         item.visible = false;

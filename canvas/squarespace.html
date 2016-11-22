@@ -11,10 +11,12 @@
 <div class="container">
     <div class="row" id="div-menus">
         <div class="col-md-12">
+            <button type="button" class="btn btn-default" onclick="makeSpace()">
+                <i class="glyphicon glyphicon-plus"></i>
+            </button>
             <button type="button" class="btn btn-default" onclick="makeVerticalSpace()"><i
                     class="glyphicon glyphicon-option-horizontal"></i> Insert Line
             </button>
-
             <button type="button" class="btn btn-default" onclick="makeHorizontalSpace()"><i
                     class="glyphicon glyphicon-option-vertical"></i> Insert Column
             </button>
@@ -22,6 +24,12 @@
                 <i class="glyphicon glyphicon-pencil"></i> Reveal</button>
             <button type="button" class="btn btn-default" onclick="popupAudienceView()"><i
                     class="glyphicon glyphicon-play"> Present</i></button>
+            <button type="button" class="btn btn-default" onclick="prevSlide()">
+                <i class="glyphicon glyphicon-chevron-left"></i>
+            </button>
+            <button type="button" class="btn btn-default" onclick="nextSlide()">
+                <i class="glyphicon glyphicon-chevron-right"></i>
+            </button>
             <select id="slide-src" onchange="loadSlide()">
                 <option value="samplepresentations/tests/Slide1.svg">Tests-Slide 1</option>
                 <option value="samplepresentations/jobtalk/Slide1.svg">AdobeJobTalk-Slide 1</option>
@@ -50,7 +58,6 @@
                 <option value="samplepresentations/siggraph2016/Slide8.svg">SIGGRAPH2016-Slide 8</option>
                 <option value="samplepresentations/filters/Slide9.svg">Fliters-Slide 9</option>
                 <option value="samplepresentations/other/Slide1.svg">Other-Slide 9</option>
-
             </select>
 
         </div>

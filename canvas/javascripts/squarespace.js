@@ -8,8 +8,11 @@ var mypaper;
 var slide;
 var maxy = 5000;
 var maxx = 5000;
+var TOOL_MIN_DIST = 10;
 var awindow;
 var canvas;
+var curslide;
+
 
 window.onload = function () {
     // setup paper canvas
@@ -40,6 +43,13 @@ function setupSlideCanvas() {
     // Default tool
     var defaulttool = new mypaper.Tool();
     mypaper.defaulttool = defaulttool;
+
+    // Space tool
+    var spacetool = new mypaper.Tool();
+    spacetool.onMouseDown = makeSpaceStart;
+    spacetool.onMouseDrag = makeSpaceContinue;
+    spacetool.onMouseUp = makeSpaceEnd;
+    spacetool.distanceThreshold = TOOL_MIN_DIST;
 
     // Vertical Space tool
     var verttool = new mypaper.Tool();
@@ -75,7 +85,23 @@ function setupSlideCanvas() {
     mypaper.revealpen = revealpen;
 
     // Load Slide Image
-   loadSlide();
+    loadSlide();
+
+};
+
+function prevSlide() {
+    if (curslide > 0) {
+        document.getElementById("slide-src").selectedIndex--;
+        document.getElementById("slide-src").onchange();
+    }
+};
+
+function nextSlide() {
+    var maxpage = document.getElementById("slide-src").length;
+    if (curslide < maxpage - 1) {
+        document.getElementById("slide-src").selectedIndex++;
+        document.getElementById("slide-src").onchange();
+    }
 };
 
 function loadSlide() {
@@ -93,7 +119,6 @@ function loadSlide() {
                 var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
                 scene =svgitem;
-                console.log(scene);
                 assignDataIDs(svgitem);
                 showHiddenItems(svgitem);
                 var msg = slideChangeMessage();
@@ -111,6 +136,7 @@ function loadSlide() {
             parseFloat(contentbox.style.top) - raster.bounds.top);
         raster.translate(delta);
     }
+    curslide = document.getElementById("slide-src").selectedIndex;
 
 };
 
@@ -141,14 +167,18 @@ function showHiddenItems(item) {
             item.visible = true;
         }
         item.data.isHidden = true;
-        // var bound = new paper.Path.Rectangle(item.bounds);
-        // bound.strokeColor = 'red';
-        // bound.strokeWidth = 2;
+
 
 
     }
     else {
         item.data.isHidden = false;
+        // console.log(item);
+        // if (item.className == 'PointText' || item.className == 'Raster') {
+        //     var bound = new paper.Path.Rectangle(item.bounds);
+        //     bound.strokeColor = 'red';
+        //     bound.strokeWidth = 2;
+        // }
     }
     if (item.children) {
         for (var i = 0; i < item.children.length; i++) {
@@ -250,8 +280,17 @@ function SceneBox(item) {
     };
 };
 
+function makeSpace() {
+    // deactivateTargetListener();
+    mypaper.spaceTool.activate();
+    if (currect) {
+        currect.remove();
+        currect = null;
+    }
+};
+
 function makeVerticalSpace() {
-    deactivateTargetListener();
+    // deactivateTargetListener();
     mypaper.verttool.activate();
     if (currect) {
         currect.remove();
@@ -260,7 +299,7 @@ function makeVerticalSpace() {
 };
 
 function makeHorizontalSpace() {
-    deactivateTargetListener();
+    // deactivateTargetListener();
     mypaper.horitool.activate();
     if (currect) {
         currect.remove();
@@ -270,7 +309,7 @@ function makeHorizontalSpace() {
 
 var selimg;
 function activateInsertTool(event) {
-    deactivateTargetListener();
+    // deactivateTargetListener();
     mypaper.inserttool.activate();
     if (currect) {
         currect.remove();
@@ -280,7 +319,7 @@ function activateInsertTool(event) {
 };
 
 function activateDefaultTool() {
-    deactivateTargetListener();
+    // deactivateTargetListener();
     mypaper.defaulttool.activate();
 };
 
@@ -324,6 +363,11 @@ var currect;
 var timeout;
 var startexpand = false;
 
+function makeSpaceStart(){};
+function makeSpaceContinue(){};
+function makeSpaceEnd(){};
+
+
 function vertLineStart(event) {
     // get the target slide
     var canvas = event.event.target;
@@ -354,7 +398,7 @@ function vertLineContinue(event) {
         clearTimeout(timeout);
         if (!currect) {
             var rectstart = curline.strokeBounds.topLeft;
-            var rectend = new paper.Point(curline.strokeBounds.bottomRight.x, curline.strokeBounds.bottomRight.y + 1.0);
+            var rectend = new paper.Point(curline.strokeBounds.bottomRight.x, curline.strokeBounds.bottomRight.y + 0.1);
             curline.remove();
             var rect = new paper.Path.Rectangle(rectstart, rectend);
             rect.strokeColor = '#3366ff';
@@ -567,19 +611,19 @@ function compareLeft(item1, item2) {
     return item1.bounds.left - item2.bounds.left;
 };
 
-function deactivateTargetListener() {
-    var speaker_targets = document.querySelectorAll('.target');
-    for (var i = 0; i < speaker_targets.length; i++) {
-        speaker_targets[i].style.pointerEvents = "none";
-    }
-};
-
-function activateTargetListener() {
-    var speaker_targets = document.querySelectorAll('.target');
-    for (var i = 0; i < speaker_targets.length; i++) {
-        speaker_targets[i].style.pointerEvents = "auto";
-    }
-};
+// function deactivateTargetListener() {
+//     var speaker_targets = document.querySelectorAll('.target');
+//     for (var i = 0; i < speaker_targets.length; i++) {
+//         speaker_targets[i].style.pointerEvents = "none";
+//     }
+// };
+//
+// function activateTargetListener() {
+//     var speaker_targets = document.querySelectorAll('.target');
+//     for (var i = 0; i < speaker_targets.length; i++) {
+//         speaker_targets[i].style.pointerEvents = "auto";
+//     }
+// };
 
 function popupAudienceView() {
     awindow = window.open('audienceview.html', 'Audience View');
