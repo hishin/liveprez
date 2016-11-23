@@ -560,7 +560,7 @@ function horiLineEnd(event) {
     if (currect) {
         curtargetrect = currect.bounds;
     }
-
+    mypaper.project.deselectAll();
     activateDrawTool();
 };
 
@@ -588,9 +588,14 @@ function getItemsRight(rect, parent) {
 
 function pushItemRight(item, rect) {
     var deltax = rect.strokeBounds.right - item.bounds.left;
+    if (!item.boundary) {
+        item.boundary = new paper.Path.Rectangle(item.bounds);
+        item.boundary.selected = true;
+    }
     if (deltax > 0) {
         expandContainers(item, deltax, 0);
         item.translate(new paper.Point(deltax, 0));
+        item.boundary.translate(new paper.Point(deltax, 0));
         var msg = moveMessage(item);
         post(msg);
         var itemsright = getItemsRight(item, scene);
