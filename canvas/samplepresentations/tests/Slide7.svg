@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="762.32001mm"
+   height="570.65002mm"
+   id="svg2"
+   inkscape:version="0.91 r13725"
+   viewBox="0 0 762.32001 570.65002"
+   sodipodi:docname="Slide7.svg">
+  <metadata
+     id="metadata107">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1368"
+     inkscape:window-height="849"
+     id="namedview105"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.32146576"
+     inkscape:cx="1563.2391"
+     inkscape:cy="1010.9941"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <defs
+     id="defs4">
+    <pattern
+       id="EMFhbasepattern"
+       patternUnits="userSpaceOnUse"
+       width="6"
+       height="6"
+       x="0"
+       y="0" />
+  </defs>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:48.64805603px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#0070c0;fill-opacity:1;stroke:none"
+     x="200.0486"
+     y="73.509323"
+     id="text9"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       x="200.0486"
+       y="73.509323"
+       id="tspan11"><tspan
+         dx="0"
+         dy="0"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:48.64805603px;font-family:Arial;fill:#0070c0"
+         id="tspan13">Sorting Algorithms</tspan></tspan></text>
+  <g
+     id="g3435">
+    <text
+       sodipodi:linespacing="125%"
+       id="text15"
+       y="164.59366"
+       x="84.259125"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         id="tspan17"
+         y="164.59366"
+         x="84.259125"
+         sodipodi:role="line"><tspan
+           id="tspan19"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;font-family:Arial;fill:#000000"
+           dy="0"
+           dx="0">•</tspan></tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text21"
+       y="164.59366"
+       x="99.743744"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         id="tspan23"
+         y="164.59366"
+         x="99.743744"
+         sodipodi:role="line"><tspan
+           id="tspan25"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;font-family:Arial;fill:#000000"
+           dy="0"
+           dx="0">There are many sorting algorithms, such as:</tspan></tspan></text>
+  </g>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:none;fill:#000000;fill-opacity:1;stroke:none"
+     x="110.99759"
+     y="202.58595"
+     id="text33"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       x="110.99759"
+       y="202.58595"
+       id="tspan35"><tspan
+         dx="0 0 0"
+         dy="0 0 0"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;font-family:Arial;fill:#000000"
+         id="tspan37">- Selection Sort </tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:none;fill:#000000;fill-opacity:1;stroke:none"
+     x="110.99759"
+     y="239.81673"
+     id="text45"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       x="110.99759"
+       y="239.81673"
+       id="tspan47"><tspan
+         dx="0 0 0"
+         dy="0 0 0"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;font-family:Arial;fill:#000000"
+         id="tspan49">- Insertion Sort</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:none;fill:#000000;fill-opacity:1;stroke:none"
+     x="110.99759"
+     y="277.04749"
+     id="text57"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       x="110.99759"
+       y="277.04749"
+       id="tspan59"><tspan
+         dx="0 0 0"
+         dy="0 0 0"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;font-family:Arial;fill:#000000"
+         id="tspan61">- Bubble Sort</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:none;fill:#000000;fill-opacity:1;stroke:none"
+     x="110.99759"
+     y="314.27826"
+     id="text69"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       x="110.99759"
+       y="314.27826"
+       id="tspan71"><tspan
+         dx="0 0 0"
+         dy="0 0 0"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;font-family:Arial;fill:#000000"
+         id="tspan73">- Merge Sort</tspan></tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:none;fill:#000000;fill-opacity:1;stroke:none"
+     x="110.99758"
+     y="351.50903"
+     id="text81"
+     sodipodi:linespacing="125%"><tspan
+       sodipodi:role="line"
+       x="110.99758"
+       y="351.50903"
+       id="tspan83"><tspan
+         dx="0 0 0"
+         dy="0 0 0"
+         style="font-style:normal;font-variant:normal;font-weight:400;font-size:28.22222137px;font-family:Arial;fill:#000000"
+         id="tspan85">- Quick Sort</tspan></tspan></text>
+  <g
+     id="g3443"
+     style="display:none">
+    <text
+       sodipodi:linespacing="125%"
+       id="text87"
+       y="432.65518"
+       x="84.259125"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         id="tspan89"
+         y="432.65518"
+         x="84.259125"
+         sodipodi:role="line"><tspan
+           id="tspan91"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;font-family:Arial;fill:#000000"
+           dy="0"
+           dx="0">•</tspan></tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text93"
+       y="432.65518"
+       x="99.743744"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         id="tspan95"
+         y="432.65518"
+         x="99.743744"
+         sodipodi:role="line"><tspan
+           id="tspan97"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;font-family:Arial;fill:#000000"
+           dy="0"
+           dx="0">The first three are the foundations for faster </tspan></tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text99"
+       y="466.16287"
+       x="93.778358"
+       style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
+       xml:space="preserve"><tspan
+         id="tspan101"
+         y="466.16287"
+         x="93.778358"
+         sodipodi:role="line"><tspan
+           id="tspan103"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:31.00916672px;font-family:Arial;fill:#000000"
+           dy="0"
+           dx="0">and more efficient algorithms</tspan></tspan></text>
+  </g>
+</svg>

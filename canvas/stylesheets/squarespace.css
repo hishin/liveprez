@@ -11,24 +11,30 @@ html, body {
 
 #div-main {
     background-color: #FFFFFF;
-    border: 3px solid #CFCBCA;
+    /*border: 3px solid #CFCBCA;*/
     padding-top: 10px;
     padding-bottom: 10px;
 }
 
+#div-slide {
+    display: flex;
+}
+
 #slide {
+    display: flex;
     box-sizing: content-box;
     width: 740px;
     height: 560px;
-    /*overflow: scroll;*/
+    overflow: scroll;
 }
 
 canvas {
     box-sizing: content-box;
     /*width: 720px;*/
     /*height: 540px;*/
-    border: 5px solid #d18282;
+    border: 3px solid #CFCBCA;
     z-index: 100;
+    /*overflow: auto;*/
     /*position: relative;*/
 }
 

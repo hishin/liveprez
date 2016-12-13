@@ -12,6 +12,11 @@ var TOOL_MIN_DIST = 10;
 var awindow;
 var canvas;
 var curslide;
+var drawing = false;
+var mindistx = 10;
+var mindisty = 10;
+var curcolor;
+var curitem;
 
 
 window.onload = function () {
@@ -88,11 +93,10 @@ function setupSlideCanvas() {
 
     // Load Slide Image
     loadSlide();
-
 };
 
 function prevSlide() {
-    if (curslide > 0) {
+    if (curslidenum > 0) {
         document.getElementById("slide-src").selectedIndex--;
         document.getElementById("slide-src").onchange();
     }
@@ -100,7 +104,7 @@ function prevSlide() {
 
 function nextSlide() {
     var maxpage = document.getElementById("slide-src").length;
-    if (curslide < maxpage - 1) {
+    if (curslidenum < maxpage - 1) {
         document.getElementById("slide-src").selectedIndex++;
         document.getElementById("slide-src").onchange();
     }
@@ -108,6 +112,10 @@ function nextSlide() {
 
 function loadSlide() {
     mypaper.project.clear();
+    mypaper.view.viewSize.width = 720;
+    mypaper.view.viewSize.height = 540;
+    canvas.height = 540;
+    canvas.width = 720;
     var img_src = document.getElementById('slide-src').value;
     var img_type = img_src.split('.').pop();
     if (img_type  == 'svg') {
@@ -117,9 +125,6 @@ function loadSlide() {
             onLoad: function (svgitem, data) {
                 var wscale = parseFloat(mypaper.canvas.width) / svgitem.bounds.width;
                 var hscale = parseFloat(mypaper.canvas.height) / svgitem.bounds.height;
-                console.log("wscale = " + wscale);
-                console.log("hscale = " + hscale);
-                console.log("paper.canvas.width = " + mypaper.canvas.width);
                 svgitem.scale(wscale, hscale);
                 var delta = new paper.Point(-svgitem.bounds.left, -svgitem.bounds.top);
                 svgitem.translate(delta);
@@ -141,7 +146,7 @@ function loadSlide() {
             parseFloat(contentbox.style.top) - raster.bounds.top);
         raster.translate(delta);
     }
-    curslide = document.getElementById("slide-src").selectedIndex;
+    curslidenum = document.getElementById("slide-src").selectedIndex;
 
 };
 
@@ -164,75 +169,100 @@ function assignDataIDs(item, id) {
 
 function showHiddenItems(item) {
     if (!item.visible) {
-        if (item.className == 'PointText') {
-            item.fillColor.alpha = 0.3;
-            item.visible = true;
-        } else {
-            item.opacity = 0.3;
-            item.visible = true;
+        hideItem(item);
+        if (!item.bbox) {
+            item.bbox = new paper.Shape.Rectangle(item.bounds);
+            item.bbox.item = item;
+            item.bbox.fillColor = '#000000';
+            item.bbox.opacity = 0;
+            console.log(item.bbox);
         }
-        item.data.isHidden = true;
+        item.bbox.onDoubleClick = toggleReveal;
 
-
-
+        item.bbox.onMouseDown = function() {
+            item.mousedownTime = setTimeout(function(){inkOver(item);}, 750);
+        };
+        item.bbox.onMouseUp = function() {
+            clearTimeout(item.mousedownTime);
+        };
     }
     else {
         item.data.isHidden = false;
-        // console.log(item);
-        // if (item.className == 'PointText' || item.className == 'Raster') {
-        //     var bound = new paper.Path.Rectangle(item.bounds);
-        //     bound.strokeColor = 'red';
-        //     bound.strokeWidth = 2;
-        // }
-    }
-    if (item.children) {
-        for (var i = 0; i < item.children.length; i++) {
-            showHiddenItems(item.children[i]);
+        if (item.children) {
+            for (var i = 0; i < item.children.length; i++) {
+                showHiddenItems(item.children[i]);
+            }
         }
     }
 };
 
+
+
 var timer;
-function inkOver(event) {
-    // console.log(event.modifiers.control);
-    if (event.modifiers.control) {
-        toggleReveal(this);
-    } else {
-        // highlight a rectangle over the boundary of this item
-        // assign target rect and activate draw tool
-        currect = new paper.Path.Rectangle(this.bounds);
-        currect.strokeColor = '#3366ff';
-        currect.dashArray = [5, 3];
-        currect.strokeWidth = 2;
-        curtargetrect = this.bounds;
-        activateDrawTool();
+function inkOver(item) {
+    item.bbox.onMouseDown = null;
+    item.bbox.onDoubleClick = null;
+    curitem = item;
+    clearTimeout(item.mousedownTime);
+    // highlight a rectangle over the boundary of this item
+    // assign target rect and activate draw tool
+    if (drawing) {
+        doneDrawing();
     }
+    currect = new paper.Path.Rectangle(item.bounds);
+    currect.visible = true;
+    currect.strokeColor = '#0000ff';
+    currect.dashArray = [5, 3];
+    currect.strokeWidth = 2;
+    curtargetrect = item.bounds;
+    curcolor = item.fillColor;
+    activateDrawTool();
+};
+
+function hideItem(item) {
+    if (item.className == 'Group') {
+        for (var i = 0;i < item.children.length; i++) {
+            item.children[i].visible = false;
+            hideItem(item.children[i]);
+        }
+    }
+    else if (item.className == 'PointText') {
+        item.fillColor.alpha = 0.3;
+    } else {
+        item.opacity = 0.3;
+    }
+    item.visible = true;
+    item.data.isHidden = true;
+};
+
+function revealItem(item) {
+    if (item.className == 'Group') {
+        for (var i = 0; i < item.children.length; i++) {
+            revealItem(item.children[i]);
+        }
+    }
+    if (item.className == 'PointText') {
+        item.fillColor.alpha = 1.0;
+    }
+    else {
+        item.opacity = 1.0;
+    }
+    item.data.isHidden = false;
 };
 
 function toggleReveal(event) {
-    var item = this;
+    var item = this.item;
     if (item.data && item.data.isHidden) {
-        item.data.isHidden = false;
-        if (item.className == 'PointText') {
-            item.fillColor.alpha = 1.0;
-        }
-        else {
-            item.opacity = 1.0;
-        }
-    } else if (item.data && !item.data.isHidden){
-        item.data.isHidden = true;
-        if (item.className == 'PointText') {
-            item.fillColor.alpha = 0.3;        }
-        else {
-            item.opacity = 0.3;
-        }
+        revealItem(item);
+    } else if (item.data && !item.data.isHidden){ // Hide the item
+        hideItem(item);
     }
     else {
-        console.log(item);
+        console.log("Item data.isHidden missing: " + item);
         return;
     }
-
     var msg = revealMessage(item);
+    console.log(msg);
     post(msg);
 };
 
@@ -287,39 +317,45 @@ function SceneBox(item) {
 
 function makeSpace() {
     // deactivateTargetListener();
-    mypaper.spaceTool.activate();
+    if (drawing) doneDrawing();
     if (currect) {
         currect.remove();
         currect = null;
     }
+    curcolor = null;
+    mypaper.spaceTool.activate();
 };
 
 function makeVerticalSpace() {
     // deactivateTargetListener();
-    mypaper.verttool.activate();
+    if (drawing) doneDrawing();
     if (currect) {
         currect.remove();
         currect = null;
     }
+    mypaper.verttool.activate();
 };
 
 function makeHorizontalSpace() {
     // deactivateTargetListener();
-    mypaper.horitool.activate();
+    if (drawing) doneDrawing();
     if (currect) {
         currect.remove();
         currect = null;
     }
+    mypaper.horitool.activate();
+
 };
 
 var selimg;
 function activateInsertTool(event) {
     // deactivateTargetListener();
-    mypaper.inserttool.activate();
+    if (drawing) doneDrawing();
     if (currect) {
         currect.remove();
         currect = null;
     }
+    mypaper.inserttool.activate();
     selimg = event.currentTarget.getElementsByTagName('img')[0];
 };
 
@@ -330,6 +366,7 @@ function activateDefaultTool() {
 
 function activateDrawTool() {
     mypaper.drawtool.activate();
+    drawing = true;
 };
 
 function activateRevealPen() {
@@ -342,6 +379,12 @@ function doneDrawing() {
     if (currect) {
         currect.remove();
         currect = null;
+    }
+    if (curitem) {
+        console.log("curitem:" + curitem);
+        if (curitem.bbox) curitem.bbox.remove();
+        curitem.remove();
+        curitem = null;
     }
     if (curtargetrect) {
         var fititem = fitItemsToRect(curtargetitems, curtargetrect);
@@ -357,7 +400,9 @@ function doneDrawing() {
     }
     // clear curtargetstrokes in audience view
     var msg = releaseTargetMessage();
+    curstroke = null;
     post(msg);
+    drawing = false;
     activateDefaultTool();
 };
 
@@ -429,7 +474,8 @@ function vertLineEnd(event) {
     startexpand = false;
     if (currect)
         curtargetrect = currect.bounds;
-    // activateDrawTool();
+    mypaper.project.deselectAll();
+    activateDrawTool();
 };
 
 /** Get descendant items of parent that is strictly below rectangle**/
@@ -457,11 +503,16 @@ function getItemsBelow(rect, parent) {
 
 function pushItemDown(item, rect) {
     var deltay = rect.strokeBounds.bottom - item.bounds.top;
-
-    if (deltay > 0) {
-        expandContainers(item, 0, deltay);
-
-        item.translate(new paper.Point(0, deltay));
+    if (!item.boundary) {
+        item.boundary = new paper.Path.Rectangle(item.bounds);
+    }
+    item.boundary.selected = true;
+    if (deltay > -mindisty) {
+        expandContainers(item, 0, deltay + mindisty);
+        item.translate(new paper.Point(0, deltay+ mindisty));
+        item.boundary.translate(new paper.Point(0, deltay + mindisty));
+        if (item.bbox)
+            item.bbox.translate(new paper.Point(0, deltay+mindisty));
         var msg = moveMessage(item);
         post(msg);
         var itemsbelow = getItemsBelow(item, scene);
@@ -471,9 +522,8 @@ function pushItemDown(item, rect) {
         paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
         paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
         // Also change canvas size
-        canvas.width = Math.max(canvas.width, paper.view.viewSize.width);
-        canvas.height = Math.max(canvas.height, paper.view.viewSize.height);
-
+        // canvas.width = Math.max(canvas.width, paper.view.viewSize.width);
+        // canvas.height = Math.max(canvas.height, paper.view.viewSize.height);
         msg = updateViewSize(paper.view);
         post(msg);
     }
@@ -496,6 +546,7 @@ function expandContainers(item, deltax, deltay) {
                 post(msg);
                 paper.view.viewSize.width = Math.max(paper.view.viewSize.width, siblings[i].strokeBounds.right);
                 paper.view.viewSize.height = Math.max(paper.view.viewSize.height, siblings[i].strokeBounds.bottom);
+                console.log(paper.view.viewSize.height);
                 msg = updateViewSize(paper.view);
                 post(msg);
             }
@@ -595,12 +646,14 @@ function pushItemRight(item, rect) {
     var deltax = rect.strokeBounds.right - item.bounds.left;
     if (!item.boundary) {
         item.boundary = new paper.Path.Rectangle(item.bounds);
-        item.boundary.selected = true;
     }
-    if (deltax > 0) {
-        expandContainers(item, deltax, 0);
-        item.translate(new paper.Point(deltax, 0));
-        item.boundary.translate(new paper.Point(deltax, 0));
+    item.boundary.selected = true;
+    if (deltax > -mindistx) {
+        expandContainers(item, deltax + mindistx, 0);
+        item.translate(new paper.Point(deltax + mindistx, 0));
+        item.boundary.translate(new paper.Point(deltax + mindistx, 0));
+        if (item.bbox)
+            item.bbox.translate(new paper.Point(deltax + mindistx, 0));
         var msg = moveMessage(item);
         post(msg);
         var itemsright = getItemsRight(item, scene);
@@ -610,8 +663,8 @@ function pushItemRight(item, rect) {
         paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
         paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
         // Also change canvas size
-        canvas.width = Math.max(canvas.width, paper.view.viewSize.width);
-        canvas.height = Math.max(canvas.height, paper.view.viewSize.height);
+        // canvas.width = Math.max(canvas.width, paper.view.viewSize.width);
+        // canvas.height = Math.max(canvas.height, paper.view.viewSize.height);
         msg = updateViewSize(paper.view);
         post(msg);
     }
@@ -751,25 +804,35 @@ function drawMessage(item) {
 var curstroke;
 var curtargetrect;
 var curtargetitems = [];
-function drawStart(event) {
+function drawStart(event){
     curstroke = new paper.Path();
     curstroke.add(event.point);
     curstroke.strokeWidth = 2;
-    curstroke.strokeColor = '#45a4fc';
+    if (!curcolor) {
+        curstroke.strokeColor = '#000000';
+    } else {
+        curstroke.strokeColor = curcolor;
+        curstroke.strokeColor.alpha = 1.0;
+    }
 };
 
 function drawContinue(event) {
-    curstroke.add(event.point);
-    curstroke.smooth();
+    // console.log("draw continue");
+    if (curstroke) {
+        curstroke.add(event.point);
+        curstroke.smooth();
+    }
 };
 
 function drawEnd(event) {
-    curstroke.add(event.point);
-    curtargetitems.push(curstroke);
-    var fititem = fitItemsToRect(curtargetitems, curtargetrect); //cloned and fit items
-    var msg = drawMessage(fititem);
-    fititem.remove();
-    post(msg);
+    if (curstroke) {
+        curstroke.add(event.point);
+        curtargetitems.push(curstroke);
+        var fititem = fitItemsToRect(curtargetitems, curtargetrect); //cloned and fit items
+        var msg = drawMessage(fititem);
+        fititem.remove();
+        post(msg);
+    }
 };
 
 var revealpath;
@@ -909,17 +972,32 @@ function insertContinue(event) {
 
 function insertEnd(event) {
     // insert the iamge at the currect position
-    var raster = new paper.Raster(selimg.src);
-    var wscale = parseFloat(currect.bounds.width/raster.width);
-    var hscale = parseFloat(currect.bounds.height/raster.height);
-    raster.scale(wscale, hscale);
-    var delta = new paper.Point(parseFloat(currect.bounds.left - raster.bounds.left),
-        parseFloat(currect.bounds.top - raster.bounds.top));
-    raster.translate(delta);
-
-    curline = null;
-    currect.remove();
-    currect = null;
+    var img_src = selimg.src;
+    var img_type = img_src.split('.').pop();
+    if (img_type  == 'svg') {
+        mypaper.project.activeLayer.importSVG(img_src, {
+            expandShapes: true,
+            applyMatrix: true,
+            onLoad: function (insertitem, data) {
+                var wscale = parseFloat(currect.bounds.width/insertitem.bounds.width);
+                var hscale = parseFloat(currect.bounds.height/insertitem.bounds.height);
+                insertitem.scale(wscale, hscale);
+                var delta = new paper.Point(parseFloat(currect.bounds.left - insertitem.bounds.left),
+                    parseFloat(currect.bounds.top - insertitem.bounds.top));
+                insertitem.translate(delta);
+                scene.addChild(insertitem);
+                assignDataIDs(scene);
+                // showHiddenItems(scene);
+                var msg = slideChangeMessage();
+                post(msg);
+                curline = null;
+                currect.remove();
+                currect = null;
+            }
+        });
+    }
+    mypaper.project.deselectAll();
+    activateDefaultTool();
 };
 
 
