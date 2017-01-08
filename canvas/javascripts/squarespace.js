@@ -175,7 +175,6 @@ function showHiddenItems(item) {
             item.bbox.item = item;
             item.bbox.fillColor = '#000000';
             item.bbox.opacity = 0;
-            console.log(item.bbox);
         }
         item.bbox.onDoubleClick = toggleReveal;
 
@@ -196,7 +195,41 @@ function showHiddenItems(item) {
     }
 };
 
+function activateAllItems() {
+    for (var i = 0; i < scene.children.length; i++) {
+        activateItem(scene.children[i]);
+    }
+};
 
+function deactivateAllItems() {
+    for (var i = 0; i < scene.children.length; i++) {
+        deactivateItem(scene.children[i]);
+    }
+};
+
+function activateItem(item) {
+    if (!item.bbox) {
+        item.bbox = new paper.Shape.Rectangle(item.bounds);
+        item.bbox.item = item;
+        item.bbox.fillColor = '#000000';
+        item.bbox.opacity = 0;
+    }
+    item.bbox.onDoubleClick = toggleReveal;
+    item.bbox.onMouseDown = function() {
+        item.mousedownTime = setTimeout(function(){inkOver(item);}, 750);
+    };
+    item.bbox.onMouseUp = function() {
+        clearTimeout(item.mousedownTime);
+    };
+};
+
+function deactivateItem(item) {
+    if (item.bbox) {
+        item.bbox.onDoubleClick = null;
+        item.bbox.onMouseDown = null;
+        item.bbox.onMouseUp = null;
+    }
+};
 
 var timer;
 function inkOver(item) {
@@ -333,7 +366,9 @@ function makeVerticalSpace() {
         currect.remove();
         currect = null;
     }
+    deactivateAllItems();
     mypaper.verttool.activate();
+
 };
 
 function makeHorizontalSpace() {
@@ -411,6 +446,8 @@ var startp;
 var curslide;
 var currect;
 var timeout;
+var itemsbelow;
+var arr_itemsbelow;
 var startexpand = false;
 
 function makeSpaceStart(){};
@@ -442,7 +479,10 @@ function vertLineContinue(event) {
         curline.remove();
         curline = linepath;
         clearTimeout(timeout);
-        timeout = setTimeout(function(){startexpand = true; linepath.dashArray=[];}, 300);
+        timeout = setTimeout(function(){
+            startexpand = true;
+            linepath.dashArray=[];
+        }, 300);
     } else if (curline && startexpand) {
         // make thin rectangle
         clearTimeout(timeout);
@@ -450,21 +490,37 @@ function vertLineContinue(event) {
             var rectstart = curline.strokeBounds.topLeft;
             var rectend = new paper.Point(curline.strokeBounds.bottomRight.x, curline.strokeBounds.bottomRight.y + 0.1);
             curline.remove();
-            var rect = new paper.Path.Rectangle(rectstart, rectend);
-            rect.strokeColor = '#3366ff';
-            rect.strokeWidth = 2;
-            rect.dashArray = [];
-            currect = rect;
+            currect = new paper.Path.Rectangle(rectstart, rectend);
+            currect.strokeColor = '#3366ff';
+            currect.strokeWidth = 2;
+            currect.dashArray = [];
+
+            // Get items that should move
+            itemsbelow = new Set();
+            getItemsBelow(currect, scene, itemsbelow);
+            arr_itemsbelow = Array.from(itemsbelow);
+            arr_itemsbelow.sort(compareTop);
         } else {
             var br = currect.strokeBounds.bottomRight;
             var tl = currect.strokeBounds.topLeft;
-            var itemsbelow = getItemsBelow(currect, scene);
             var scaley = (event.point.y - tl.y) / (br.y - tl.y);
             if (scaley > 1.0) {
+                console.log("Scaling");
                 currect.scale(1.0, scaley, currect.bounds.topLeft);
             }
-            for (var i = 0; i < itemsbelow.length; i++) {
-                pushItemDown(itemsbelow[i], currect);
+            if (arr_itemsbelow.length > 0) {
+                deltay = currect.strokeBounds.bottom - arr_itemsbelow[0].bounds.top;
+            }
+            if (deltay > -mindisty) {
+                for (var i = 0; i < arr_itemsbelow.length; i++) {
+                    arr_itemsbelow[i].selected = true;
+                    console.log("moving");
+                    arr_itemsbelow[i].translate(new paper.Point(0, deltay + mindisty));
+                    // item.boundary.translate(new paper.Point(0, deltay + mindisty));
+                    if (arr_itemsbelow[i].bbox)
+                        arr_itemsbelow[i].bbox.translate(new paper.Point(0, deltay+mindisty));
+
+                }
             }
         }
     }
@@ -478,47 +534,51 @@ function vertLineEnd(event) {
     activateDrawTool();
 };
 
-/** Get descendant items of parent that is strictly below rectangle**/
-function getItemsBelow(rect, parent) {
+/** Get items below rect**/
+function getItemsBelow(rect, parent, itemsbelow) {
     var tl = rect.strokeBounds.topLeft;
     var br = rect.strokeBounds.bottomRight;
     var areaBelow = new paper.Path.Rectangle(new paper.Point(tl.x, br.y), new paper.Point(br.x, maxy));
-    if (!parent.children) return [];
+    if (!parent.children) return; // if there are no items to consider
+    // console.log(itemsbelow);
     var items = parent.children;
-    var itemsbelow  = [];
+    // var itemsbelow  = new Set();
     for (var i = 0; i < items.length; i++) {
         var item = items[i];
         if (areaBelow.bounds.intersects(item.bounds)) {
-            if (rect.bounds.top < item.bounds.top) {
-                itemsbelow.push(item);
+            if (rect.bounds.top <= item.bounds.top) {
+                if (!itemsbelow.has(item)) {
+                    itemsbelow.add(item);
+                    getItemsBelow(item, parent, itemsbelow);
+                }
             } else {
-                itemsbelow.push.apply(itemsbelow, getItemsBelow(rect, item));
+                getItemsBelow(rect, item, itemsbelow);
             }
         }
     }
     areaBelow.remove();
-    itemsbelow.sort(compareTop);
+    // itemsbelow.sort(compareTop);
     return itemsbelow;
 };
 
 function pushItemDown(item, rect) {
-    var deltay = rect.strokeBounds.bottom - item.bounds.top;
+    // var deltay = rect.strokeBounds.bottom - item.bounds.top;
     if (!item.boundary) {
         item.boundary = new paper.Path.Rectangle(item.bounds);
     }
-    item.boundary.selected = true;
+    // item.boundary.selected = true;
     if (deltay > -mindisty) {
-        expandContainers(item, 0, deltay + mindisty);
+        // expandContainers(item, 0, deltay + mindisty);
         item.translate(new paper.Point(0, deltay+ mindisty));
         item.boundary.translate(new paper.Point(0, deltay + mindisty));
         if (item.bbox)
             item.bbox.translate(new paper.Point(0, deltay+mindisty));
         var msg = moveMessage(item);
         post(msg);
-        var itemsbelow = getItemsBelow(item, scene);
-        for (var i = 0; i < itemsbelow.length; i++) {
-            pushItemDown(itemsbelow[i], item);
-        }
+        // var itemsbelow = getItemsBelow(item, scene);
+        // for (var i = 0; i < itemsbelow.length; i++) {
+        //     pushItemDown(itemsbelow[i], item);
+        // }
         paper.view.viewSize.width = Math.max(paper.view.viewSize.width, item.strokeBounds.right);
         paper.view.viewSize.height = Math.max(paper.view.viewSize.height, item.strokeBounds.height);
         // Also change canvas size
@@ -649,7 +709,7 @@ function pushItemRight(item, rect) {
     }
     item.boundary.selected = true;
     if (deltax > -mindistx) {
-        expandContainers(item, deltax + mindistx, 0);
+        // expandContainers(item, deltax + mindistx, 0);
         item.translate(new paper.Point(deltax + mindistx, 0));
         item.boundary.translate(new paper.Point(deltax + mindistx, 0));
         if (item.bbox)
@@ -961,7 +1021,7 @@ function insertContinue(event) {
         curline.remove();
         var itemsbelow = getItemsBelow(currect, scene);
         for (var i = 0; i < itemsbelow.length ;i++) {
-            pushItemDown(itemsbelow[i], currect);
+            // pushItemDown(itemsbelow[i], currect);
         }
         var itemsright = getItemsRight(currect, scene);
         for (var i = 0; i < itemsright.length; i++) {
