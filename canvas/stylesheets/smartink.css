@@ -62,6 +62,14 @@ h1 {
     visibility: hidden;    
 }
 
+#item-toolbox {
+    width: 600px;
+    min-height: 100px;
+    display: inline-block;
+    background-color: white;
+    color: black;
+}
+
 img {
     -webkit-user-drag: none;
     max-width: 100%;

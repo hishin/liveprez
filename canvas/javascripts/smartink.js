@@ -8,10 +8,13 @@ var spaper;
 var SLIDE_W = 600;
 var SLIDE_H = 400;
 var numslides;
+var curslide;
+var toolbox;
 
 window.onload = function () {
     setupSlideCanvas();
     numslides = document.getElementById("slide-deck").length;
+    toolbox = document.getElementById("item-toolbox");
 };
 
 function setupSlideCanvas() {
@@ -53,12 +56,13 @@ function loadSlide() {
             svgslide.scale(wscale, hscale);
             var delta = new paper.Point(-svgslide.bounds.left, -svgslide.bounds.top);
             svgslide.translate(delta);
-            addItemBorders(svgslide);
+            curslide = svgslide;
+            initSlide(svgslide);
         }
     });
 };
 
-function addItemBorders(svgslide) {
+function initSlide(svgslide) {
     var item;
     // Special case:: children[0] is always the slide background
     for (var i = 1; i < svgslide.children.length; i++) {
@@ -76,25 +80,68 @@ function addItemBorders(svgslide) {
              item.bbox.item = item;
              item.bbox.fillColor = '#000000';
              item.bbox.opacity = 0;
-             item.bbox.onMouseEnter = function(event) {
-                 this.item.border.dashArray = [];
-             };
-             item.bbox.onMouseLeave = function(event) {
-                 this.item.border.dashArray = [3,2];
-             };
-             item.bbox.onClick = function(event) {
-                 console.log("click");
-             };
         }
-
-
+        activateItemMouseEvents(item);
+        initItemStyles(item);
     }
 };
 
+function initItemStyles(item) {
+    item.styles = [];
+    addItemStyle(item.styles, item);
+};
 
+function addItemStyle(styles, item) {
+    if (item.style)
+        styles.push(item.style);
+    if (item.children) {
+        for (var i = 0; i < item.children.length; i++) {
+            addItemStyle(styles, item.children[i]);
+        }
+    }
+};
 
-function showHiddenItems() {
+function activateItemMouseEvents(item) {
+    item.bbox.onMouseEnter = function(event) {
+        this.item.border.dashArray = [];
+    };
+    item.bbox.onMouseLeave = function(event) {
+        this.item.border.dashArray = [3,2];
+    };
+    item.bbox.onClick = function(event) {
+        openItem(this.item);
+    };
+};
 
+function deactivateItemMouseEvents(item) {
+    item.bbox.onMouseEnter = null;
+    item.bbox.onMouseLeave = null;
+    item.bbox.onClick = null;
+};
+
+function openItem(item) {
+    for (var i = 1; i < curslide.children.length; i++) {
+        deactivateItemMouseEvents(curslide.children[i]);
+    }
+    item.border.strokeWidth = 3;
+    item.border.opacity = 1.0;
+
+    var tools = toolbox.getElementsByTagName("UL")[0];
+    tools.innerHTML = "";
+    for (var i = 0; i < item.styles.length; i++) {
+        var li = document.createElement("li");
+        console.log(item.styles[i]._values);
+        console.log(item.styles[i]);
+        li.appendChild(document.createTextNode(item.styles[i]._values.strokeWidth));
+        tools.appendChild(li);
+    }
+
+};
+
+function closeItem(item) {
+    item.border = strokeWidth = 2;
+    item.border.dashArray = [3,2];
+    item.border.opacity = 0.5;
 };
 
 function prevSlide() {
