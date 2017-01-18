@@ -1,5 +1,6 @@
 html, body {
     font-family: sans-serif;
+    font-color: white;
     margin: 0px;
     padding: 0px;
 }
@@ -25,7 +26,8 @@ html, body {
     float: left;
     width: 50%;
     height: 100%;
-    background: #B8F3FF;
+    background: #0375B4;
+    color: white;
     padding-top: 25px;
 }
 
@@ -34,7 +36,8 @@ html, body {
     float: right;
     width: 50%;
     height: 100%;
-    background: #78CDD7;
+    background: #FFCE00;
+    color: black;
     padding-top: 25px;
 }
 
@@ -50,9 +53,9 @@ h1 {
 
 .slide {
     width: 600px;
-    height: 450px;
+    height: 400px;
     display: inline-block;
-    border: 2px solid dodgerblue;
+    background-color: white;
 }
 
 #slide-deck {
