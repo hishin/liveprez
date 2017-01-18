@@ -111,15 +111,14 @@ function nextSlide() {
 };
 
 function loadSlide() {
-    mypaper.project.clear();
-    mypaper.view.viewSize.width = 720;
-    mypaper.view.viewSize.height = 540;
-    canvas.height = 540;
-    canvas.width = 720;
-    var img_src = document.getElementById('slide-src').value;
-    var img_type = img_src.split('.').pop();
-    if (img_type  == 'svg') {
-        mypaper.project.activeLayer.importSVG(img_src, {
+    spaper.project.clear();
+    spaper.view.viewSize.width = SLIDE_W;
+    spaper.view.viewSize.height = SLIDE_H;
+    scanvas.width = SLIDE_W;
+    scanvas.height = SLIDE_H;
+    var slide_src = document.getElementById('slide-src').value;
+    // SLIDE src has to be svg
+    spaper.project.activeLayer.importSVG(slide_src, {
             expandShapes: true,
             applyMatrix: true,
             onLoad: function (svgitem, data) {
@@ -135,19 +134,8 @@ function loadSlide() {
                 post(msg);
             }
         });
-    }
-    else {
-        var raster = new paper.Raster(img_src);
-        // scale and fit into target
-        var wscale = parseFloat(slide.offsetWidth)/raster.width;
-        var hscale = parseFloat(slide.offsetHeight)/raster.height;
-        raster.scale(wscale, hscale);
-        var delta = new paper.Point(parseFloat(contentbox.style.left) - raster.bounds.left,
-            parseFloat(contentbox.style.top) - raster.bounds.top);
-        raster.translate(delta);
-    }
-    curslidenum = document.getElementById("slide-src").selectedIndex;
 
+    curslidenum = document.getElementById("slide-src").selectedIndex;
 };
 
 var curid;
