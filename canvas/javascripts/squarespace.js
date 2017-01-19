@@ -173,7 +173,7 @@ function showHiddenItems(item) {
         if (!item.bbox) {
             item.bbox = new paper.Shape.Rectangle(item.bounds);
             item.bbox.item = item;
-            item.bbox.fillColor = '#000000';
+            item.bbox.fillColor = '#ffffff';
             item.bbox.opacity = 0;
         }
         item.bbox.onDoubleClick = toggleReveal;
@@ -491,35 +491,29 @@ function vertLineContinue(event) {
             var rectend = new paper.Point(curline.strokeBounds.bottomRight.x, curline.strokeBounds.bottomRight.y + 0.1);
             curline.remove();
             currect = new paper.Path.Rectangle(rectstart, rectend);
-            currect.strokeColor = '#3366ff';
+            currect.strokeColor = '#ff0000';
             currect.strokeWidth = 2;
             currect.dashArray = [];
-
             // Get items that should move
             itemsbelow = new Set();
             getItemsBelow(currect, scene, itemsbelow);
             arr_itemsbelow = Array.from(itemsbelow);
             arr_itemsbelow.sort(compareTop);
         } else {
+            // currect.selected = true;
             var br = currect.strokeBounds.bottomRight;
             var tl = currect.strokeBounds.topLeft;
             var scaley = (event.point.y - tl.y) / (br.y - tl.y);
             if (scaley > 1.0) {
-                console.log("Scaling");
                 currect.scale(1.0, scaley, currect.bounds.topLeft);
-            }
-            if (arr_itemsbelow.length > 0) {
-                deltay = currect.strokeBounds.bottom - arr_itemsbelow[0].bounds.top;
-            }
-            if (deltay > -mindisty) {
-                for (var i = 0; i < arr_itemsbelow.length; i++) {
-                    arr_itemsbelow[i].selected = true;
-                    console.log("moving");
-                    arr_itemsbelow[i].translate(new paper.Point(0, deltay + mindisty));
-                    // item.boundary.translate(new paper.Point(0, deltay + mindisty));
-                    if (arr_itemsbelow[i].bbox)
-                        arr_itemsbelow[i].bbox.translate(new paper.Point(0, deltay+mindisty));
-
+                if (arr_itemsbelow.length > 0) {
+                    var deltay = currect.strokeBounds.bottom - arr_itemsbelow[0].bounds.top;
+                    if (deltay > -mindisty) {
+                        for (var i = 0; i < arr_itemsbelow.length; i++) {
+                            arr_itemsbelow[i].selected = true;
+                            arr_itemsbelow[i].translate(new paper.Point(0, deltay + mindisty));
+                        }
+                    }
                 }
             }
         }
@@ -530,6 +524,8 @@ function vertLineEnd(event) {
     startexpand = false;
     if (currect)
         curtargetrect = currect.bounds;
+    arr_itemsbelow = [];
+    itemsbelow.clear();
     mypaper.project.deselectAll();
     activateDrawTool();
 };
