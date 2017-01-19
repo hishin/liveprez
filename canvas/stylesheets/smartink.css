@@ -70,6 +70,10 @@ h1 {
     color: black;
 }
 
+#item-toolbox li:hover {
+    background-color: #ffda00;
+}
+
 img {
     -webkit-user-drag: none;
     max-width: 100%;
@@ -96,7 +100,6 @@ div>img {
 
 
 }
-
 
 canvas {
     width: 600px;

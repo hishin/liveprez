@@ -10,9 +10,13 @@ var SLIDE_H = 400;
 var numslides;
 var curslide;
 var toolbox;
+var inkcolor;
+var inkwidth;
+var DEFAULT_COLOR = '#000000'
 
 window.onload = function () {
     setupSlideCanvas();
+    setupTools();
     numslides = document.getElementById("slide-deck").length;
     toolbox = document.getElementById("item-toolbox");
 };
@@ -38,6 +42,20 @@ function setupSlideCanvas() {
     spaper.canvas = scanvas;
 
     loadSlide();
+};
+
+function setupTools() {
+    // Default tool
+    var defaulttool = new spaper.Tool();
+    spaper.defaulttool = defaulttool;
+
+    // Ink tool
+    var inktool = new spaper.Tool();
+    inktool.onMouseDown = inkStart;
+    inktool.onMouseDrag = inkContinue;
+    inktool.onMouseUp = inkEnd;
+    spaper.inktool = inktool;
+
 };
 
 function loadSlide() {
@@ -83,6 +101,11 @@ function initSlide(svgslide) {
         }
         activateItemMouseEvents(item);
         initItemStyles(item);
+        if (!item.visible) {
+            hideItem(item);
+        } else {
+            item.data.isHidden = false;
+        }
     }
 };
 
@@ -130,18 +153,65 @@ function openItem(item) {
     tools.innerHTML = "";
     for (var i = 0; i < item.styles.length; i++) {
         var li = document.createElement("li");
-        console.log(item.styles[i]._values);
-        console.log(item.styles[i]);
-        li.appendChild(document.createTextNode(item.styles[i]._values.strokeWidth));
+        var stroke = '';
+        var color;
+        var width;
+        stroke += (item.styles[i]._values.strokeWidth +' ');
+        width = item.styles[i]._values.strokeWidth;
+        if (item.styles[i]._values.fillColor) {
+            stroke += item.styles[i]._values.fillColor;
+            color = item.styles[i]._values.fillColor;
+        } else if (item.styles[i]._values.strokeColor) {
+            stroke += (' ' + item.styles[i]._values.strokeColor);
+            color = item.styles[i]._values.strokeColor;
+        }
+
+        li.appendChild(document.createTextNode(stroke));
+
+        console.log('attaching event');
+        li.addEventListener('click', function() {
+            console.log(color, width);
+            activateInkTool(color, width);
+        });
         tools.appendChild(li);
     }
-
+    var li = document.createElement("li");
+    li.setAttribute('id', 'close-item');
+    li.appendChild(document.createTextNode('Done'));
+    li.addEventListener('click', function() {closeItem(item);});
+    tools.appendChild(li);
 };
 
 function closeItem(item) {
-    item.border = strokeWidth = 2;
+    var tools = toolbox.getElementsByTagName("UL")[0];
+    tools.innerHTML = "";
+
+    for (var i = 1; i < curslide.children.length; i++) {
+        activateItemMouseEvents(curslide.children[i]);
+    }
+    item.border.strokeWidth = 2;
     item.border.dashArray = [3,2];
     item.border.opacity = 0.5;
+    spaper.defaulttool.activate();
+};
+
+/**
+ * Show semi-opaque item only to speaker
+ * @param item
+ */
+function hideItem(item) {
+    if (item.className == 'Group') {
+        for (var i = 0;i < item.children.length; i++) {
+            hideItem(item.children[i]);
+        }
+    }
+    else if (item.className == 'PointText') {
+        item.fillColor.alpha = 0.3;
+    } else {
+        item.opacity = 0.3;
+    }
+    item.visible = true;
+    item.data.isHidden = true;
 };
 
 function prevSlide() {
@@ -157,5 +227,41 @@ function nextSlide() {
         loadSlide();
     }
 };
+
+function activateInkTool(color, width) {
+    inkcolor = color;
+    inkwidth = width;
+    spaper.inktool.activate();
+    console.log(color, width);
+};
+
+var curstroke;
+var curtargetrect;
+var curtargetitems = [];
+function inkStart(event){
+    curstroke = new paper.Path();
+    curstroke.strokeWidth = inkwidth;
+    curstroke.strokeColor = inkcolor;
+    curstroke.add(event.point);
+};
+
+function inkContinue(event) {
+    if (curstroke) {
+        curstroke.add(event.point);
+        curstroke.smooth();
+    }
+};
+
+function inkEnd(event) {
+    if (curstroke) {
+        curstroke.add(event.point);
+        // curtargetitems.push(curstroke);
+        // var fititem = fitItemsToRect(curtargetitems, curtargetrect); //cloned and fit items
+        // var msg = drawMessage(fititem);
+        // fititem.remove();
+        // post(msg);
+    }
+};
+
 
 
