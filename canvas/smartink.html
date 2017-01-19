@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Ink Demo</title>
+    <link rel="stylesheet"
+          type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link href="stylesheets/smartink.css" rel="stylesheet" type="text/css">
+    <script src="javascripts/paper-full.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+</head>
+<body>
+
+<select id="slide-deck" onchange="loadSlide()">
+    <option value="samplepresentations/tests/Slide8.svg">Demo-Slide 1</option>
+    <option value="samplepresentations/tests/Slide7.svg">Demo-Slide 2</option>
+    <option value="samplepresentations/tests/Slide6.svg">Demo-Slide 3</option>
+</select>
+
+
+<div class="container col-md-12">
+    <!--Slide-->
+    <div class="col-md-6 view" id="speaker-view">
+        <h1>Speaker View</h1>
+        <div id="slide-menu">
+            <button type="button" class="btn btn-default" onclick="prevSlide()">
+                <i class="glyphicon glyphicon-chevron-left"></i>
+            </button>
+            <button type="button" class="btn btn-default" onclick="nextSlide()">
+                <i class="glyphicon glyphicon-chevron-right"></i>
+            </button>
+        </div>
+        <div id="speaker-slide" class="slide"></div>
+        <div id="item-toolbox" class="toolbox">
+            <ul></ul>
+        </div>
+    </div>
+
+    <div class="col-md-6 view" id="audience-view">
+        <h1>Audience View</h1>
+    </div>
+</div>
+
+<script src="javascripts/smartink.js"></script>
+</body>
+</html>
+
