@@ -167,10 +167,8 @@ function openItem(item) {
         }
 
         li.appendChild(document.createTextNode(stroke));
-
-        console.log('attaching event');
+        li.inkstyle = item.styles[i]._values;
         li.addEventListener('click', function() {
-            console.log(color, width);
             activateInkTool(color, width);
         });
         tools.appendChild(li);
