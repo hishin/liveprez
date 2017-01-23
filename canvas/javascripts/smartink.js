@@ -5,14 +5,16 @@
 var sslide;
 var scanvas;
 var spaper;
-var SLIDE_W = 600;
-var SLIDE_H = 400;
+var SLIDE_W = 960;
+var SLIDE_H = 700;
 var numslides;
 var curslide;
 var toolbox;
 var inkcolor;
 var inkwidth;
 var DEFAULT_COLOR = '#000000'
+
+
 
 window.onload = function () {
     setupSlideCanvas();
@@ -76,6 +78,7 @@ function loadSlide() {
             svgslide.translate(delta);
             curslide = svgslide;
             initSlide(svgslide);
+            console.log(svgslide);
         }
     });
 };

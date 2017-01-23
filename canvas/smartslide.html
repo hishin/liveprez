@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Slide Demo</title>
+    <link rel="stylesheet"
+          type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link href="stylesheets/smartboard.css" rel="stylesheet" type="text/css">
+    <script src="javascripts/paper-full.js"></script>
+    <script type="text/javascript" src="javascripts/Cobyla.js"></script>
+    <script src="javascripts/exittalk_cobyla.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="javascripts/exittalk.js"></script>
+</head>
+<body>
+
+<!--Content Menu-->
+<div class="hover-menu" id="content-menu">
+    <ul class="menu">
+        <li><a onclick="activateTargetLayer()"><i class="glyphicon glyphicon-pencil"></i></a></li>
+        <li><a onclick="revealTargetItem()"><i class="glyphicon glyphicon-eye-open"></i></a></li>
+        <li><a onclick="hideTargetItem()"><i class="glyphicon glyphicon-eye-close"></i></a></li>
+        <li><a onclick="createNewTarget()"><i class="glyphicon glyphicon-edit"></i></a></li>
+    </ul>
+</div>
+<div id="deactivate-menu">
+    <ul class="menu">
+        <li><a onclick="deactivateLayer()"><i class="glyphicon glyphicon-ok"></i></a></li>
+    </ul>
+</div>
+<div class="container col-md-12">
+    <!--Slide-->
+    <div class="col-md-6 view" id="speaker-view">
+        <h1>Speaker View</h1>
+        <div class="slide-container" id="speaker-slide-1" style="left:50px; top:75px;">
+            <div id="speaker-target-box-0" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div class="contentbox" id="speaker-box-2" data-block-type="image"
+                         style="position: absolute; left: 10px; top: 0px; width: 560px; height: 390.777px;"
+                         data-block-id="545383aeecc4015ddadb184b446c9314">
+                        <img class="content" style="" src="images/img0.svg"/>
+                    </div>
+                    <div id="speaker-target-box-2" class="contentbox speaker-only target" data-block-type="image"
+                         style="width: 85.1546px; height: 59px; position: absolute; left: 462px; top: 321px;"
+                         data-block-id="2dd1ec53d8eb630df8984e39773a0c5f">
+                        <img class="speaker-only notvis content" style=""
+                             src="images/img1.svg"/>
+                    </div>
+                    <div id="speaker-target-box-3" class="contentbox speaker-only target" data-block-type="image"
+                         style="width: 151.45px; height: 52px; position: absolute; left: 311px; top: 137px;"
+                         data-block-id="731765b6164a4c0c4e960e10c01efd28">
+                        <img class="speaker-only notvis content" style=""
+                             src="images/img2.svg" data-natural-width="233" data-natural-height="80"/>
+                    </div>
+                    <div id="speaker-target-box-4" class="spekaer-only target contentbox" data-block-type="image"
+                         style="width: 84.8774px; height: 92px; position: absolute; left: 131px; top: 121px; z-index: 4"
+                         data-block-id="e56b05f6d67e898cb226542bbe80e72f">
+                        <img class="content speaker-only" style=" "
+                             src="images/img3.svg" data-natural-width="143" data-natural-height="155"/>
+                    </div>
+                    <div id="speaker-target-box-5" class="contentbox speaker-only target" data-block-type="image"
+                         style="width: 96.6531px; height: 160px; position: absolute; left: 131px; top: 48px;"
+                         data-block-id="9b3c967c9feda24ec7491cf107d0f406">
+                        <img class="speaker-only notvis content" style=""
+                             src="images/img4.svg" data-natural-width="148" data-natural-height="245"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-container" id="speaker-slide-2" style="left:50px; top:525px;">
+            <div id="speaker-target-box-6" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div class="contentbox" id="speaker-box-0"
+                         style="position: absolute; left: 0px; top: 10px;width: 509px; height: 36px; ">
+                        <img src="images/bst_0.svg"/>
+                    </div>
+                    <div class="contentbox" id="speaker-box-1"
+                         style="position:absolute; left: 17px; top: 48px; width: 464.739px; height: 84px; ">
+                        <img src="images/bst_1.svg"/>
+                    </div>
+
+                    <div class="contentbox speaker-only target" id="speaker-target-box-7"
+                         style="position:absolute; width: 363.871px; height: 30px; left: 118px; top: 132px;">
+                        <img class="speaker-only notvis content" src="images/bst_2.svg"
+                             data-natural-width="376" data-natural-height="31"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-8" data-block-type="image"
+                         style="position:absolute; width: 365px; height: 38px; left: 17px; top: 162px;"
+                         data-block-id="60eac2c94cc122a0cf2b1df182079a4b">
+                        <img class="speaker-only notvis content" src="images/bst_3.svg"
+                             data-natural-width="365" data-natural-height="38"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-9" data-block-type="image"
+                         style="position:absolute; width: 214px; height: 116.481px; left: 37px; top: 208px;"
+                         data-block-id="aacf69efda86230688c43d273cfe3378">
+                        <img class="speaker-only notvis content" src="images/bst_4.svg"
+                             data-natural-width="237" data-natural-height="129"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-10" data-block-type="image"
+                         style="position:absolute; width: 160px; height: 122px; left: 330px; top: 208px;"
+                         data-block-id="a798ea0fd094c0c9a88575bf9fbd1512">
+                        <img class="speaker-only notvis content" src="images/bst_5.svg"
+                             data-natural-width="184" data-natural-height="140"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-11" data-block-type="image"
+                         style="position:absolute; width: 206px; height: 30.6809px; left: 41px; top: 339px;"
+                         data-block-id="fdc937e69516cf456729544ec882dc7a">
+                        <img class="speaker-only notvis content" src="images/bst_6.svg"
+                             data-natural-width="188" data-natural-height="28"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-1" data-block-type="image"
+                         style="position:absolute; width: 74px; height: 31px; left: 373px; top: 339px;"
+                         data-block-id="f9adcde6d7f673f4b91bff1484a42af7">
+                        <img class="speaker-only notvis content" src="images/bst_7.svg"
+                             data-natural-width="52" data-natural-height="22"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-container" id="speaker-slide-3" style="left:50px; top:1000px;">
+            <div id="speaker-target-box-12" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div class="contentbox" id="speaker-box-3" data-block-type="text"
+                         style="position: absolute; width: 560px; left: 50px; top: 0px; height: 63px;">
+                        <h2>Live Presentations</h2>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-16" data-block-type="text"
+                         style="position: absolute; width: 450px; height: 60px; left: 0px; top: 74px;"
+                         data-block-id="56ac921d450fb3313f6d11b6e3b0d353">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Prepare content and layout beforehand <br>(reduces cognitive load during presentation
+                                time)
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="contentbox speaker-only target" id="speaker-target-box-17" data-block-type="image"
+                         style="position: absolute; width: 170px; height: 210px; left: 410px; top: 130px;"
+                         data-block-id="df0ab66a4099d32e46ccb0e0e4ed0de1">
+                        <img class="speaker-only notvis content" src="images/bunny.gif"/>
+                    </div>
+
+                    <div class="contentbox speaker-only target" id="speaker-target-box-13" data-block-type="text"
+                         style="position: absolute; width: 400px; height: 30px; left: 0px; top: 150px;">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Writing on the fly for more engaging style
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-14" data-block-type="text"
+                         style="position: absolute;  width: 400px; height: 30px; left: 0px; top: 200px;"
+                         data-block-id="cd5a21af8ecbf4313421a26578479f0f">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Flexibility at presentation time
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="contentbox speaker-only target" id="speaker-target-box-15" data-block-type="text"
+                         style="position: absolute; width: 400px; height: 60px; left: 0px; top: 250px;"
+                         data-block-id="67f2129512ddbc123fa115bc34659730">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Retains pros of slide presentations: <br> Including complex diagrams, archiving etc.
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-container" id="speaker-slide-4" style="left:50px; top:1475px;">
+            <div id="speaker-target-box-18" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div id="speaker-target-box-20" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 220.566px; height: 239px; left: 11px; top: 47px;"
+                         data-block-id="9014005de347035e5e8be60431331916">
+                        <img id="slide4-image1" class="speaker-only notvis content" data-natural-width="347" data-natural-height="376"
+                             src="images/imageplane.png"/>
+                    </div>
+                    <div id="speaker-target-box-21" class="contentbox speaker-only target" data-block-type="image" style="position: absolute; width: 309px; height: 120px; left: 264px; top: 50px;" data-block-id="c9f1506f24dc12f10a80c91915263033">
+                        <!--<div class="sl-block-content" style="z-index: 25;">-->
+                        <img id="slide4-image2" class="speaker-only notvis content" src="images/redbox.png" data-natural-width="441" data-natural-height="176"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-22" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 40px; height: 50.7937px; left: 488px; top: 101px;"
+                         data-block-id="47ab0e14cd8991f23b1e8526a8da4bef">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 15;">-->
+                        <img id="slide4-image3" class="speaker-only notvis content" data-natural-width="63" data-natural-height="80"
+                             src="images/homogeneous2.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-23" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 75px; height: 30px; left: 308px; top: 113px;"
+                         data-block-id="8776ef7137774fbe4196c09ee3457e01">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 16;">-->
+                        <img id="slide4-image4" class="speaker-only notvis content" data-natural-width="80" data-natural-height="32"
+                             src="images/homogeneous3.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-24" class="contentbox speaker-only target" data-block-type="image" data-block-id="ccd1cb799b98ad07c10eb9e29633861a" style="position: absolute; width: 309px; height: 123.32px; left: 264px; top: 245px;">
+                        <!--<div class="sl-block-content" style="z-index: 23;">-->
+                            <img id="slide4-image5" class="speaker-only notvis content" src="images/redbox.png" data-natural-width="441" data-natural-height="176"/>
+                        <!--</div>-->
+                    </div>
+
+                    <div id="speaker-target-box-25" id="speaker-target-box-19" class="contentbox speaker-only target"
+                         data-block-type="image"
+                         style="position:absolute; width: 40px; height: 41.6667px; left: 320px; top: 310px;"
+                         data-block-id="c5748d77276289cea5e8c3deb4753d94">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 21;">-->
+                        <img id="slide4-image6" class="speaker-only notvis content" data-natural-width="48" data-natural-height="50"
+                             src="images/homogeneous4.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-26" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 51px; height: 7.61194px; left: 375px; top: 312px;"
+                         data-block-id="521b4ded5dc45f524f461b3b12de770f">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 22;">-->
+                        <img id="slide4-image7" class="speaker-only notvis content" data-natural-width="134" data-natural-height="20"
+                             src="images/homogeneous5.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-27" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; min-width: 30px; min-height: 30px; width: 78.9111px; height: 53px; left: 456px; top: 300px;"
+                         data-block-id="62a9a8c60b46c8da3f545c4e83737275">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 23;">-->
+                        <img id="slide4-image8" class="speaker-only notvis content" data-natural-width="134" data-natural-height="90"
+                             src="images/homogeneous7.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-28" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 271px; height: 69px; left: 11px; top: 306px;"
+                         data-block-id="f3d843a50e967d0eb3ff2d62aa02e88d">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 24;">-->
+                        <img id="slide4-image9" class="speaker-only notvis content" src="images/forall.png"
+                             data-natural-width="296" data-natural-height="80"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-29" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 278px; height: 31px; left: 11px; top: 6px;"
+                         data-block-id="152b6b228fe1980b005f4d7bb41bdb9b">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 25;">-->
+                        <img id="slide4-image10" class="speaker-only notvis content" src="images/title.png"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-30" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 300px; height: 37.105px; left: 268px; top: 62px;"
+                         data-block-id="1e5252284d7a4ce2d735a26005bb9fb7">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 26;">-->
+                        <img id="slide4-image11" class="speaker-only notvis content" src="images/redbox1-text1.png"
+                             data-natural-width="251" data-natural-height="25"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-31" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 258px; height: 48.5px; left: 260px; top: 173px;"
+                         data-block-id="ebfe9d18a74e541ef85aee15e7f83d8c">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 27;">-->
+                        <img id="slide4-image12" class="speaker-only notvis content" src="images/akaprojective.png"
+                             data-natural-width="261" data-natural-height="49"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-32" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 88.5px; height: 38.5px; left: 287px; top: 252px;"
+                         data-block-id="b47e0adb79323b033c9a1fa6f267116a">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 28;">-->
+                        <img id="slide4-image13" class="speaker-only notvis content" src="images/redbox2-text1.png"
+                             data-natural-width="112" data-natural-height="42"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="speaker-target-box-33" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 111.5px; height: 38.5px; left: 410px; top: 252px;"
+                         data-block-id="fa839382176d48192469eadc10a8f086">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 29;">-->
+                        <img id="slide4-image14" class="speaker-only notvis content" src="images/redbox2-text2.png"
+                             data-natural-width="166" data-natural-height="43"/>
+                        <!--</div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 view" id="audience-view">
+        <h1>Audience View</h1>
+        <div class="slide-container" id="audience-slide-1" style="left:50px; top:75px;">
+            <div id="audience-target-box-0" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div class="contentbox" id="audience-box-2" data-block-type="image"
+                         style="width: 560px; height: 390.777px; position: absolute; left: 10px; top: 0px;"
+                         data-block-id="545383aeecc4015ddadb184b446c9314">
+                        <img style="" src="images/img0.svg"/>
+                    </div>
+                    <div id="audience-target-box-2" class="contentbox speaker-only target" data-block-type="image"
+                         style="width: 85.1546px; height: 59px; position: absolute; left: 462px; top: 321px;"
+                         data-block-id="2dd1ec53d8eb630df8984e39773a0c5f">
+                        <img class="speaker-only notvis content" style=""
+                             src="images/img1.svg"/>
+                    </div>
+                    <div id="audience-target-box-3" class="contentbox speaker-only target" data-block-type="image"
+                         style="width: 151.45px; height: 52px; position: absolute; left: 311px; top: 137px;"
+                         data-block-id="731765b6164a4c0c4e960e10c01efd28">
+                        <img class="speaker-only notvis content" style=""
+                             src="images/img2.svg" data-natural-width="233" data-natural-height="80"/>
+                    </div>
+                    <div id="audience-target-box-4" class="speaker-only target contentbox" data-block-type="image"
+                         style="width: 84.8774px; height: 92px; position: absolute; left: 131px; top: 121px;"
+                         data-block-id="e56b05f6d67e898cb226542bbe80e72f">
+                        <img class="content" style=""
+                             src="images/img3.svg" data-natural-width="143" data-natural-height="155"/>
+                    </div>
+                    <div id="audience-target-box-5" class="contentbox speaker-only target" data-block-type="image"
+                         style="width: 96.6531px; height: 160px; position: absolute; left: 131px; top: 48px;"
+                         data-block-id="9b3c967c9feda24ec7491cf107d0f406">
+                        <img class="speaker-only notvis content" style=""
+                             src="images/img4.svg" data-natural-width="148" data-natural-height="245"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="slide-container" id="audience-slide-2" style="left:50px; top:525px;">
+            <div id="audience-target-box-6" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div class="contentbox" id="audience-box-0"
+                         style="position: absolute; left: 0px; top: 10px;width: 509px; height: 36px; ">
+                        <img src="images/bst_0.svg"/>
+                    </div>
+                    <div class="contentbox" id="audience-box-1"
+                         style="position:absolute; left: 17px; top: 48px; width: 464.739px; height: 84px; ">
+                        <img src="images/bst_1.svg"/>
+                    </div>
+
+                    <div class="contentbox speaker-only target" id="audience-target-box-7"
+                         style="position:absolute; width: 363.871px; height: 30px; left: 118px; top: 132px;">
+                        <img class="speaker-only notvis content" src="images/bst_2.svg"
+                             data-natural-width="376" data-natural-height="31"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-8" data-block-type="image"
+                         style="position:absolute; width: 365px; height: 38px; left: 17px; top: 162px;"
+                         data-block-id="60eac2c94cc122a0cf2b1df182079a4b">
+                        <img class="speaker-only notvis content" src="images/bst_3.svg"
+                             data-natural-width="365" data-natural-height="38"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-9" data-block-type="image"
+                         style="position:absolute; width: 214px; height: 116.481px; left: 37px; top: 208px;"
+                         data-block-id="aacf69efda86230688c43d273cfe3378">
+                        <img class="speaker-only notvis content" src="images/bst_4.svg"
+                             data-natural-width="237" data-natural-height="129"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-10" data-block-type="image"
+                         style="position:absolute; width: 160px; height: 122px; left: 330px; top: 208px;"
+                         data-block-id="a798ea0fd094c0c9a88575bf9fbd1512">
+                        <img class="speaker-only notvis content" src="images/bst_5.svg"
+                             data-natural-width="184" data-natural-height="140"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-11" data-block-type="image"
+                         style="position:absolute; width: 206px; height: 30.6809px; left: 41px; top: 339px;"
+                         data-block-id="fdc937e69516cf456729544ec882dc7a">
+                        <img class="speaker-only notvis content" src="images/bst_6.svg"
+                             data-natural-width="188" data-natural-height="28"/>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-1" data-block-type="image"
+                         style="position:absolute; width: 74px; height: 31px; left: 373px; top: 339px;"
+                         data-block-id="f9adcde6d7f673f4b91bff1484a42af7">
+                        <img class="speaker-only notvis content" src="images/bst_7.svg"
+                             data-natural-width="52" data-natural-height="22"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-container" id="audience-slide-3" style="left:50px; top:1000px;">
+            <div id="audience-target-box-12" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div class="contentbox" id="audience-box-3" data-block-type="text"
+                         style="position: absolute; width: 560px; left: 50px; top: 0px; height: 63px;">
+                        <h2>Live Presentations</h2>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-16" data-block-type="text"
+                         style="position: absolute; width: 450px; height: 60px; left: 0px; top: 74px;"
+                         data-block-id="56ac921d450fb3313f6d11b6e3b0d353">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Prepare content and layout beforehand <br>(reduces cognitive load during presentation
+                                time)
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="contentbox speaker-only target" id="audience-target-box-17" data-block-type="image"
+                         style="position: absolute; width: 170px; height: 210px; left: 410px; top: 130px;"
+                         data-block-id="df0ab66a4099d32e46ccb0e0e4ed0de1">
+                        <img class="speaker-only notvis content" src="images/bunny.gif"/>
+                    </div>
+
+                    <div class="contentbox speaker-only target" id="audience-target-box-13" data-block-type="text"
+                         style="position: absolute; width: 400px; height: 30px; left: 0px; top: 150px;">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Writing on the fly for more engaging style
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-14" data-block-type="text"
+                         style="position: absolute;  width: 400px; height: 30px; left: 0px; top: 200px;"
+                         data-block-id="cd5a21af8ecbf4313421a26578479f0f">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Flexibility at presentation time
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="contentbox speaker-only target" id="audience-target-box-15" data-block-type="text"
+                         style="position: absolute; width: 400px; height: 60px; left: 0px; top: 250px;"
+                         data-block-id="67f2129512ddbc123fa115bc34659730">
+                        <ul class="speaker-only notvis content">
+                            <li>
+                                Retains pros of slide presentations: <br> Including complex diagrams, archiving etc.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide-container" id="audience-slide-4" style="left:50px; top:1475px;">
+            <div id="audience-target-box-18" class="target" style="position: absolute; left:0px; top:0px;">
+                <div class="slide">
+                    <div id="audience-target-box-20" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 220.566px; height: 239px; left: 11px; top: 47px;"
+                         data-block-id="9014005de347035e5e8be60431331916">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 11;">-->
+                        <img class="speaker-only notvis content" data-natural-width="347" data-natural-height="376"
+                             src="images/imageplane.png"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-21" class="contentbox speaker-only target" data-block-type="image" style="position: absolute; width: 309px; height: 120.32px; left: 264px; top: 50px;" data-block-id="c9f1506f24dc12f10a80c91915263033">
+                        <!--<div class="sl-block-content" style="z-index: 25;">-->
+                        <img class="speaker-only notvis content" src="images/redbox.png" data-natural-width="441" data-natural-height="176"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-22" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 40px; height: 50.7937px; left: 488px; top: 101px;"
+                         data-block-id="47ab0e14cd8991f23b1e8526a8da4bef">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 15;">-->
+                        <img class="speaker-only notvis content" data-natural-width="63" data-natural-height="80"
+                             src="images/homogeneous2.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-23" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 75px; height: 30px; left: 308px; top: 113px;"
+                         data-block-id="8776ef7137774fbe4196c09ee3457e01">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 16;">-->
+                        <img class="speaker-only notvis content" data-natural-width="80" data-natural-height="32"
+                             src="images/homogeneous3.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-24" class="contentbox speaker-only target" data-block-type="image" data-block-id="ccd1cb799b98ad07c10eb9e29633861a" style="position: absolute; width: 309px; height: 123.32px; left: 264px; top: 245px;">
+                        <!--<div class="sl-block-content" style="z-index: 23;">-->
+                        <img class="speaker-only notvis content" src="images/redbox.png" data-natural-width="441" data-natural-height="176"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-25" id="audience-target-box-19" class="contentbox speaker-only target"
+                         data-block-type="image"
+                         style="position:absolute; width: 40px; height: 41.6667px; left: 320px; top: 310px;"
+                         data-block-id="c5748d77276289cea5e8c3deb4753d94">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 21;">-->
+                        <img class="speaker-only notvis content" data-natural-width="48" data-natural-height="50"
+                             src="images/homogeneous4.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-26" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 51px; height: 7.61194px; left: 375px; top: 312px;"
+                         data-block-id="521b4ded5dc45f524f461b3b12de770f">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 22;">-->
+                        <img class="speaker-only notvis content" data-natural-width="134" data-natural-height="20"
+                             src="images/homogeneous5.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-27" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; min-width: 30px; min-height: 30px; width: 78.9111px; height: 53px; left: 456px; top: 300px;"
+                         data-block-id="62a9a8c60b46c8da3f545c4e83737275">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 23;">-->
+                        <img class="speaker-only notvis content" data-natural-width="134" data-natural-height="90"
+                             src="images/homogeneous7.svg"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-28" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 271px; height: 69px; left: 11px; top: 306px;"
+                         data-block-id="f3d843a50e967d0eb3ff2d62aa02e88d">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 24;">-->
+                        <img class="speaker-only notvis content" src="images/forall.png"
+                             data-natural-width="296" data-natural-height="80"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-29" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 278px; height: 31px; left: 11px; top: 6px;"
+                         data-block-id="152b6b228fe1980b005f4d7bb41bdb9b">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 25;">-->
+                        <img class="speaker-only notvis content" src="images/title.png"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-30" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 300px; height: 37.105px; left: 268px; top: 62px;"
+                         data-block-id="1e5252284d7a4ce2d735a26005bb9fb7">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 26;">-->
+                        <img class="speaker-only notvis content" src="images/redbox1-text1.png"
+                             data-natural-width="251" data-natural-height="25"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-31" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 258px; height: 48.5px; left: 260px; top: 173px;"
+                         data-block-id="ebfe9d18a74e541ef85aee15e7f83d8c">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 27;">-->
+                        <img class="speaker-only notvis content" src="images/akaprojective.png"
+                             data-natural-width="261" data-natural-height="49"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-32" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 88.5px; height: 38.5px; left: 287px; top: 252px;"
+                         data-block-id="b47e0adb79323b033c9a1fa6f267116a">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 28;">-->
+                        <img class="speaker-only notvis content" src="images/redbox2-text1.png"
+                             data-natural-width="112" data-natural-height="42"/>
+                        <!--</div>-->
+                    </div>
+                    <div id="audience-target-box-33" class="contentbox speaker-only target" data-block-type="image"
+                         style="position:absolute; width: 111.5px; height: 38.5px; left: 410px; top: 252px;"
+                         data-block-id="fa839382176d48192469eadc10a8f086">
+                        <!--<div class="contentbox speaker-only target-content" style="position:absolute; z-index: 29;">-->
+                        <img class="speaker-only notvis content" src="images/redbox2-text2.png"
+                             data-natural-width="166" data-natural-height="43"/>
+                        <!--</div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="javascripts/exittalk.js"></script>
+</body>
+</html>
+
