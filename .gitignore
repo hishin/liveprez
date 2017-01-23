@@ -13,5 +13,6 @@ ExamplePresentations\
 */.idea/*\
 canvas/.idea\
 bib/*\
+*.emf
 samplepresentations/*.pptx\
 samplepresentations/*/*.pptx}
