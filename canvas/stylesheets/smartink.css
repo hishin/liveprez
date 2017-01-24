@@ -53,9 +53,10 @@ h1 {
 
 .slide {
     width: 600px;
-    height: 400px;
+    height: 438px;
     display: inline-block;
     background-color: white;
+    margin-bottom: 10px;
 }
 
 #slide-deck {
