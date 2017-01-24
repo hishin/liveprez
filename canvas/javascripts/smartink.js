@@ -193,6 +193,19 @@ function addItemStyle(styles, item) {
     }
 };
 
+function getStyles(pitem, styles) {
+    switch (pitem.className) {
+        case "Group":
+            for (var i = 0; i < pitem.children.length; i++) {
+                getStyles(pitem.children[i], styles);
+            }
+            break;
+        case ""
+//'Layer', 'Path', 'CompoundPath', 'Shape', 'Raster', 'SymbolItem', 'PointText'
+
+    }
+};
+
 function activateItemMouseEvents(item) {
     item.pbbox.onMouseEnter = function(event) {
         this.item.pborder.dashArray = [];

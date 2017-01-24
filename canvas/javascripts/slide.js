@@ -45,6 +45,3 @@ var Item = function(block) {
     // initialize beautification parameter
 };
 
-function getStyle(item) {
-
-};
