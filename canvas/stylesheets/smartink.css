@@ -59,7 +59,7 @@ h1 {
 }
 
 #slide-deck {
-    visibility: hidden;    
+    display: none;
 }
 
 #item-toolbox {

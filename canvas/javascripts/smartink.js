@@ -10,9 +10,40 @@ var SLIDE_H = 400;
 var numslides;
 var curslide;
 var toolbox;
-var inkcolor;
-var inkwidth;
+var inkstyle;
 var DEFAULT_COLOR = '#000000'
+
+function InkStyle(style){
+    this.style = style;
+    this.elem = function() {
+        var li = document.createElement("li");
+        var stroke_des = '';
+        stroke_des += (this.style.strokeWidth +' ');
+        if (this.style.fillColor) {
+            stroke_des += this.style.fillColor;
+        } else if (this.style.strokeColor) {
+            stroke_des += (' ' + this.style.strokeColor);
+        } else {
+            stroke_des += (' ' + undefined);
+        }
+        li.appendChild(document.createTextNode(stroke_des));
+        li.addEventListener('click', this, false);
+        return li;
+    }
+
+
+};
+
+InkStyle.prototype.handleEvent = function(e) {
+    switch(e.type) {
+        case "click": this.click(e);
+    }
+};
+
+InkStyle.prototype.click = function(e) {
+    inkstyle = this.style;
+    activateInkTool();
+};
 
 window.onload = function () {
     setupSlideCanvas();
@@ -115,7 +146,7 @@ function initItemStyles(item) {
 };
 
 function addItemStyle(styles, item) {
-    if (item.style)
+    if (item.className != 'Group' && item.style)
         styles.push(item.style);
     if (item.children) {
         for (var i = 0; i < item.children.length; i++) {
@@ -152,25 +183,8 @@ function openItem(item) {
     var tools = toolbox.getElementsByTagName("UL")[0];
     tools.innerHTML = "";
     for (var i = 0; i < item.styles.length; i++) {
-        var li = document.createElement("li");
-        var stroke = '';
-        var color;
-        var width;
-        stroke += (item.styles[i]._values.strokeWidth +' ');
-        width = item.styles[i]._values.strokeWidth;
-        if (item.styles[i]._values.fillColor) {
-            stroke += item.styles[i]._values.fillColor;
-            color = item.styles[i]._values.fillColor;
-        } else if (item.styles[i]._values.strokeColor) {
-            stroke += (' ' + item.styles[i]._values.strokeColor);
-            color = item.styles[i]._values.strokeColor;
-        }
-
-        li.appendChild(document.createTextNode(stroke));
-        li.inkstyle = item.styles[i]._values;
-        li.addEventListener('click', function() {
-            activateInkTool(color, width);
-        });
+        var inkstyle = new InkStyle(item.styles[i]._values);
+        var li = inkstyle.elem();
         tools.appendChild(li);
     }
     var li = document.createElement("li");
@@ -226,11 +240,9 @@ function nextSlide() {
     }
 };
 
-function activateInkTool(color, width) {
-    inkcolor = color;
-    inkwidth = width;
+function activateInkTool() {
+    console.log("activate ink tool");
     spaper.inktool.activate();
-    console.log(color, width);
 };
 
 var curstroke;
@@ -238,8 +250,12 @@ var curtargetrect;
 var curtargetitems = [];
 function inkStart(event){
     curstroke = new paper.Path();
-    curstroke.strokeWidth = inkwidth;
-    curstroke.strokeColor = inkcolor;
+    curstroke.strokeWidth = inkstyle.strokeWidth;
+    if (inkstyle.fillColor) curstroke.strokeColor = inkstyle.fillColor;
+    else if (inkstyle.strokeColor) curstroke.strokeColor = inkstyle.strokeColor;
+    else curstroke.strokeColor = new paper.Color(0,0,0,1);
+    curstroke.strokeColor.alpha = 1.0;
+    console.log(curstorke);
     curstroke.add(event.point);
 };
 
