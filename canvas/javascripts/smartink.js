@@ -115,7 +115,9 @@ function loadSlide(slidedeck, slidenum) {
 };
 
 function loadItem(item){
+
     if (item.type == 'image' && item.content) {
+        console.log(item);
         var layer = new spaper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = parseFloat(CANVAS_H) / SLIDE_H;
@@ -132,14 +134,14 @@ function loadItem(item){
                 item.pborder = new paper.Path.Rectangle(svgitem.bounds);
                 item.pborder.item = item;
                 item.pborder.strokeColor = 'black';
-                item.pborder.strokeWidth = 4;
+                item.pborder.strokeWidth = 3;
                 item.pborder.dashArray = [3,2];
                 item.pborder.opacity = 0.5;
 
                 item.pbbox = new paper.Shape.Rectangle(svgitem.bounds);
                 item.pbbox.item = item;
                 item.pbbox.fillColor = 'red';
-                item.pbbox.opacity = 0.5;
+                item.pbbox.opacity = 0;
 
                 activateItemMouseEvents(item);
             }
@@ -204,9 +206,9 @@ function activateItemMouseEvents(item) {
 };
 
 function deactivateItemMouseEvents(item) {
-    item.bbox.onMouseEnter = null;
-    item.bbox.onMouseLeave = null;
-    item.bbox.onClick = null;
+    item.pbbox.onMouseEnter = null;
+    item.pbbox.onMouseLeave = null;
+    item.pbbox.onClick = null;
 };
 
 function openItem(item) {
@@ -263,17 +265,15 @@ function hideItem(item) {
 };
 
 function prevSlide() {
-    if ( document.getElementById('slide-deck').selectedIndex > 0) {
-        document.getElementById("slide-deck").selectedIndex--;
-        loadSlide();
-    }
+    if (curslidenum > 0)
+        curslidenum--;
+    loadSlide(slidedeck, curslidenum);
 };
 
 function nextSlide() {
-    if (document.getElementById('slide-deck').selectedIndex < numslides - 1) {
-        document.getElementById("slide-deck").selectedIndex++;
-        loadSlide();
-    }
+    if (curslidenum < numslides -1)
+        curslidenum ++;
+    loadSlide(slidedeck, curslidenum);
 };
 
 function activateInkTool() {

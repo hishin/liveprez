@@ -90,18 +90,6 @@ div>img {
 }
 
 
-.slide-container {
-    width: 600px;
-    height: 400px;
-    position: absolute;
-    /*target-shadow: 0 0 30px grey;*/
-    margin: 0 auto;
-    background: white;
-    /*padding-bottom: 50px;*/
-
-
-}
-
 canvas {
     width: 600px;
     height: 400px;
