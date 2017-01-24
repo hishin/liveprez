@@ -7,11 +7,17 @@ var scanvas;
 var spaper;
 var SLIDE_W = 960;
 var SLIDE_H = 700;
+var CANVAS_W = 600;
+var CANVAS_H = 438;
 var numslides;
+var curslidenum = 0;
 var curslide;
 var toolbox;
 var inkstyle;
-var DEFAULT_COLOR = '#000000'
+var SLIDE_URL = "slidedeck.html";
+var DEFAULT_COLOR = '#000000';
+var slidedeck;
+
 
 function InkStyle(style){
     this.style = style;
@@ -46,13 +52,18 @@ InkStyle.prototype.click = function(e) {
 };
 
 window.onload = function () {
-    setupSlideCanvas();
-    setupTools();
-    numslides = document.getElementById("slide-deck").length;
+    var parser = new DOMParser();
+    $.get(SLIDE_URL, function( data ) {
+        var html = parser.parseFromString(data, 'text/html');
+        slidedeck = new SlideDeck(html.getElementsByClassName('slides')[0]);
+        setupSlideCanvas(slidedeck);
+        setupTools();
+        numslides = slidedeck.n;
+    });
     toolbox = document.getElementById("item-toolbox");
 };
 
-function setupSlideCanvas() {
+function setupSlideCanvas(slidedeck) {
     sslide = document.getElementById('speaker-slide');
     scanvas = document.createElement('canvas');
     scanvas.setAttribute('id', sslide.id.replace('slide', 'canvas'));
@@ -61,10 +72,10 @@ function setupSlideCanvas() {
     spaper = new paper.PaperScope();
     spaper.setup(scanvas);
 
-    spaper.view.viewSize.width = SLIDE_W;
-    spaper.view.viewSize.height = SLIDE_H;
-    scanvas.width = SLIDE_W;
-    scanvas.height = SLIDE_H;
+    spaper.view.viewSize.width = CANVAS_W;
+    spaper.view.viewSize.height = CANVAS_H;
+    scanvas.width = CANVAS_W;
+    scanvas.height = CANVAS_H;
     sslide.paper = spaper;
     sslide.canvas = scanvas;
     scanvas.paper = spaper;
@@ -72,7 +83,7 @@ function setupSlideCanvas() {
     spaper.slide = sslide;
     spaper.canvas = scanvas;
 
-    loadSlide();
+    loadSlide(slidedeck, curslidenum);
 };
 
 function setupTools() {
@@ -89,28 +100,52 @@ function setupTools() {
 
 };
 
-function loadSlide() {
+function loadSlide(slidedeck, slidenum) {
     spaper.project.clear();
-    spaper.view.viewSize.width = SLIDE_W;
-    spaper.view.viewSize.height = SLIDE_H;
-    scanvas.width = SLIDE_W;
-    scanvas.height = SLIDE_H;
-    var slide_src = document.getElementById('slide-deck').value;
-    spaper.project.activeLayer.importSVG(slide_src, {
-        expandShapes: true,
-        applyMatrix: true,
-        onLoad: function (svgslide, data) {
-            var wscale = parseFloat(spaper.canvas.width) / svgslide.bounds.width;
-            var hscale = parseFloat(spaper.canvas.height) / svgslide.bounds.height;
-            svgslide.scale(wscale, hscale);
-            var delta = new paper.Point(-svgslide.bounds.left, -svgslide.bounds.top);
-            svgslide.translate(delta);
-            curslide = svgslide;
-            initSlide(svgslide);
-            console.log(svgslide);
-        }
-    });
+    spaper.view.viewSize.width = CANVAS_W;
+    spaper.view.viewSize.height = CANVAS_H;
+    scanvas.width = CANVAS_W;
+    scanvas.height = CANVAS_H;
+    var slide = slidedeck.slides[slidenum];
+    // load each item onto a separate layer
+    for (var i = 0; i < slide.nitems; i++) {
+        var item = slide.items[i];
+        loadItem(item);
+    }
+
+    // spaper.project.activeLayer.importSVG(slide_src, {
+    //     expandShapes: true,
+    //     applyMatrix: true,
+    //     onLoad: function (svgslide, data) {
+    //         var wscale = parseFloat(spaper.canvas.width) / svgslide.bounds.width;
+    //         var hscale = parseFloat(spaper.canvas.height) / svgslide.bounds.height;
+    //         svgslide.scale(wscale, hscale);
+    //         var delta = new paper.Point(-svgslide.bounds.left, -svgslide.bounds.top);
+    //         svgslide.translate(delta);
+    //         curslide = svgslide;
+    //         initSlide(svgslide);
+    //
+    //     }
+    // });
 };
+
+function loadItem(item){
+    if (item.type == 'image' && item.content) {
+        var layer = new spaper.Layer();
+        var wscale = parseFloat(CANVAS_W) / SLIDE_W;
+        var hscale = parseFloat(CANVAS_H) / SLIDE_H;
+
+        layer.importSVG(item.content.dataset.src, {
+            expandShapes: true,
+            applyMatrix: true,
+            onLoad: function(svgitem, data) {
+                svgitem.scale(wscale, hscale);
+                // console.log(svgitem.position);
+                svgitem.position = new paper.Point(item.left*wscale + item.width*wscale/2, item.top*hscale + item.height*hscale/2);
+            }
+        });
+    }
+}
 
 function initSlide(svgslide) {
     var item;
