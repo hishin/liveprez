@@ -39,9 +39,5 @@ var Item = function(block) {
     this.pborder = null;
     this.pbbox = null;
     this.styles = [];
-
-    // initialize ink style
-
-    // initialize beautification parameter
 };
 

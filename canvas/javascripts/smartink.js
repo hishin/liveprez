@@ -144,66 +144,69 @@ function loadItem(item){
                 item.pbbox.opacity = 0;
 
                 activateItemMouseEvents(item);
+
+                item.styles = getStyles(item.pitem);
             }
         });
     }
 };
 
-function initSlide(svgslide) {
-    var item;
-    // Special case:: children[0] is always the slide background
-    for (var i = 1; i < svgslide.children.length; i++) {
-        item = svgslide.children[i];
-        if (!item.border) {
-            item.border = new paper.Path.Rectangle(item.bounds);
-            item.border.item = item;
-            item.border.strokeColor = 'black';
-            item.border.strokeWidth = 3;
-            item.border.dashArray = [3,2];
-            item.border.opacity = 0.5;
-        }
-         if (!item.bbox) {
-             item.bbox = new paper.Shape.Rectangle(item.bounds);
-             item.bbox.item = item;
-             item.bbox.fillColor = '#000000';
-             item.bbox.opacity = 0;
-        }
-        activateItemMouseEvents(item);
-        initItemStyles(item);
-        if (!item.visible) {
-            hideItem(item);
-        } else {
-            item.data.isHidden = false;
-        }
-    }
-};
-
-function initItemStyles(item) {
-    item.styles = [];
-    addItemStyle(item.styles, item);
-};
-
-function addItemStyle(styles, item) {
-    if (item.className != 'Group' && item.style)
-        styles.push(item.style);
-    if (item.children) {
-        for (var i = 0; i < item.children.length; i++) {
-            addItemStyle(styles, item.children[i]);
-        }
-    }
-};
+// function initSlide(svgslide) {
+//     var item;
+//     // Special case:: children[0] is always the slide background
+//     for (var i = 1; i < svgslide.children.length; i++) {
+//         item = svgslide.children[i];
+//         if (!item.border) {
+//             item.border = new paper.Path.Rectangle(item.bounds);
+//             item.border.item = item;
+//             item.border.strokeColor = 'black';
+//             item.border.strokeWidth = 3;
+//             item.border.dashArray = [3,2];
+//             item.border.opacity = 0.5;
+//         }
+//          if (!item.bbox) {
+//              item.bbox = new paper.Shape.Rectangle(item.bounds);
+//              item.bbox.item = item;
+//              item.bbox.fillColor = '#000000';
+//              item.bbox.opacity = 0;
+//         }
+//         activateItemMouseEvents(item);
+//         initItemStyles(item);
+//         if (!item.visible) {
+//             hideItem(item);
+//         } else {
+//             item.data.isHidden = false;
+//         }
+//     }
+// };
+//
+// function initItemStyles(item) {
+//     item.styles = [];
+//     addItemStyle(item.styles, item);
+// };
+//
+// function addItemStyle(styles, item) {
+//     if (item.className != 'Group' && item.style)
+//         styles.push(item.style);
+//     if (item.children) {
+//         for (var i = 0; i < item.children.length; i++) {
+//             addItemStyle(styles, item.children[i]);
+//         }
+//     }
+// };
 
 function getStyles(pitem, styles) {
-    switch (pitem.className) {
-        case "Group":
-            for (var i = 0; i < pitem.children.length; i++) {
-                getStyles(pitem.children[i], styles);
-            }
-            break;
-        case ""
-//'Layer', 'Path', 'CompoundPath', 'Shape', 'Raster', 'SymbolItem', 'PointText'
-
+    if (!styles)
+        styles = new Array();
+    if (pitem.className == 'Group') {
+        for (var i = 0; i < pitem.children.length; i++) {
+            styles = getStyles(pitem.children[i], styles);
+        }
     }
+    else {
+        styles.push(pitem.style);
+    }
+    return styles;
 };
 
 function activateItemMouseEvents(item) {
