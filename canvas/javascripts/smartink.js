@@ -112,21 +112,6 @@ function loadSlide(slidedeck, slidenum) {
         var item = slide.items[i];
         loadItem(item);
     }
-
-    // spaper.project.activeLayer.importSVG(slide_src, {
-    //     expandShapes: true,
-    //     applyMatrix: true,
-    //     onLoad: function (svgslide, data) {
-    //         var wscale = parseFloat(spaper.canvas.width) / svgslide.bounds.width;
-    //         var hscale = parseFloat(spaper.canvas.height) / svgslide.bounds.height;
-    //         svgslide.scale(wscale, hscale);
-    //         var delta = new paper.Point(-svgslide.bounds.left, -svgslide.bounds.top);
-    //         svgslide.translate(delta);
-    //         curslide = svgslide;
-    //         initSlide(svgslide);
-    //
-    //     }
-    // });
 };
 
 function loadItem(item){
@@ -134,18 +119,33 @@ function loadItem(item){
         var layer = new spaper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = parseFloat(CANVAS_H) / SLIDE_H;
-
         layer.importSVG(item.content.dataset.src, {
             expandShapes: true,
             applyMatrix: true,
             onLoad: function(svgitem, data) {
-                svgitem.scale(wscale, hscale);
-                // console.log(svgitem.position);
-                svgitem.position = new paper.Point(item.left*wscale + item.width*wscale/2, item.top*hscale + item.height*hscale/2);
+                svgitem.pivot = new paper.Point(svgitem.bounds.topLeft);
+                svgitem.scale(wscale*item.width/svgitem.bounds.width, hscale*item.height/svgitem.bounds.height);
+                svgitem.position = new paper.Point(item.left*wscale, item.top*hscale);
+                item.pitem = svgitem;
+                svgitem.item = item;
+
+                item.pborder = new paper.Path.Rectangle(svgitem.bounds);
+                item.pborder.item = item;
+                item.pborder.strokeColor = 'black';
+                item.pborder.strokeWidth = 4;
+                item.pborder.dashArray = [3,2];
+                item.pborder.opacity = 0.5;
+
+                item.pbbox = new paper.Shape.Rectangle(svgitem.bounds);
+                item.pbbox.item = item;
+                item.pbbox.fillColor = 'red';
+                item.pbbox.opacity = 0.5;
+
+                activateItemMouseEvents(item);
             }
         });
     }
-}
+};
 
 function initSlide(svgslide) {
     var item;
@@ -155,8 +155,8 @@ function initSlide(svgslide) {
         if (!item.border) {
             item.border = new paper.Path.Rectangle(item.bounds);
             item.border.item = item;
-            item.border.strokeColor = '#3198C8';
-            item.border.strokeWidth = 2;
+            item.border.strokeColor = 'black';
+            item.border.strokeWidth = 3;
             item.border.dashArray = [3,2];
             item.border.opacity = 0.5;
         }
@@ -192,13 +192,13 @@ function addItemStyle(styles, item) {
 };
 
 function activateItemMouseEvents(item) {
-    item.bbox.onMouseEnter = function(event) {
-        this.item.border.dashArray = [];
+    item.pbbox.onMouseEnter = function(event) {
+        this.item.pborder.dashArray = [];
     };
-    item.bbox.onMouseLeave = function(event) {
-        this.item.border.dashArray = [3,2];
+    item.pbbox.onMouseLeave = function(event) {
+        this.item.pborder.dashArray = [3,2];
     };
-    item.bbox.onClick = function(event) {
+    item.pbbox.onClick = function(event) {
         openItem(this.item);
     };
 };

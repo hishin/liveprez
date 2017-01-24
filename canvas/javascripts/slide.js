@@ -35,4 +35,7 @@ var Item = function(block) {
     this.left = parseInt(block.style.left, 10);
     this.type = block.dataset.blockType;
     this.content = this.parseContent(block.getElementsByClassName('sl-block-content')[0]);
+    this.pitem = null;
+    this.pborder = null;
+    this.pbbox = null;
 };
