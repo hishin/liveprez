@@ -8,48 +8,15 @@ var spaper;
 var SLIDE_W = 960;
 var SLIDE_H = 700;
 var CANVAS_W = 600;
-var CANVAS_H = 438;
+var CANVAS_H = 438.5;
 var numslides;
 var curslidenum = 0;
 var curslide;
 var toolbox;
-var inkstyle;
+var inkstyle = null;
 var SLIDE_URL = "slidedeck.html";
 var DEFAULT_COLOR = '#000000';
 var slidedeck;
-
-
-function InkStyle(style){
-    this.style = style;
-    this.elem = function() {
-        var li = document.createElement("li");
-        var stroke_des = '';
-        stroke_des += (this.style.strokeWidth +' ');
-        if (this.style.fillColor) {
-            stroke_des += this.style.fillColor;
-        } else if (this.style.strokeColor) {
-            stroke_des += (' ' + this.style.strokeColor);
-        } else {
-            stroke_des += (' ' + undefined);
-        }
-        li.appendChild(document.createTextNode(stroke_des));
-        li.addEventListener('click', this, false);
-        return li;
-    }
-
-
-};
-
-InkStyle.prototype.handleEvent = function(e) {
-    switch(e.type) {
-        case "click": this.click(e);
-    }
-};
-
-InkStyle.prototype.click = function(e) {
-    inkstyle = this.style;
-    activateInkTool();
-};
 
 window.onload = function () {
     var parser = new DOMParser();
@@ -116,7 +83,6 @@ function loadSlide(slidedeck, slidenum) {
 
 function loadItem(item){
     if (item.type == 'image' && item.content) {
-        console.log(item);
         var layer = new spaper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = parseFloat(CANVAS_H) / SLIDE_H;
@@ -124,23 +90,33 @@ function loadItem(item){
             expandShapes: true,
             applyMatrix: true,
             onLoad: function(svgitem, data) {
-                svgitem.pivot = new paper.Point(svgitem.bounds.topLeft);
-                svgitem.scale(wscale*item.width/svgitem.bounds.width, hscale*item.height/svgitem.bounds.height);
-                svgitem.position = new paper.Point(item.left*wscale, item.top*hscale);
                 item.pitem = svgitem;
                 svgitem.item = item;
 
-                item.pborder = new paper.Path.Rectangle(svgitem.bounds);
+                item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
+                item.pborder.pivot = item.pborder.bounds.topLeft;
+                svgitem.pivot = item.pborder.bounds.topLeft;
+                item.pborder.scale(wscale, hscale, item.pborder.pivot);
                 item.pborder.item = item;
                 item.pborder.strokeColor = 'black';
                 item.pborder.strokeWidth = 3;
                 item.pborder.dashArray = [3,2];
                 item.pborder.opacity = 0.5;
 
-                item.pbbox = new paper.Shape.Rectangle(svgitem.bounds);
+                item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
+                item.pbbox.pivot = item.pbbox.bounds.topLeft;
+                item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
                 item.pbbox.item = item;
                 item.pbbox.fillColor = 'red';
                 item.pbbox.opacity = 0;
+
+                var delta = new paper.Point(item.left*wscale, item.top*hscale);
+                item.pborder.translate(delta);
+                item.pbbox.translate(delta);
+
+                svgitem.scale(wscale, hscale);
+                // svgitem.scale(wscale*item.width/svgitem.bounds.width, hscale*item.height/svgitem.bounds.height);
+                svgitem.translate(delta);
 
                 item.inkstyles = getInkStyle(item.pitem);
                 item.activateMouseEvents();
@@ -158,7 +134,7 @@ function getInkStyle(pitem, styles) {
             styles = getInkStyle(pitem.children[i], styles);
         }
     }
-    else {
+    else if (!pitem.clipMask){
         // Add only if same style does not exist
         var inkstyle = new InkStyle(pitem.style);
         for (var i = 0; i < styles.length; i++) {
@@ -179,8 +155,6 @@ function deactivateItemMouseEvents() {
         item.pbbox.onClick = null;
     }
 };
-
-
 
 function openTools(item) {
     console.log(item.pitem);
@@ -244,6 +218,11 @@ function nextSlide() {
     loadSlide(slidedeck, curslidenum);
 };
 
+function setInkStyle(event) {
+    inkstyle = event.target.inkstyle;
+    activateInkTool();
+};
+
 function activateInkTool() {
     console.log("activate ink tool");
     spaper.inktool.activate();
@@ -255,11 +234,8 @@ var curtargetitems = [];
 function inkStart(event){
     curstroke = new paper.Path();
     curstroke.strokeWidth = inkstyle.strokeWidth;
-    if (inkstyle.fillColor) curstroke.strokeColor = inkstyle.fillColor;
-    else if (inkstyle.strokeColor) curstroke.strokeColor = inkstyle.strokeColor;
-    else curstroke.strokeColor = new paper.Color(0,0,0,1);
-    curstroke.strokeColor.alpha = 1.0;
-    console.log(curstorke);
+    curstroke.fillColor = inkstyle.fillColor;
+    curstroke.strokeColor = inkstyle.strokeColor;
     curstroke.add(event.point);
 };
 
@@ -273,6 +249,7 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
+        curvature(curstroke);
         // curtargetitems.push(curstroke);
         // var fititem = fitItemsToRect(curtargetitems, curtargetrect); //cloned and fit items
         // var msg = drawMessage(fititem);

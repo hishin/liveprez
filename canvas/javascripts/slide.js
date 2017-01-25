@@ -71,13 +71,33 @@ var InkStyle = function(style) {
         stroke_des += (', FillColor: ' + this.fillColor);
         stroke_des += (', StrokeColor: ' + this.strokeColor);
         li.appendChild(document.createTextNode(stroke_des));
+
+        li.inkstyle = this;
+        li.addEventListener('click', setInkStyle, false);
         return li;
     };
 
-    this.isEqualTo = function(inkstyle) {
-        if (this.fillColor && inkstyle.fillColor && this.fillColor.toString() != inkstyle.fillColor.toString()) {
+    this.isEqualTo = function(that) {
+        if (this.fillColor && that.fillColor && this.fillColor.toString() != that.fillColor.toString()) {
             return false;
         }
+        if (this.strokeColor && that.strokeColor && this.strokeColor.toString() && that.strokeColor.toString()) {
+            return false;
+        }
+        if (this.strokeWidth && that.strokeWidth && this.strokeWidth.toString() != that.strokeWidth.toString()) {
+            return false;
+        }
+        if ((!this.fillColor && that.fillColor) || (this.fillColor && !that.fillColor)){
+            return false;
+        }
+        if ((!this.strokeColor && that.strokeColor) || (this.strokeColor && !that.strokeColor)){
+            return false;
+        }
+        if ((!this.strokeWidth && that.strokeWidth) || (this.strokeWidth && !that.strokeWidth)){
+            return false;
+        }
+        return true;
+
     };
 };
 
