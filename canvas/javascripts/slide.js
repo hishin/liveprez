@@ -38,6 +38,47 @@ var Item = function(block) {
     this.pitem = null;
     this.pborder = null;
     this.pbbox = null;
-    this.styles = [];
+    this.inkstyles = [];
+
+    this.close = function() {
+        this.pborder.strokeWidth = 2;
+        this.pborder.dashArray = [3,2];
+        this.pborder.opacity = 0.5;
+    };
+
+    this.activateMouseEvents = function() {
+        this.pbbox.onMouseEnter = function(event) {
+            this.item.pborder.dashArray = [];
+        };
+        this.pbbox.onMouseLeave = function(event) {
+            this.item.pborder.dashArray = [3,2];
+        };
+        this.pbbox.onClick = function(event) {
+            deactivateItemMouseEvents();
+            openTools(this.item);
+        };
+    }
 };
+
+var InkStyle = function(style) {
+    this.fillColor = style.fillColor;
+    this.strokeColor = style.strokeColor;
+    this.strokeWidth = style.strokeWidth;
+
+    this.listElement = function() {
+        var li = document.createElement("li");
+        var stroke_des = 'Width: ' + this.strokeWidth;
+        stroke_des += (', FillColor: ' + this.fillColor);
+        stroke_des += (', StrokeColor: ' + this.strokeColor);
+        li.appendChild(document.createTextNode(stroke_des));
+        return li;
+    };
+
+    this.isEqualTo = function(inkstyle) {
+        if (this.fillColor && inkstyle.fillColor && this.fillColor.toString() != inkstyle.fillColor.toString()) {
+            return false;
+        }
+    };
+};
+
 
