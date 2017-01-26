@@ -117,7 +117,6 @@ function loadItem(item){
                 svgitem.scale(wscale, hscale);
                 // svgitem.scale(wscale*item.width/svgitem.bounds.width, hscale*item.height/svgitem.bounds.height);
                 svgitem.translate(delta);
-
                 item.inkstyles = getInkStyle(item.pitem);
                 item.activateMouseEvents();
 
@@ -249,7 +248,12 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        curvature(curstroke);
+        var newpath = resample(curstroke);
+        for (var i = 0; i < 100; i++) {
+        //     // newpath = resample(curstroke);
+            newpath = chaikinSmooth(newpath);
+        }
+        // chaikinSmooth(curstroke);
         // curtargetitems.push(curstroke);
         // var fititem = fitItemsToRect(curtargetitems, curtargetrect); //cloned and fit items
         // var msg = drawMessage(fititem);

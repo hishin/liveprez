@@ -7,12 +7,14 @@ function makeLine(path) {
     var to = path.lastSegment.point;
     var line = new paper.Path.Line(from ,to);
     line.style = path.style;
-    path.remove();
+    return line;
 };
 
 function chaikinSmooth(path) {
     var output = new paper.Path();
-    for (var i = 0; i < path.length - 1; i++) {
+    if (path.length > 0)
+        output.add(path.getPointAt(0));
+    for (var i = 0; i <= path.length - 1; i++) {
         var p0 = path.getPointAt(i);
         var p1 = path.getPointAt(i+1);
 
@@ -21,8 +23,25 @@ function chaikinSmooth(path) {
         output.add(Q);
         output.add(R);
     }
+    if (path.length > 1)
+        output.add(path.getPointAt(path.length));
     output.style = path.style;
-    // if (input.length > 1)
-    //     output.push(copy([0, 0], input[ input.length-1 ]))
-    // return output
+    path.remove();
+    return output;
+};
+
+function resample(path) {
+    var points = [];
+    for (var i = 0; i <= path.length; i++) {
+        points.push(path.getPointAt(i));
+    }
+    var samples = simplify(points, 3);
+    var newpath = new paper.Path();
+    newpath.strokeColor = 'red';
+    newpath.strokeWidth = 1;
+    for (var i = 0; i <samples.length; i++) {
+        newpath.add(new paper.Point(samples[i].x, samples[i].y));
+    }
+    newpath.selected = true;
+    return newpath;
 };
