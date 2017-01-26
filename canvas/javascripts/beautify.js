@@ -2,32 +2,29 @@
  * Created by Valentina on 1/25/2017.
  */
 
-function makeLine(path) {
-    var from = path.firstSegment.point;
-    var to = path.lastSegment.point;
-    var line = new paper.Path.Line(from ,to);
-    line.style = path.style;
+function makeLine(points) {
+    var from = points[0];
+    var to = points[points.length-1];
+    var line = [from, to];
     return line;
 };
 
-function chaikinSmooth(path) {
-    var output = new paper.Path();
-    if (path.length > 0)
-        output.add(path.getPointAt(0));
-    for (var i = 0; i <= path.length - 1; i++) {
-        var p0 = path.getPointAt(i);
-        var p1 = path.getPointAt(i+1);
+function chaikinSmooth(points) {
+    var newpoints = new Array();
+    if (points.length > 0)
+        newpoints.push(points[0]);
+    for (var i = 0; i <= points.length - 1; i++) {
+        var p0 = points[i];
+        var p1 = points[i+1];
 
         var Q = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y);
         var R = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y );
-        output.add(Q);
-        output.add(R);
+        newpoints.push(Q);
+        newpoints.push(R);
     }
-    if (path.length > 1)
-        output.add(path.getPointAt(path.length));
-    output.style = path.style;
-    path.remove();
-    return output;
+    if (points.length > 1)
+        newpoints.push(points[points.length-1]);
+    return newpoints;
 };
 
 function resample(path) {
@@ -36,12 +33,29 @@ function resample(path) {
         points.push(path.getPointAt(i));
     }
     var samples = simplify(points, 3);
-    var newpath = new paper.Path();
-    newpath.strokeColor = 'red';
-    newpath.strokeWidth = 1;
-    for (var i = 0; i <samples.length; i++) {
-        newpath.add(new paper.Point(samples[i].x, samples[i].y));
+    return samples;
+};
+
+function discreteFrechetDist(p, q) {
+    var df = new Array(p.length * q.length);
+
+    df[0] = dist(p[0], q[0]);
+
+    for (var j = 1; j < q.length; j++) {
+        df[j] = Math.max(df[j-1], dist(p[0], q[j]));
     }
-    newpath.selected = true;
-    return newpath;
+    for (var i = 1; i < p.length; i++) {
+        df[i] = Math.max(df[(i-1)*q.length], dist(p[i], q[0]));
+    }
+    for (var i = 1; i < p.length; i++) {
+        for (var j = 1; j < q.length; j++) {
+            df[i*q.length + j] = Math.max(Math.min(df[(i-1)*q.length + j], df[(i-1)*q.length + j-1], df[i*q.length + j-1]), dist(p[i], q[j]));
+        }
+    }
+
+    return df[df.length-1];
+};
+
+function dist(p0, p1) {
+    return Math.sqrt(Math.pow(p0.x-p1.x, 2) + Math.pow(p0.y-p1.y, 2));
 };

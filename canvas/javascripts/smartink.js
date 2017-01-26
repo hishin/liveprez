@@ -120,6 +120,8 @@ function loadItem(item){
                 item.inkstyles = getInkStyle(item.pitem);
                 item.activateMouseEvents();
 
+                console.log(svgitem);
+
             }
         });
     }
@@ -223,7 +225,6 @@ function setInkStyle(event) {
 };
 
 function activateInkTool() {
-    console.log("activate ink tool");
     spaper.inktool.activate();
 };
 
@@ -248,17 +249,7 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        var newpath = resample(curstroke);
-        for (var i = 0; i < 100; i++) {
-        //     // newpath = resample(curstroke);
-            newpath = chaikinSmooth(newpath);
-        }
-        // chaikinSmooth(curstroke);
-        // curtargetitems.push(curstroke);
-        // var fititem = fitItemsToRect(curtargetitems, curtargetrect); //cloned and fit items
-        // var msg = drawMessage(fititem);
-        // fititem.remove();
-        // post(msg);
+
     }
 };
 
