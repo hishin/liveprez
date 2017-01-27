@@ -137,7 +137,7 @@ function getInkStyle(pitem, styles) {
     }
     else if (!pitem.clipMask){
         // Add only if same style does not exist
-        var inkstyle = new InkStyle(pitem.style);
+        var inkstyle = new InkStyle(pitem);
         for (var i = 0; i < styles.length; i++) {
             if (styles[i].isEqualTo(inkstyle)) {
                 return styles;
@@ -178,7 +178,6 @@ function openTools(item) {
 };
 
 function closeTools(item) {
-    console.log(item);
     var tools = toolbox.getElementsByTagName("UL")[0];
     tools.innerHTML = "";
     for (var i = 0; i < curslide.nitems; i++) {
@@ -249,7 +248,21 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
+        var newpoints = resample(curstroke);
+        var newstroke = pathFromPoints(newpoints);
+        newstroke.style = curstroke.style;
 
+        if (inkstyle.closed) {
+            for (var i = 0; i < 200; i++) {
+                newstroke = chaikinSmooth(newstroke);
+            }
+            newstroke.closePath();
+
+        } else {
+            newstroke = makeLine(newstroke);
+        }
+
+        curstroke.remove();
     }
 };
 

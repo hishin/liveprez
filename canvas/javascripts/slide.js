@@ -60,16 +60,19 @@ var Item = function(block) {
     }
 };
 
-var InkStyle = function(style) {
-    this.fillColor = style.fillColor;
-    this.strokeColor = style.strokeColor;
-    this.strokeWidth = style.strokeWidth;
+var InkStyle = function(pitem) {
+    this.fillColor = pitem.style.fillColor;
+    this.strokeColor = pitem.style.strokeColor;
+    this.strokeWidth = pitem.style.strokeWidth;
+    if (pitem.closed) this.closed = true;
+    else this.closed = false;
 
     this.listElement = function() {
         var li = document.createElement("li");
-        var stroke_des = 'Width: ' + this.strokeWidth;
-        stroke_des += (', FillColor: ' + this.fillColor);
-        stroke_des += (', StrokeColor: ' + this.strokeColor);
+        var stroke_des = 'W: ' + this.strokeWidth;
+        stroke_des += (', Fill: ' + this.fillColor);
+        stroke_des += (', Stroke: ' + this.strokeColor);
+        stroke_des += (', ' + this.closed);
         li.appendChild(document.createTextNode(stroke_des));
 
         li.inkstyle = this;

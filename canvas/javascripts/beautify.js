@@ -2,29 +2,52 @@
  * Created by Valentina on 1/25/2017.
  */
 
-function makeLine(points) {
-    var from = points[0];
-    var to = points[points.length-1];
-    var line = [from, to];
+
+function makeLine(path) {
+    console.log(path);
+    var from = path.firstSegment.point;//points[0];
+    var to = path.lastSegment.point;//points[points.length-1];
+    var line = new paper.Path();
+    line.add(from);
+    line.add(to);
+    line.style = path.style;
+    path.remove();
     return line;
 };
 
-function chaikinSmooth(points) {
-    var newpoints = new Array();
-    if (points.length > 0)
-        newpoints.push(points[0]);
-    for (var i = 0; i <= points.length - 1; i++) {
-        var p0 = points[i];
-        var p1 = points[i+1];
-
+// function chaikinSmooth(points) {
+//     var newpoints = new Array();
+//     if (points.length > 0)
+//         newpoints.push(points[0]);
+//     for (var i = 0; i < points.length - 1; i++) {
+//         var p0 = points[i];
+//         var p1 = points[i+1];
+//         var Q = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y);
+//         var R = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y );
+//         newpoints.push(Q);
+//         newpoints.push(R);
+//     }
+//     if (points.length > 1)
+//         newpoints.push(points[points.length-1]);
+//     return newpoints;
+// };
+function chaikinSmooth(path) {
+    var newpath = new paper.Path();
+    if (path.length > 0)
+        newpath.add(path.getPointAt(0));
+    for (var i = 0; i <= path.length - 1; i++) {
+        var p0 = path.getPointAt(i);
+        var p1 = path.getPointAt(i+1);
         var Q = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y);
         var R = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y );
-        newpoints.push(Q);
-        newpoints.push(R);
+        newpath.add(Q);
+        newpath.add(R);
     }
-    if (points.length > 1)
-        newpoints.push(points[points.length-1]);
-    return newpoints;
+    if (path.length > 1)
+        newpath.add(path.getPointAt(path.length));
+    newpath.style = path.style;
+    path.remove();
+    return newpath;
 };
 
 function resample(path) {
@@ -32,8 +55,16 @@ function resample(path) {
     for (var i = 0; i <= path.length; i++) {
         points.push(path.getPointAt(i));
     }
-    var samples = simplify(points, 3);
+    var samples = simplify(points, 1);
     return samples;
+};
+
+function pathFromPoints(points) {
+    var path = new paper.Path();
+    for (var i = 0; i < points.length; i++) {
+        path.add(points[i]);
+    }
+    return path;
 };
 
 function discreteFrechetDist(p, q) {
