@@ -86,6 +86,7 @@ function loadItem(item){
         var layer = new spaper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = parseFloat(CANVAS_H) / SLIDE_H;
+        console.log(item.content.dataset.src);
         layer.importSVG(item.content.dataset.src, {
             expandShapes: true,
             applyMatrix: true,
@@ -119,9 +120,6 @@ function loadItem(item){
                 svgitem.translate(delta);
                 item.inkstyles = getInkStyle(item.pitem);
                 item.activateMouseEvents();
-
-                console.log(svgitem);
-
             }
         });
     }
@@ -158,7 +156,6 @@ function deactivateItemMouseEvents() {
 };
 
 function openTools(item) {
-    console.log(item.pitem);
     item.pborder.strokeWidth = 3;
     item.pborder.opacity = 1.0;
 
