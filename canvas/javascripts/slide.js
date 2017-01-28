@@ -84,7 +84,7 @@ var InkStyle = function(pitem) {
         if (this.fillColor && that.fillColor && this.fillColor.toString() != that.fillColor.toString()) {
             return false;
         }
-        if (this.strokeColor && that.strokeColor && this.strokeColor.toString() && that.strokeColor.toString()) {
+        if (this.strokeColor && that.strokeColor && this.strokeColor.toString() != that.strokeColor.toString()) {
             return false;
         }
         if (this.strokeWidth && that.strokeWidth && this.strokeWidth.toString() != that.strokeWidth.toString()) {
