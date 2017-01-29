@@ -117,7 +117,7 @@ function findClosestPath(stroke, pitem) {
             }
         }
     }
-    else {
+    else if (!pitem.clipMask) {
         var points = resample(stroke);
         var dist = distToPath(points, pitem);
         if (dist < mindist) {

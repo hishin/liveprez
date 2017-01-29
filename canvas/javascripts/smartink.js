@@ -163,7 +163,7 @@ function getInkStyle(pitem, styles) {
             styles = getInkStyle(pitem.children[i], styles);
         }
     }
-    else if (!pitem.clipMask){
+    else if (!pitem.clipMask ){
         // Add only if same style does not exist
         var inkstyle = new InkStyle(pitem);
         for (var i = 0; i < styles.length; i++) {
@@ -190,19 +190,23 @@ function openItem(item) {
     item.pborder.strokeWidth = 3;
     item.pborder.opacity = 1.0;
 
-    var tools = toolbox.getElementsByTagName("UL")[0];
-    tools.innerHTML = "";
-    for (var i = 0; i < item.inkstyles.length; i++) {
-        var inkstyle = item.inkstyles[i];
-        var li = inkstyle.listElement();
-        tools.appendChild(li);
-    }
+    activateInkTool();
+    // var tools = toolbox.getElementsByTagName("UL")[0];
+    // tools.innerHTML = "";
+    // for (var i = 0; i < item.inkstyles.length; i++) {
+    //     var inkstyle = item.inkstyles[i];
+    //     var li = inkstyle.listElement();
+    //     tools.appendChild(li);
+    // }
+    //
+    // var li = document.createElement("li");
+    // li.setAttribute('id', 'close-item');
+    // li.appendChild(document.createTextNode('Done'));
+    // li.addEventListener('click', function() {closeTools(item);});
+    // tools.appendChild(li);
 
-    var li = document.createElement("li");
-    li.setAttribute('id', 'close-item');
-    li.appendChild(document.createTextNode('Done'));
-    li.addEventListener('click', function() {closeTools(item);});
-    tools.appendChild(li);
+
+
 };
 
 function closeTools(item) {
@@ -260,9 +264,15 @@ var curtargetrect;
 var curtargetitems = [];
 function inkStart(event){
     curstroke = new paper.Path();
-    curstroke.strokeWidth = inkstyle.strokeWidth;
-    curstroke.fillColor = inkstyle.fillColor;
-    curstroke.strokeColor = inkstyle.strokeColor;
+    if (!inkstyle) {
+        curstroke.strokeWidth = 1;
+        curstroke.fillStroke = null;
+        curstroke.strokeColor = 'black';
+    } else {
+        curstroke.strokeWidth = inkstyle.strokeWidth;
+        curstroke.fillColor = inkstyle.fillColor;
+        curstroke.strokeColor = inkstyle.strokeColor;
+    }
     curstroke.add(event.point);
 };
 
@@ -278,6 +288,8 @@ function inkEnd(event) {
         curstroke.add(event.point);
         var closest = findClosestPath(curstroke, curitem.pitem);
         curstroke.style = closest[1].style;
+        
+
         // var newpoints = resample(curstroke);
         // var newstroke = pathFromPoints(newpoints);
         // newstroke.style = curstroke.style;
