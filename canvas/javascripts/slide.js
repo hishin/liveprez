@@ -55,7 +55,7 @@ var Item = function(block) {
         };
         this.pbbox.onClick = function(event) {
             deactivateItemMouseEvents();
-            openTools(this.item);
+            openItem(this.item);
         };
     }
 };

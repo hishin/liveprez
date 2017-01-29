@@ -31,6 +31,7 @@ function makeLine(path) {
 //         newpoints.push(points[points.length-1]);
 //     return newpoints;
 // };
+
 function chaikinSmooth(path) {
     var newpath = new paper.Path();
     if (path.length > 0)
@@ -70,23 +71,60 @@ function pathFromPoints(points) {
 function discreteFrechetDist(p, q) {
     var df = new Array(p.length * q.length);
 
-    df[0] = dist(p[0], q[0]);
+    df[0] = pointDist(p[0], q[0]);
 
     for (var j = 1; j < q.length; j++) {
-        df[j] = Math.max(df[j-1], dist(p[0], q[j]));
+        df[j] = Math.max(df[j-1], pointDist(p[0], q[j]));
     }
     for (var i = 1; i < p.length; i++) {
-        df[i] = Math.max(df[(i-1)*q.length], dist(p[i], q[0]));
+        df[i] = Math.max(df[(i-1)*q.length], pointDist(p[i], q[0]));
     }
     for (var i = 1; i < p.length; i++) {
         for (var j = 1; j < q.length; j++) {
-            df[i*q.length + j] = Math.max(Math.min(df[(i-1)*q.length + j], df[(i-1)*q.length + j-1], df[i*q.length + j-1]), dist(p[i], q[j]));
+            df[i*q.length + j] = Math.max(Math.min(df[(i-1)*q.length + j], df[(i-1)*q.length + j-1], df[i*q.length + j-1]), pointDist(p[i], q[j]));
         }
     }
 
     return df[df.length-1];
 };
 
-function dist(p0, p1) {
+function pointDist(p0, p1) {
     return Math.sqrt(Math.pow(p0.x-p1.x, 2) + Math.pow(p0.y-p1.y, 2));
+};
+
+function distToPath(points, pathq) {
+    if (pathq.className == "Shape") {
+        pathq = pathq.toPath();
+    }
+    var dist = 0.0;
+    var q;
+    for (var i = 0; i < points.length; i++) {
+        q = pathq.getNearestPoint(points[i]);
+        dist += q.getDistance(points[i], true);
+    }
+    return dist;
+};
+
+function findClosestPath(stroke, pitem) {
+    var mindist = Infinity;
+    var closestpath = null;
+    if (pitem.children) {
+        for (var i = 0; i < pitem.children.length; i++) {
+            var closest = findClosestPath(stroke, pitem.children[i]);
+            if (closest[0] < mindist) {
+                mindist = closest[0];
+                closestpath = closest[1];
+            }
+        }
+    }
+    else {
+        var points = resample(stroke);
+        var dist = distToPath(points, pitem);
+        if (dist < mindist) {
+            mindist = dist;
+            closestpath = pitem;
+        }
+    }
+    return [mindist, closestpath];
+
 };

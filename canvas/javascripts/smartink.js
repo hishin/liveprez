@@ -17,6 +17,7 @@ var inkstyle = null;
 var SLIDE_URL = "slidedeck.html";
 var DEFAULT_COLOR = '#000000';
 var slidedeck;
+var curitem = null;
 
 window.onload = function () {
     var parser = new DOMParser();
@@ -86,7 +87,6 @@ function loadItem(item){
         var layer = new spaper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = parseFloat(CANVAS_H) / SLIDE_H;
-        console.log(item.content.dataset.src);
         layer.importSVG(item.content.dataset.src, {
             expandShapes: true,
             applyMatrix: true,
@@ -114,15 +114,45 @@ function loadItem(item){
                 var delta = new paper.Point(item.left*wscale, item.top*hscale);
                 item.pborder.translate(delta);
                 item.pbbox.translate(delta);
-
-                svgitem.scale(wscale, hscale);
-                // svgitem.scale(wscale*item.width/svgitem.bounds.width, hscale*item.height/svgitem.bounds.height);
+                svgitem.scale(item.width/svgitem.bounds.width*wscale, item.height/svgitem.bounds.height*hscale);
                 svgitem.translate(delta);
                 item.inkstyles = getInkStyle(item.pitem);
                 item.activateMouseEvents();
+
+                showSpeakerOnlyItems(item.pitem);
             }
         });
     }
+};
+
+function showSpeakerOnlyItems(pitem) {
+    if (!pitem.visible) {
+        pitem.data.speakeronly = true;
+        makeSemiTransparent(pitem);
+    } else {
+        pitem.data.speakeronly = false;
+        if (pitem.children) {
+            for (var i = 0; i < pitem.children.length; i++) {
+                showSpeakerOnlyItems(pitem.children[i]);
+            }
+        }
+    }
+};
+
+function makeSemiTransparent(pitem) {
+    if (pitem.children) {
+        for (var i = 0; i < pitem.children.length; i++) {
+            pitem.children[i].visible = false;
+            makeSemiTransparent(pitem.children[i]);
+        }
+    } else {
+        if (pitem.fillColor)
+            pitem.fillColor.alpha = 0.2;
+        if (pitem.strokeColor)
+            pitem.strokeColor.alpha = 0.2;
+    }
+    pitem.visible = true;
+
 };
 
 function getInkStyle(pitem, styles) {
@@ -155,7 +185,8 @@ function deactivateItemMouseEvents() {
     }
 };
 
-function openTools(item) {
+function openItem(item) {
+    curitem = item;
     item.pborder.strokeWidth = 3;
     item.pborder.opacity = 1.0;
 
@@ -245,21 +276,23 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        var newpoints = resample(curstroke);
-        var newstroke = pathFromPoints(newpoints);
-        newstroke.style = curstroke.style;
-
-        if (inkstyle.closed) {
-            for (var i = 0; i < 200; i++) {
-                newstroke = chaikinSmooth(newstroke);
-            }
-            newstroke.closePath();
-
-        } else {
-            newstroke = makeLine(newstroke);
-        }
-
-        curstroke.remove();
+        var closest = findClosestPath(curstroke, curitem.pitem);
+        curstroke.style = closest[1].style;
+        // var newpoints = resample(curstroke);
+        // var newstroke = pathFromPoints(newpoints);
+        // newstroke.style = curstroke.style;
+        //
+        // if (inkstyle.closed) {
+        //     for (var i = 0; i < 200; i++) {
+        //         newstroke = chaikinSmooth(newstroke);
+        //     }
+        //     newstroke.closePath();
+        //
+        // } else {
+        //     newstroke = makeLine(newstroke);
+        // }
+        //
+        // curstroke.remove();
     }
 };
 
