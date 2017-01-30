@@ -288,10 +288,10 @@ function inkEnd(event) {
         curstroke.add(event.point);
         var closest = findClosestPath(curstroke, curitem.pitem);
         curstroke.strokeColor = closest[1].style.fillColor;
-        // var newstroke = interpolate(curstroke, closest[1], 1.0);
+        var newstroke = interpolate(curstroke, closest[1], 1.0);
 
-        // newstroke.style = closest[1].style;
-        var newstroke = closest[1];
+        newstroke.style = closest[1].style;
+        // var newstroke = closest[1];
         if (newstroke.fillColor) {
             newstroke.fillColor.alpha = 1.0;
         }
