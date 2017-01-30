@@ -147,9 +147,9 @@ function makeSemiTransparent(pitem) {
         }
     } else {
         if (pitem.fillColor)
-            pitem.fillColor.alpha = 0.2;
+            pitem.fillColor.alpha = 0.5;
         if (pitem.strokeColor)
-            pitem.strokeColor.alpha = 0.2;
+            pitem.strokeColor.alpha = 0.5;
     }
     pitem.visible = true;
 
@@ -287,9 +287,19 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         var closest = findClosestPath(curstroke, curitem.pitem);
-        curstroke.style = closest[1].style;
+        var newstroke = interpolate(curstroke, closest[1], 1.0);
 
-
+        newstroke.style = closest[1].style;
+        // var newstroke = closest[1];
+        if (newstroke.fillColor) {
+            newstroke.fillColor.alpha = 1.0;
+        }
+        if (newstroke.strokeColor) {
+            newstroke.strokeColor.alpha = 1.0;
+        }
+        curstroke.remove();
+        // closest[1].remove();
+        // closest[1].selected = true;
         // var newpoints = resample(curstroke);
         // var newstroke = pathFromPoints(newpoints);
         // newstroke.style = curstroke.style;
