@@ -93,6 +93,7 @@ function pointDist(p0, p1) {
 };
 
 function distToPath(points, pathq) {
+    console.log(pathq.className);
     if (pathq.className == "Shape") {
         pathq = pathq.toPath();
     }
@@ -126,5 +127,19 @@ function findClosestPath(stroke, pitem) {
         }
     }
     return [mindist, closestpath];
+
+};
+
+function interpolate(from, to, factor) {
+    var from_p = resample(from);
+    var result = new paper.Path();
+    var to_p;
+    var new_p;
+    for (var i = 0; i < from_p.length; i++) {
+        to_p = to.getNearestPoint(from_p[i]);
+        new_p = new paper.Point(from_p[i].x*(1.0-factor) + to_p.x*factor , from_p[i].y*(1.0-factor) + to_p.y*factor);
+        result.add(new_p);
+    }
+    return result;
 
 };
