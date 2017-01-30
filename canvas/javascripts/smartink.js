@@ -288,7 +288,7 @@ function inkEnd(event) {
         curstroke.add(event.point);
         var closest = findClosestPath(curstroke, curitem.pitem);
         curstroke.style = closest[1].style;
-        
+
 
         // var newpoints = resample(curstroke);
         // var newstroke = pathFromPoints(newpoints);
