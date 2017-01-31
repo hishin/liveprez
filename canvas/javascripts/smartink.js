@@ -5,9 +5,6 @@
 var sslide;
 var scanvas;
 var spaper;
-var aslide;
-var acanvas;
-var apaper;
 var SLIDE_W = 960;
 var SLIDE_H = 700;
 var CANVAS_W = 600;
@@ -21,6 +18,7 @@ var SLIDE_URL = "slidedeck.html";
 var DEFAULT_COLOR = '#000000';
 var slidedeck;
 var curitem = null;
+var awindow;
 
 window.onload = function () {
     var parser = new DOMParser();
@@ -28,52 +26,69 @@ window.onload = function () {
         var html = parser.parseFromString(data, 'text/html');
         slidedeck = new SlideDeck(html.getElementsByClassName('slides')[0]);
         setupSlideCanvas(slidedeck);
-        setupTools();
+        setupPaperTools();
         numslides = slidedeck.n;
     });
     toolbox = document.getElementById("item-toolbox");
+    popupAudienceView();
+};
+
+function popupAudienceView() {
+    awindow = window.open('smartaudience.html', 'Audience View');
+    /**
+     * Connect to the audience view window through a postmessage handshake.
+     * Using postmessage enables us to work in situations where the
+     * origins differ, such as a presentation being opened from the
+     * file system.
+     */
+    function connect() {
+        // Keep trying to connect until we get a 'connected' message back
+        var connectInterval = setInterval( function() {
+            awindow.postMessage( JSON.stringify( {
+                namespace: 'liveprez',
+                type: 'connect',
+                url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+                state: getSlideState()
+            } ), '*' );
+        }, 500 );
+
+        window.addEventListener( 'message', function( event ) {
+            var data = JSON.parse( event.data );
+            if( data && data.namespace === 'audience' && data.type === 'connected' ) {
+                clearInterval( connectInterval );
+            }
+        } );
+    }
+
+    connect();
 };
 
 function setupSlideCanvas(slidedeck) {
     sslide = document.getElementById('speaker-slide');
-    aslide = document.getElementById('audience-slide');
     scanvas = document.createElement('canvas');
-    acanvas = document.createElement('canvas');
     scanvas.setAttribute('id', sslide.id.replace('slide', 'canvas'));
-    acanvas.setAttribute('id', aslide.id.replace('slide', 'canvas'));
     sslide.appendChild(scanvas);
-    aslide.appendChild(acanvas);
 
     spaper = new paper.PaperScope();
     spaper.setup(scanvas);
-    apaper = new paper.PaperScope();
-    apaper.setup(acanvas);
 
     spaper.view.viewSize.width = CANVAS_W;
     spaper.view.viewSize.height = CANVAS_H;
-    apaper.view.viewSize.width = CANVAS_W;
-    apaper.view.viewSize.height = CANVAS_H;
     scanvas.width = CANVAS_W;
-    acanvas.width = CANVAS_W;
     scanvas.height = CANVAS_H;
-    acanvas.height = CANVAS_H;
-    sslide.paper = spaper;
-    aslide.paper = apaper;
-    sslide.canvas = scanvas;
-    aslide.canvas = acanvas;
-    scanvas.paper = spaper;
-    acanvas.paper = apaper;
-    scanvas.slide = sslide;
-    acanvas.slide = aslide;
-    spaper.slide = sslide;
-    apaper.slide = aslide;
-    spaper.canvas = scanvas;
-    apaper.canvas = acanvas;
 
-    loadSlide(slidedeck, curslidenum);
+    sslide.paper = spaper;
+    sslide.canvas = scanvas;
+    scanvas.paper = spaper;
+    scanvas.slide = sslide;
+    spaper.slide = sslide;
+    spaper.canvas = scanvas;
+
+    curslide = slidedeck.getSlide(curslidenum);
+    loadSlide(curslide);
 };
 
-function setupTools() {
+function setupPaperTools() {
     // Default tool
     var defaulttool = new spaper.Tool();
     spaper.defaulttool = defaulttool;
@@ -87,66 +102,92 @@ function setupTools() {
 
 };
 
-function loadSlide(slidedeck, slidenum) {
+function loadSlide(slide) {
     spaper.project.clear();
     spaper.view.viewSize.width = CANVAS_W;
     spaper.view.viewSize.height = CANVAS_H;
     scanvas.width = CANVAS_W;
     scanvas.height = CANVAS_H;
 
-    apaper.project.clear();
-    apaper.view.viewSize.width = CANVAS_W;
-    apaper.view.viewSize.height = CANVAS_H;
-    acanvas.width = CANVAS_W;
-    acanvas.height = CANVAS_H;    // load each item onto a separate layer
-
-    curslide = slidedeck.slides[slidenum];
-    for (var i = 0; i < curslide.nitems; i++) {
-        var item = curslide.items[i];
+    for (var i = 0; i < slide.nitems; i++) {
+        var item = slide.items[i];
         loadItem(item);
     }
+    post(slideChangeMessage());
 };
 
-function loadItem(item, speaker){
-    if (item.type == 'image' && item.content) {
-        var layer = new spaper.Layer();
+function loadItem(item){
+    if (item.type == 'image' && item.src) {
+        var layer = new paper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = parseFloat(CANVAS_H) / SLIDE_H;
-        layer.importSVG(item.content.dataset.src, {
-            expandShapes: true,
-            applyMatrix: true,
-            onLoad: function(svgitem, data) {
-                item.pitem = svgitem;
-                svgitem.item = item;
 
-                item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
-                item.pborder.pivot = item.pborder.bounds.topLeft;
-                svgitem.pivot = item.pborder.bounds.topLeft;
-                item.pborder.scale(wscale, hscale, item.pborder.pivot);
-                item.pborder.item = item;
-                item.pborder.strokeColor = 'black';
-                item.pborder.strokeWidth = 3;
-                item.pborder.dashArray = [3,2];
-                item.pborder.opacity = 0.5;
+        var ext = item.src.split('.').pop();
+        if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp') {
+            item.pitem = new paper.Raster(item.src);
+            item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
+            item.pborder.pivot = item.pborder.bounds.topLeft;
+            item.pitem.pivot = item.pborder.bounds.topLeft;
+            item.pborder.scale(wscale, hscale, item.pborder.pivot);
+            item.pborder.item = item;
+            item.pborder.strokeColor = 'black';
+            item.pborder.strokeWidth = 3;
+            item.pborder.dashArray = [3, 2];
+            item.pborder.opacity = 0.5;
 
-                item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
-                item.pbbox.pivot = item.pbbox.bounds.topLeft;
-                item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
-                item.pbbox.item = item;
-                item.pbbox.fillColor = 'red';
-                item.pbbox.opacity = 0;
+            item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
+            item.pbbox.pivot = item.pbbox.bounds.topLeft;
+            item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
+            item.pbbox.item = item;
+            item.pbbox.fillColor = 'red';
+            item.pbbox.opacity = 0;
 
-                var delta = new paper.Point(item.left*wscale, item.top*hscale);
-                item.pborder.translate(delta);
-                item.pbbox.translate(delta);
-                svgitem.scale(item.width/svgitem.bounds.width*wscale, item.height/svgitem.bounds.height*hscale);
-                svgitem.translate(delta);
-                item.inkstyles = getInkStyle(item.pitem);
-                item.activateMouseEvents();
+            var delta = new paper.Point(item.left * wscale, item.top * hscale);
+            item.pborder.translate(delta);
+            item.pbbox.translate(delta);
+            item.pitem.scale(item.width / item.pitem.bounds.width * wscale, item.height / item.pitem.bounds.height * hscale);
+            item.pitem.position = item.pbbox.bounds.center;
+            item.pitem.opacity = 0.5;
+            // item.inkstyles = getInkStyle(item.pitem);
+            // item.activateMouseEvents();
+            // showSpeakerOnlyItems(item.pitem);
 
-                showSpeakerOnlyItems(item.pitem);
-            }
-        });
+        } else if (ext == 'svg') {
+            layer.importSVG(item.src, {
+                expandShapes: true,
+                applyMatrix: true,
+                onLoad: function(svgitem, data) {
+                        item.pitem = svgitem;
+                        svgitem.item = item;
+
+                        item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
+                        item.pborder.pivot = item.pborder.bounds.topLeft;
+                        svgitem.pivot = item.pborder.bounds.topLeft;
+                        item.pborder.scale(wscale, hscale, item.pborder.pivot);
+                        item.pborder.item = item;
+                        item.pborder.strokeColor = 'black';
+                        item.pborder.strokeWidth = 3;
+                        item.pborder.dashArray = [3, 2];
+                        item.pborder.opacity = 0.5;
+
+                        item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
+                        item.pbbox.pivot = item.pbbox.bounds.topLeft;
+                        item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
+                        item.pbbox.item = item;
+                        item.pbbox.fillColor = 'red';
+                        item.pbbox.opacity = 0;
+
+                        var delta = new paper.Point(item.left * wscale, item.top * hscale);
+                        item.pborder.translate(delta);
+                        item.pbbox.translate(delta);
+                        svgitem.scale(item.width / svgitem.bounds.width * wscale, item.height / svgitem.bounds.height * hscale);
+                        svgitem.translate(delta);
+                        item.inkstyles = getInkStyle(item.pitem);
+                        item.activateMouseEvents();
+                        showSpeakerOnlyItems(item.pitem);
+                }
+            });
+        }
     }
 };
 
@@ -177,7 +218,6 @@ function makeSemiTransparent(pitem) {
             pitem.strokeColor.alpha = 0.5;
     }
     pitem.visible = true;
-
 };
 
 function getInkStyle(pitem, styles) {
@@ -230,8 +270,6 @@ function openItem(item) {
     // li.addEventListener('click', function() {closeTools(item);});
     // tools.appendChild(li);
 
-
-
 };
 
 function closeTools(item) {
@@ -266,13 +304,15 @@ function hideItem(item) {
 function prevSlide() {
     if (curslidenum > 0)
         curslidenum--;
-    loadSlide(slidedeck, curslidenum);
+    curslide = slidedeck.getSlide(curslidenum);
+    loadSlide(curslide);
 };
 
 function nextSlide() {
     if (curslidenum < numslides -1)
         curslidenum ++;
-    loadSlide(slidedeck, curslidenum);
+    curslide = slidedeck.getSlide(curslidenum);
+    loadSlide(curslide);
 };
 
 function setInkStyle(event) {
@@ -299,12 +339,14 @@ function inkStart(event){
         curstroke.strokeColor = inkstyle.strokeColor;
     }
     curstroke.add(event.point);
+    post(inkMessage(curstroke, false));
 };
 
 function inkContinue(event) {
     if (curstroke) {
         curstroke.add(event.point);
         curstroke.smooth();
+        post(inkMessage(curstroke, false));
     }
 };
 
@@ -313,9 +355,7 @@ function inkEnd(event) {
         curstroke.add(event.point);
         var closest = findClosestPath(curstroke, curitem.pitem);
         var newstroke = interpolate(curstroke, closest[1], 1.0);
-
         newstroke.style = closest[1].style;
-        // var newstroke = closest[1];
         if (newstroke.fillColor) {
             newstroke.fillColor.alpha = 1.0;
         }
@@ -323,25 +363,39 @@ function inkEnd(event) {
             newstroke.strokeColor.alpha = 1.0;
         }
         curstroke.remove();
-        // closest[1].remove();
-        // closest[1].selected = true;
-        // var newpoints = resample(curstroke);
-        // var newstroke = pathFromPoints(newpoints);
-        // newstroke.style = curstroke.style;
-        //
-        // if (inkstyle.closed) {
-        //     for (var i = 0; i < 200; i++) {
-        //         newstroke = chaikinSmooth(newstroke);
-        //     }
-        //     newstroke.closePath();
-        //
-        // } else {
-        //     newstroke = makeLine(newstroke);
-        // }
-        //
-        // curstroke.remove();
+        closest[1].remove();
+        post(inkMessage(newstroke, true));
     }
 };
 
+function slideChangeMessage() {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'slide-change',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        state: getSlideState()
+    } );
+    return msg;
 
+};
 
+function getSlideState() {
+    return JSON.stringify(curslide);
+};
+
+function inkMessage(inkstroke, end) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'ink',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        content: JSON.stringify(inkstroke),
+        end: end
+    } );
+    return msg;
+};
+
+function post(msg) {
+    if (awindow) {
+        awindow.postMessage( msg, '*' );
+    }
+};

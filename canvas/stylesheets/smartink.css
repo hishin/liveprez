@@ -3,6 +3,7 @@ html, body {
     font-color: white;
     margin: 0px;
     padding: 0px;
+    overflow: hidden;
 }
 .container {
     position:fixed;
@@ -13,7 +14,7 @@ html, body {
 
 .view {
     position: relative;
-    width: 48%;
+    /*width: 48%;*/
     display: block;
     overflow: auto;
     padding: 0 auto;
@@ -24,7 +25,7 @@ html, body {
 #speaker-view {
     display: inline-block;
     float: left;
-    width: 50%;
+    /*width: 50%;*/
     height: 100%;
     background: #0375B4;
     color: white;
@@ -34,7 +35,7 @@ html, body {
 #audience-view {
     display: inline-block;
     float: right;
-    width: 50%;
+    /*width: 50%;*/
     height: 100%;
     background: #FFCE00;
     color: black;

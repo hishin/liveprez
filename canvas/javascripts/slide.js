@@ -9,6 +9,13 @@ var SlideDeck = function(slides) {
         var slide = new Slide(slides.getElementsByTagName('section')[i]);
         this.slides.push(slide);
     }
+
+    this.getSlide = function(num){
+        if (num >= this.n) {
+            return null;
+        }
+        return this.slides[num];
+    };
 };
 
 var Slide = function(section) {
@@ -34,7 +41,7 @@ var Item = function(block) {
     this.top = parseInt(block.style.top, 10);
     this.left = parseInt(block.style.left, 10);
     this.type = block.dataset.blockType;
-    this.content = this.parseContent(block.getElementsByClassName('sl-block-content')[0]);
+    this.src = this.parseContent(block.getElementsByClassName('sl-block-content')[0]).dataset.src;
     this.pitem = null;
     this.pborder = null;
     this.pbbox = null;

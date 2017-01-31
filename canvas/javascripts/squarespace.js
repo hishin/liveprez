@@ -861,7 +861,6 @@ function drawStart(event){
 };
 
 function drawContinue(event) {
-    // console.log("draw continue");
     if (curstroke) {
         curstroke.add(event.point);
         curstroke.smooth();

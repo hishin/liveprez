@@ -93,7 +93,6 @@ function pointDist(p0, p1) {
 };
 
 function distToPath(points, pathq) {
-    console.log(pathq.className);
     if (pathq.className == "Shape") {
         pathq = pathq.toPath();
     }
