@@ -12,6 +12,7 @@
     <script src="javascripts/slide.js"></script>
     <script src="javascripts/beautify.js"></script>
     <script src="javascripts/simplify.js"></script>
+    <script src="javascripts/smartaudience.js"></script>
 
 </head>
 <body>
@@ -19,6 +20,7 @@
     <!--Slide-->
     <div class="col-md-6 view" id="speaker-view">
         <h1>Speaker View</h1>
+
         <div id="slide-menu">
             <button type="button" class="btn btn-default" onclick="prevSlide()">
                 <i class="glyphicon glyphicon-chevron-left"></i>
@@ -27,6 +29,7 @@
                 <i class="glyphicon glyphicon-chevron-right"></i>
             </button>
         </div>
+
         <div id="speaker-slide" class="slide"></div>
         <div id="item-toolbox" class="toolbox">
             <ul></ul>
@@ -35,6 +38,8 @@
 
     <div class="col-md-6 view" id="audience-view">
         <h1>Audience View</h1>
+        <div id="audience-slide" class="slide"></div>
+
     </div>
 </div>
 

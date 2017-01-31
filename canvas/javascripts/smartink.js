@@ -5,6 +5,9 @@
 var sslide;
 var scanvas;
 var spaper;
+var aslide;
+var acanvas;
+var apaper;
 var SLIDE_W = 960;
 var SLIDE_H = 700;
 var CANVAS_W = 600;
@@ -33,23 +36,39 @@ window.onload = function () {
 
 function setupSlideCanvas(slidedeck) {
     sslide = document.getElementById('speaker-slide');
+    aslide = document.getElementById('audience-slide');
     scanvas = document.createElement('canvas');
+    acanvas = document.createElement('canvas');
     scanvas.setAttribute('id', sslide.id.replace('slide', 'canvas'));
+    acanvas.setAttribute('id', aslide.id.replace('slide', 'canvas'));
     sslide.appendChild(scanvas);
+    aslide.appendChild(acanvas);
 
     spaper = new paper.PaperScope();
     spaper.setup(scanvas);
+    apaper = new paper.PaperScope();
+    apaper.setup(acanvas);
 
     spaper.view.viewSize.width = CANVAS_W;
     spaper.view.viewSize.height = CANVAS_H;
+    apaper.view.viewSize.width = CANVAS_W;
+    apaper.view.viewSize.height = CANVAS_H;
     scanvas.width = CANVAS_W;
+    acanvas.width = CANVAS_W;
     scanvas.height = CANVAS_H;
+    acanvas.height = CANVAS_H;
     sslide.paper = spaper;
+    aslide.paper = apaper;
     sslide.canvas = scanvas;
+    aslide.canvas = acanvas;
     scanvas.paper = spaper;
+    acanvas.paper = apaper;
     scanvas.slide = sslide;
+    acanvas.slide = aslide;
     spaper.slide = sslide;
+    apaper.slide = aslide;
     spaper.canvas = scanvas;
+    apaper.canvas = acanvas;
 
     loadSlide(slidedeck, curslidenum);
 };
@@ -74,15 +93,21 @@ function loadSlide(slidedeck, slidenum) {
     spaper.view.viewSize.height = CANVAS_H;
     scanvas.width = CANVAS_W;
     scanvas.height = CANVAS_H;
+
+    apaper.project.clear();
+    apaper.view.viewSize.width = CANVAS_W;
+    apaper.view.viewSize.height = CANVAS_H;
+    acanvas.width = CANVAS_W;
+    acanvas.height = CANVAS_H;    // load each item onto a separate layer
+
     curslide = slidedeck.slides[slidenum];
-    // load each item onto a separate layer
     for (var i = 0; i < curslide.nitems; i++) {
         var item = curslide.items[i];
         loadItem(item);
     }
 };
 
-function loadItem(item){
+function loadItem(item, speaker){
     if (item.type == 'image' && item.content) {
         var layer = new spaper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;

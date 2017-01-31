@@ -1,5 +1,5 @@
 /**
- * Created by hijun on 10/6/2016.
+ * Created by Hijung Shin on 10/6/2016.
  */
 
 var aslide;

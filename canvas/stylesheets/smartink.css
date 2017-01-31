@@ -59,6 +59,10 @@ h1 {
     margin-bottom: 10px;
 }
 
+#audience-slide {
+    margin-top: 55px;
+}
+
 #slide-deck {
     display: none;
 }
