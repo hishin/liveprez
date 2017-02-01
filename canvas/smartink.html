@@ -12,27 +12,29 @@
     <script src="javascripts/slide.js"></script>
     <script src="javascripts/beautify.js"></script>
     <script src="javascripts/simplify.js"></script>
-    <!--<script src="javascripts/smartaudience.js"></script>-->
 
 </head>
 <body>
 <div class="container col-md-12">
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
-        <h1>Speaker View</h1>
-
-        <div id="slide-menu">
-            <button type="button" class="btn btn-default" onclick="prevSlide()">
-                <i class="glyphicon glyphicon-chevron-left"></i>
-            </button>
-            <button type="button" class="btn btn-default" onclick="nextSlide()">
-                <i class="glyphicon glyphicon-chevron-right"></i>
-            </button>
-        </div>
+        <!--<div id="slide-menu">-->
+            <!--<button type="button" class="btn btn-default" onclick="prevSlide()">-->
+                <!--<i class="glyphicon glyphicon-chevron-left"></i>-->
+            <!--</button>-->
+            <!--<button type="button" class="btn btn-default" onclick="nextSlide()">-->
+                <!--<i class="glyphicon glyphicon-chevron-right"></i>-->
+            <!--</button>-->
+        <!--</div>--> 
 
         <div id="speaker-slide" class="slide"></div><br>
         <div id="item-toolbox" class="toolbox">
-            <ul></ul>
+            <button type="button" class="btn btn-warning btn-circle btn-lg"><i class="glyphicon glyphicon-flash"></i></button>
+            <button type="button" class="btn btn-success btn-circle btn-lg"><i class="glyphicon glyphicon-pencil"></i></button>
+            <button type="button" class="btn btn-primary btn-circle btn-lg"><i class="glyphicon glyphicon-eye-open"></i></button>
+            <button type="button" class="btn btn-default btn-circle btn-lg"><i class="glyphicon glyphicon-resize-horizontal"></i></button>
+
+
         </div>
     </div>
 

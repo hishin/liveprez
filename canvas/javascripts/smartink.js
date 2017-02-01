@@ -29,8 +29,23 @@ window.onload = function () {
         setupPaperTools();
         numslides = slidedeck.n;
     });
+    document.addEventListener("keyup", function(event) {
+        handleKeyboardEvents(event);
+    });
+
     toolbox = document.getElementById("item-toolbox");
     popupAudienceView();
+};
+
+function handleKeyboardEvents(event) {
+    switch(event.key) {
+        case "ArrowLeft":
+            prevSlide();
+            break;
+        case "ArrowRight":
+            nextSlide();
+            break;
+    }
 };
 
 function popupAudienceView() {
@@ -302,8 +317,11 @@ function hideItem(item) {
 };
 
 function prevSlide() {
-    if (curslidenum > 0)
+    console.log("prevslide: " + curslidenum);
+    if (curslidenum > 0) {
         curslidenum--;
+        console.log(curslidenum);
+    }
     curslide = slidedeck.getSlide(curslidenum);
     loadSlide(curslide);
 };
