@@ -139,10 +139,10 @@ function loadItem(item){
 
         var ext = item.src.split('.').pop();
         if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp') {
-            item.pitem = new paper.Raster(item.src);
+            item.setRaster(new paper.Raster(item.src));
             item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
             item.pborder.pivot = item.pborder.bounds.topLeft;
-            item.pitem.pivot = item.pborder.bounds.topLeft;
+            item.praster.pivot = item.pborder.bounds.topLeft;
             item.pborder.scale(wscale, hscale, item.pborder.pivot);
             item.pborder.item = item;
             item.pborder.strokeColor = 'black';
@@ -160,12 +160,9 @@ function loadItem(item){
             var delta = new paper.Point(item.left * wscale, item.top * hscale);
             item.pborder.translate(delta);
             item.pbbox.translate(delta);
-            item.pitem.scale(item.width / item.pitem.bounds.width * wscale, item.height / item.pitem.bounds.height * hscale);
-            item.pitem.position = item.pbbox.bounds.center;
-            item.pitem.opacity = 0.5;
-            // item.inkstyles = getInkStyle(item.pitem);
-            // item.activateMouseEvents();
-            // showSpeakerOnlyItems(item.pitem);
+            item.praster.scale(item.width / item.praster.bounds.width * wscale, item.height / item.praster.bounds.height * hscale);
+            item.praster.position = item.pbbox.bounds.center;
+            item.praster.opacity = 0.5;
 
         } else if (ext == 'svg') {
             layer.importSVG(item.src, {

@@ -43,9 +43,68 @@ var Item = function(block) {
     this.type = block.dataset.blockType;
     this.src = this.parseContent(block.getElementsByClassName('sl-block-content')[0]).dataset.src;
     this.pitem = null;
+    this.praster = null;
     this.pborder = null;
     this.pbbox = null;
     this.inkstyles = [];
+
+    this.setRaster = function(raster){
+        this.praster = raster;
+        this.gradient = computeGradient(raster);
+        console.log(this.gradient);
+        // this.locmax = computeLocalMaxima(this.gradient);
+    };
+
+    function computeGradient(raster) {
+        var nrows = raster.width - 2;
+        var ncols = raster.height - 2;
+
+        var grad = new Array(nrows);
+        for (var i = 0; i < nrows; i++) {
+            grad[i] = new Array(ncols);
+        }
+
+        var gradx, grady;
+        for (var i = 0; i < nrows; i ++) {
+            for (var j = 0; j < ncols; j++) {
+                gradx = (raster.getPixel(i+1, j+2).gray - raster.getPixel(i+1, j).gray)/2;
+                grady = (raster.getPixel(i+2, j+1).gray - raster.getPixel(i, j+1).gray)/2;
+                grad[i][j] = [gradx, grady];
+            }
+        }
+
+        return grad;
+    };
+
+    function computeLocalMaxima(grad) {
+        var nrows = grad.length;
+        var ncols = grad[0].length;
+
+        var maxima = new Array(nrows);
+        for (var i = 0; i < nrows; i++) {
+            maxima[i] = new Array(ncols);
+        }
+
+        for (var i = 0; i < nrows; i++) {
+            for (var j = 0; j < ncols; j++) {
+                maxima[i][j] = isLocalMaxima(grad, i, j);
+
+            }
+        }
+        return maxima;
+    };
+
+    function isLocalMaxima(grad, x, y) {
+
+        for (var i =Math.max(0, x-1); i < Math.min(grad.length, x+2); i++) {
+            for (var j = Math.max(0, y-1); j< Math.min(grad[0].length, y+2); j++) {
+                if (grad[i][j][0]*grad[i][j][0] + grad[i][j][1]*grad[i][j][1] > grad[x][y][0]*grad[x][y][0] + grad[x][y][1]*grad[x][y][1]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
 
     this.close = function() {
         this.pborder.strokeWidth = 2;

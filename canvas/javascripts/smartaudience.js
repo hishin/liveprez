@@ -95,8 +95,8 @@ function loadItem(item) {
         var ext = item.src.split('.').pop();
 
         if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp') {
-            item.pitem = new paper.Raster(item.src);
-            item.pitem.pivot = new paper.Path(0, 0);//item.pborder.bounds.topLeft;
+            item.setRaster(new paper.Raster(item.src));
+            item.praster.pivot = new paper.Path(0, 0);//item.pborder.bounds.topLeft;
 
             item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
             item.pbbox.pivot = item.pbbox.bounds.topLeft;
@@ -106,8 +106,8 @@ function loadItem(item) {
 
             var delta = new paper.Point(item.left * wscale, item.top * hscale);
             item.pbbox.translate(delta);
-            item.pitem.scale(item.width / item.pitem.bounds.width * wscale, item.height / item.pitem.bounds.height * hscale);
-            item.pitem.position = item.pbbox.bounds.center;
+            item.praster.scale(item.width / item.praster.bounds.width * wscale, item.height / item.praster.bounds.height * hscale);
+            item.praster.position = item.pbbox.bounds.center;
         } else if (ext == 'svg') {
             layer.importSVG(item.src, {
                 expandShapes: true,
