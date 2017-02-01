@@ -95,7 +95,7 @@ function loadItem(item) {
         var ext = item.src.split('.').pop();
 
         if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp') {
-            item.setRaster(new paper.Raster(item.src));
+            item.praster = new paper.Raster(item.src);
             item.praster.pivot = new paper.Path(0, 0);//item.pborder.bounds.topLeft;
 
             item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);

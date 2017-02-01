@@ -34,7 +34,7 @@ window.onload = function () {
     });
 
     toolbox = document.getElementById("item-toolbox");
-    popupAudienceView();
+    // popupAudienceView();
 };
 
 function handleKeyboardEvents(event) {

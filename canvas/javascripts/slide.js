@@ -18,16 +18,16 @@ var SlideDeck = function(slides) {
     };
 };
 
-var Slide = function(section) {
+function Slide(section) {
     this.items = [];
     this.nitems = section.getElementsByClassName('sl-block').length;
     for (var i = 0; i < this.nitems; i++) {
         var item = new Item(section.getElementsByClassName('sl-block')[i]);
         this.items.push(item);
     }
-};
+}
 
-var Item = function(block) {
+function Item(block) {
     this.parseContent = function(contentdiv) {
         if (this.type == 'image') {
             return contentdiv.getElementsByTagName('img')[0];
@@ -50,30 +50,50 @@ var Item = function(block) {
 
     this.setRaster = function(raster){
         this.praster = raster;
-        this.gradient = computeGradient(raster);
-        console.log(this.gradient);
-        // this.locmax = computeLocalMaxima(this.gradient);
+        this.praster.onLoad = function() {
+            this.sobel = computeSobel(this);
+            console.log(this.sobel.width);
+            console.log(this.sobel.height);
+            console.log(this.sobel.data.length);
+            for (var i = 0; i < this.sobel.height; i++) {
+                for (var j = 0; j < this.sobel.width; j++) {
+                    var offset = (i*this.sobel.width + j)*4;
+                    //
+                    // if (offset > this.sobel.data.length) {
+                    //     console.log("i = " + i + " j = " + j);
+                    // }
+                    // // console.log(this.sobel.data[offset]);
+                    var color = new paper.Color(this.sobel.data[offset], this.sobel.data[offset], this.sobel.data[offset], 1.0);
+                    this.setPixel(j,i, color);
+                }
+            }
+            console.log("draw");
+            paper.project.view.update();
+        }
+
+
+        // var raster = new paper.Raster();
+        // raster.width = this.praster.width;
+        // raster.height = this.praster.height;
+        // for (var i = 0; i < raster.width; i++) {
+        //     for (var j = 0; j < raster.height; j++) {
+        //         var offset = i*raster.width + j*4;
+        //         var color = new paper.Color(this.sobel[offset], this.sobel[offset+1], this.sobel[offset+2], 1.0);
+        //         this.praster.setPixel(i,j, color);
+        //     }
+        // }
+        // console.log("here");
+        // raster.setImageData(this.sobel);
+
     };
 
-    function computeGradient(raster) {
-        var nrows = raster.width - 2;
-        var ncols = raster.height - 2;
-
-        var grad = new Array(nrows);
-        for (var i = 0; i < nrows; i++) {
-            grad[i] = new Array(ncols);
-        }
-
-        var gradx, grady;
-        for (var i = 0; i < nrows; i ++) {
-            for (var j = 0; j < ncols; j++) {
-                gradx = (raster.getPixel(i+1, j+2).gray - raster.getPixel(i+1, j).gray)/2;
-                grady = (raster.getPixel(i+2, j+1).gray - raster.getPixel(i, j+1).gray)/2;
-                grad[i][j] = [gradx, grady];
-            }
-        }
-
-        return grad;
+    function computeSobel(raster) {
+        console.log(raster);
+        console.log(raster.width);
+        console.log(raster.height);
+        var imagedata = raster.getImageData(new paper.Rectangle(0, 0, raster.width, raster.height));
+        var sobel = Filters.sobel(imagedata);
+        return sobel;
     };
 
     function computeLocalMaxima(grad) {
