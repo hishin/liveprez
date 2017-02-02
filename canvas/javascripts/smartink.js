@@ -128,6 +128,7 @@ function loadSlide(slide) {
         var item = slide.items[i];
         loadItem(item);
     }
+    spaper.view.update();
     post(slideChangeMessage());
 };
 
@@ -367,7 +368,7 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        var newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.sobel), 10);
+        var newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
         curstroke.remove();
         post(inkMessage(newstroke, true));
         // var closest = findClosestPath(curstroke, curitem.pitem);

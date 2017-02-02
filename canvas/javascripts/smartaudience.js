@@ -81,6 +81,7 @@ function loadSlide(slide) {
     apaper.view.viewSize.height = CANVAS_H;
     acanvas.width = CANVAS_W;
     acanvas.height = CANVAS_H;
+    inklayer = null;
 
     for (var i = 0; i < slide.nitems; i++) {
         var item = slide.items[i];
@@ -196,6 +197,7 @@ function handleUpdateViewMessage(data) {
 };
 
 function handleInkMessage(data) {
+    console.log("here");
     if (!inklayer) {
         inklayer = new paper.Layer();
     }
