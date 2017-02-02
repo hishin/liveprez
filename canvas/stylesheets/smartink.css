@@ -53,8 +53,8 @@ h1 {
 }
 
 .slide {
-    width: 600px;
-    height: 438px;
+    width: 960px;
+    height: 700px;
     display: inline-block;
     background-color: white;
     margin-bottom: 10px;
@@ -96,8 +96,8 @@ div>img {
 
 
 canvas {
-    width: 600px;
-    height: 438px;
+    width: 960px;
+    height: 700px;
     z-index: 100;
 }
 

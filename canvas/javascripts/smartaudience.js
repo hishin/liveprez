@@ -3,14 +3,17 @@
  */
 var SLIDE_W = 960;
 var SLIDE_H = 700;
-var CANVAS_W = 600;
-var CANVAS_H = 438.5;
+var CANVAS_W = 960;
+var CANVAS_H = 700;
 var aslide;
 var acanvas;
 var apaper;
 var connected;
 var curslide;
 var curstroke = null;
+var slidelayer;
+var inklayer;
+var test;
 
 window.addEventListener('message', function(event) {
     var data = JSON.parse(event.data);
@@ -38,9 +41,7 @@ window.addEventListener('message', function(event) {
 
 window.onload = function() {
     aslide = document.getElementById('audience-slide');
-    console.log(aslide);
     acanvas = document.createElement('canvas');
-    console.log(acanvas);
     acanvas.setAttribute('id', aslide.id.replace('slide', 'canvas'));
     aslide.appendChild(acanvas);
 
@@ -89,25 +90,19 @@ function loadSlide(slide) {
 
 function loadItem(item) {
     if (item.type == 'image' && item.src) {
-        var layer = new paper.Layer();
+        slidelayer = new paper.Layer();
         var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = parseFloat(CANVAS_H) / SLIDE_H;
         var ext = item.src.split('.').pop();
 
         if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp') {
             item.praster = new paper.Raster(item.src);
-            item.praster.pivot = new paper.Path(0, 0);//item.pborder.bounds.topLeft;
-
-            item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
-            item.pbbox.pivot = item.pbbox.bounds.topLeft;
-            item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
-            item.pbbox.item = item;
-            item.pbbox.opacity = 0;
-
-            var delta = new paper.Point(item.left * wscale, item.top * hscale);
-            item.pbbox.translate(delta);
-            item.praster.scale(item.width / item.praster.bounds.width * wscale, item.height / item.praster.bounds.height * hscale);
-            item.praster.position = item.pbbox.bounds.center;
+            item.praster.fitBounds(paper.view.bounds, true);
+            // create a clipmask
+            item.clip = new paper.Path();
+            // item.clip.segments = [];
+            item.pgroup = new paper.Group([item.clip, item.praster]);
+            item.pgroup.clipped = true;
         } else if (ext == 'svg') {
             layer.importSVG(item.src, {
                 expandShapes: true,
@@ -201,11 +196,18 @@ function handleUpdateViewMessage(data) {
 };
 
 function handleInkMessage(data) {
-    if (curstroke)
+    if (!inklayer) {
+        inklayer = new paper.Layer();
+    }
+    else
+        inklayer.activate();
+    if (curstroke) {
         curstroke.remove();
+    }
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
-    if (data.end)
+    if (data.end) {
         curstroke = null;
+    }
 };
 
 

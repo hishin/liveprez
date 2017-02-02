@@ -4,7 +4,6 @@
 
 
 function makeLine(path) {
-    console.log(path);
     var from = path.firstSegment.point;//points[0];
     var to = path.lastSegment.point;//points[points.length-1];
     var line = new paper.Path();
@@ -141,4 +140,41 @@ function interpolate(from, to, factor) {
     }
     return result;
 
+};
+
+function trace(path, sobel, r) {
+    // var points = resample(path);
+    var newpoints  = new Array();
+    for (var i = 0; i < path.length; i++) {
+        var x = Math.round(path.getPointAt(i).x);//points[i].x);
+        var y = Math.round(path.getPointAt(i).y);//points[i].y);
+        var minx = Math.max(0, x - r);
+        var maxx = Math.min(sobel.width, x + r);
+        var miny = Math.max(0, y - r);
+        var maxy = Math.min(sobel.height, y + r);
+        var offset;
+        var maxsvalue = 0;
+        var svalue;
+        var newx = x;
+        var newy = y;
+        for (var px = minx; px <= maxx; px++ ) {
+            for (var py = miny; py <= maxy; py++) {
+                offset = (py * sobel.width + px) *4;
+                svalue = sobel.data[offset];
+                if (svalue > maxsvalue) {
+                    maxsvalue = svalue;
+                    newx = px;
+                    newy = py;
+                }
+            }
+        }
+        newpoints.push(new paper.Point(newx, newy));
+    }
+    var newpath = new paper.Path();
+    newpath.strokeColor = 'blue';
+    newpath.strokeWidth = 2;
+    for (var i = 0; i < newpoints.length; i++){
+        newpath.add(newpoints[i]);
+    }
+    return newpath;
 };

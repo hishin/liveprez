@@ -52,45 +52,18 @@ function Item(block) {
         this.praster = raster;
         this.praster.onLoad = function() {
             this.sobel = computeSobel(this);
-            console.log(this.sobel.width);
-            console.log(this.sobel.height);
-            console.log(this.sobel.data.length);
-            for (var i = 0; i < this.sobel.height; i++) {
-                for (var j = 0; j < this.sobel.width; j++) {
-                    var offset = (i*this.sobel.width + j)*4;
-                    //
-                    // if (offset > this.sobel.data.length) {
-                    //     console.log("i = " + i + " j = " + j);
-                    // }
-                    // // console.log(this.sobel.data[offset]);
-                    var color = new paper.Color(this.sobel.data[offset], this.sobel.data[offset], this.sobel.data[offset], 1.0);
-                    this.setPixel(j,i, color);
-                }
-            }
-            console.log("draw");
-            paper.project.view.update();
+            // for (var i = 0; i < this.sobel.height; i++) {
+            //     for (var j = 0; j < this.sobel.width; j++) {
+            //         var offset = (i*this.sobel.width + j)*4;
+            //         var color = new paper.Color(this.sobel.data[offset], this.sobel.data[offset+1], this.sobel.data[offset+2], 1.0);
+            //         this.setPixel(j,i, color);
+            //     }
+            // }
         }
-
-
-        // var raster = new paper.Raster();
-        // raster.width = this.praster.width;
-        // raster.height = this.praster.height;
-        // for (var i = 0; i < raster.width; i++) {
-        //     for (var j = 0; j < raster.height; j++) {
-        //         var offset = i*raster.width + j*4;
-        //         var color = new paper.Color(this.sobel[offset], this.sobel[offset+1], this.sobel[offset+2], 1.0);
-        //         this.praster.setPixel(i,j, color);
-        //     }
-        // }
-        // console.log("here");
-        // raster.setImageData(this.sobel);
 
     };
 
     function computeSobel(raster) {
-        console.log(raster);
-        console.log(raster.width);
-        console.log(raster.height);
         var imagedata = raster.getImageData(new paper.Rectangle(0, 0, raster.width, raster.height));
         var sobel = Filters.sobel(imagedata);
         return sobel;

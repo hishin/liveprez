@@ -7,8 +7,8 @@ var scanvas;
 var spaper;
 var SLIDE_W = 960;
 var SLIDE_H = 700;
-var CANVAS_W = 600;
-var CANVAS_H = 438.5;
+var CANVAS_W = 960;
+var CANVAS_H = 700;
 var numslides;
 var curslidenum = 0;
 var curslide;
@@ -34,7 +34,7 @@ window.onload = function () {
     });
 
     toolbox = document.getElementById("item-toolbox");
-    // popupAudienceView();
+    popupAudienceView();
 };
 
 function handleKeyboardEvents(event) {
@@ -163,6 +163,7 @@ function loadItem(item){
             item.praster.scale(item.width / item.praster.bounds.width * wscale, item.height / item.praster.bounds.height * hscale);
             item.praster.position = item.pbbox.bounds.center;
             item.praster.opacity = 0.5;
+            curitem = item;
 
         } else if (ext == 'svg') {
             layer.importSVG(item.src, {
@@ -368,18 +369,25 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        var closest = findClosestPath(curstroke, curitem.pitem);
-        var newstroke = interpolate(curstroke, closest[1], 1.0);
-        newstroke.style = closest[1].style;
-        if (newstroke.fillColor) {
-            newstroke.fillColor.alpha = 1.0;
-        }
-        if (newstroke.strokeColor) {
-            newstroke.strokeColor.alpha = 1.0;
-        }
+        console.log(curitem);
+        console.log(curitem.praster);
+        console.log(curitem.praster.sobel);
+        var newstroke = trace(curstroke, curitem.praster.sobel, 10);
+        console.log(newstroke);
         curstroke.remove();
-        closest[1].remove();
         post(inkMessage(newstroke, true));
+        // var closest = findClosestPath(curstroke, curitem.pitem);
+        // var newstroke = interpolate(curstroke, closest[1], 1.0);
+        // newstroke.style = closest[1].style;
+        // if (newstroke.fillColor) {
+        //     newstroke.fillColor.alpha = 1.0;
+        // }
+        // if (newstroke.strokeColor) {
+        //     newstroke.strokeColor.alpha = 1.0;
+        // }
+        // curstroke.remove();
+        // closest[1].remove();
+        // post(inkMessage(newstroke, true));
     }
 };
 
@@ -414,3 +422,4 @@ function post(msg) {
         awindow.postMessage( msg, '*' );
     }
 };
+
