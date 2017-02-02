@@ -54,7 +54,7 @@ h1 {
 
 .slide {
     width: 960px;
-    height: 700px;
+    height: 720px;
     display: inline-block;
     background-color: white;
     margin-bottom: 10px;
@@ -97,7 +97,7 @@ div>img {
 
 canvas {
     width: 960px;
-    height: 700px;
+    height: 720px;
     z-index: 100;
 }
 

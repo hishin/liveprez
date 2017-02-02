@@ -6,9 +6,9 @@ var sslide;
 var scanvas;
 var spaper;
 var SLIDE_W = 960;
-var SLIDE_H = 700;
+var SLIDE_H = 720;
 var CANVAS_W = 960;
-var CANVAS_H = 700;
+var CANVAS_H = 720;
 var numslides;
 var curslidenum = 0;
 var curslide;
@@ -142,7 +142,7 @@ function loadItem(item){
             item.setRaster(new paper.Raster(item.src));
             item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
             item.pborder.pivot = item.pborder.bounds.topLeft;
-            item.praster.pivot = item.pborder.bounds.topLeft;
+            // item.praster.pivot = item.pborder.bounds.topLeft;
             item.pborder.scale(wscale, hscale, item.pborder.pivot);
             item.pborder.item = item;
             item.pborder.strokeColor = 'black';
@@ -160,10 +160,9 @@ function loadItem(item){
             var delta = new paper.Point(item.left * wscale, item.top * hscale);
             item.pborder.translate(delta);
             item.pbbox.translate(delta);
-            item.praster.scale(item.width / item.praster.bounds.width * wscale, item.height / item.praster.bounds.height * hscale);
-            item.praster.position = item.pbbox.bounds.center;
+            item.praster.fitBounds(paper.view.bounds, true);
             item.praster.opacity = 0.5;
-            curitem = item;
+            item.activateMouseEvents();
 
         } else if (ext == 'svg') {
             layer.importSVG(item.src, {
@@ -267,7 +266,6 @@ function openItem(item) {
     curitem = item;
     item.pborder.strokeWidth = 3;
     item.pborder.opacity = 1.0;
-
     activateInkTool();
     // var tools = toolbox.getElementsByTagName("UL")[0];
     // tools.innerHTML = "";
@@ -369,11 +367,7 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        console.log(curitem);
-        console.log(curitem.praster);
-        console.log(curitem.praster.sobel);
-        var newstroke = trace(curstroke, curitem.praster.sobel, 10);
-        console.log(newstroke);
+        var newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.sobel), 10);
         curstroke.remove();
         post(inkMessage(newstroke, true));
         // var closest = findClosestPath(curstroke, curitem.pitem);

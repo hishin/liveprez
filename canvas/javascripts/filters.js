@@ -611,7 +611,7 @@ Filters.sobel = function(px) {
     id.data[i] = v;
     var h = Math.abs(horizontal.data[i]);
     id.data[i+1] = h;
-    id.data[i+2] = (v+h)/4;
+    id.data[i+2] = (v*v+h*h);///4;
     id.data[i+3] = 255;
   }
   return id;

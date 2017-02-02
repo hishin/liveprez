@@ -52,19 +52,27 @@ function Item(block) {
         this.praster = raster;
         this.praster.onLoad = function() {
             this.sobel = computeSobel(this);
+            // console.log(this.bounds);
+            // this.sobel = this.getImageData(this.bounds);
+            // console.log(this.sobel.height);
+            // console.log(this.sobel.width);
             // for (var i = 0; i < this.sobel.height; i++) {
             //     for (var j = 0; j < this.sobel.width; j++) {
             //         var offset = (i*this.sobel.width + j)*4;
-            //         var color = new paper.Color(this.sobel.data[offset], this.sobel.data[offset+1], this.sobel.data[offset+2], 1.0);
+            //         var color = new paper.Color(this.sobel.data[offset]/255.0, this.sobel.data[offset+1]/255.0, this.sobel.data[offset+2]/255.0, 1.0);
+            //         console.log(this.getPixel(j,i).red);
+            //         console.log(color.red);
             //         this.setPixel(j,i, color);
             //     }
             // }
+            // console.log("here");
+            // paper.view.update();
         }
 
     };
 
     function computeSobel(raster) {
-        var imagedata = raster.getImageData(new paper.Rectangle(0, 0, raster.width, raster.height));
+        var imagedata = raster.getImageData(raster.bounds);
         var sobel = Filters.sobel(imagedata);
         return sobel;
     };

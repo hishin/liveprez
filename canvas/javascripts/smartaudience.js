@@ -2,9 +2,9 @@
  * Created by Hijung Shin on 1/30/2017.
  */
 var SLIDE_W = 960;
-var SLIDE_H = 700;
+var SLIDE_H = 720;
 var CANVAS_W = 960;
-var CANVAS_H = 700;
+var CANVAS_H = 720;
 var aslide;
 var acanvas;
 var apaper;

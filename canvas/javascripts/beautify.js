@@ -144,7 +144,7 @@ function interpolate(from, to, factor) {
 
 function trace(path, sobel, r) {
     // var points = resample(path);
-    var newpoints  = new Array();
+    var newpoints = new Array();
     for (var i = 0; i < path.length; i++) {
         var x = Math.round(path.getPointAt(i).x);//points[i].x);
         var y = Math.round(path.getPointAt(i).y);//points[i].y);
@@ -152,17 +152,19 @@ function trace(path, sobel, r) {
         var maxx = Math.min(sobel.width, x + r);
         var miny = Math.max(0, y - r);
         var maxy = Math.min(sobel.height, y + r);
-        var offset;
-        var maxsvalue = 0;
+        var offset = (y * sobel.width + x) *4;
+        var minvalue = sobel.data[offset] + sobel.data[offset+1] + sobel.data[offset+2];
         var svalue;
+        var dist;
         var newx = x;
         var newy = y;
-        for (var px = minx; px <= maxx; px++ ) {
-            for (var py = miny; py <= maxy; py++) {
+        for (var py = miny; py <= maxy; py++ ) {
+            for (var px = minx; px <= maxx; px++) {
                 offset = (py * sobel.width + px) *4;
-                svalue = sobel.data[offset];
-                if (svalue > maxsvalue) {
-                    maxsvalue = svalue;
+                svalue = sobel.data[offset] + sobel.data[offset+1] + sobel.data[offset+2];
+                dist = 0.25*((x-px)*(x-px) + (y-py)*(y-py));
+                if (dist + svalue  < minvalue) {
+                    minvalue = dist + svalue;// = svalue;
                     newx = px;
                     newy = py;
                 }
