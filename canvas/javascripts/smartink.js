@@ -20,6 +20,7 @@ var slidedeck;
 var curitem = null;
 var awindow;
 var reveal = false;
+var bgcolor;
 
 window.onload = function () {
     var parser = new DOMParser();
@@ -122,6 +123,7 @@ function setupPaperTools() {
     spacetool.onMouseDrag = makeSpaceContinue;
     spaper.spacetool = spacetool;
 
+    activateInkTool();
 };
 
 function loadSlide(slide) {
@@ -288,7 +290,7 @@ function openItem(item) {
     curitem = item;
     item.pborder.strokeWidth = 3;
     item.pborder.opacity = 1.0;
-    activateInkTool();
+    // activateInkTool();
     // var tools = toolbox.getElementsByTagName("UL")[0];
     // tools.innerHTML = "";
     // for (var i = 0; i < item.inkstyles.length; i++) {
@@ -368,12 +370,16 @@ function setInkStyle(event) {
 
 function activateInkTool() {
     spaper.inktool.activate();
+    deactivateItemMouseEvents();
 };
 
 var curstroke;
 var curtargetrect;
 var curtargetitems = [];
 function inkStart(event){
+    // if cursor is inside item, select as curitem
+    selectItem(event.point);
+
     curstroke = new paper.Path();
     if (!inkstyle) {
         curstroke.strokeWidth = 1;
@@ -388,6 +394,17 @@ function inkStart(event){
     post(inkMessage(curstroke, false));
 };
 
+function selectItem(point) {
+    for (var i = 0; i < curslide.nitems; i++) {
+        var item = curslide.items[i];
+        if (item.pbbox.contains(point)) {
+            curitem = item;
+            return;
+        }
+    }
+    curitem = null;
+};
+
 function inkContinue(event) {
     if (curstroke) {
         curstroke.add(event.point);
@@ -399,18 +416,26 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        // var newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
+        var newstroke;
+        if (curitem.praster) {
+            // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
+            newstroke = traceColor(curstroke, curitem.praster, 5);
+        } else if (curitem.psvg) {
+            var closest = findClosestPath(curstroke, curitem.psvg);
+            newstroke = interpolate(curstroke, closest[1], 1.0);
+            newstroke.style = closest[1].style;
+            if (newstroke.fillColor) {
+                newstroke.fillColor.alpha = 1.0;
+            }
+            if (newstroke.strokeColor) {
+                newstroke.strokeColor.alpha = 1.0;
+            }
+        } else {
+            newstroke = new paper.Path(curstroke.pathData);
+        }
+
         // curstroke.remove();
-        post(inkMessage(curstroke, true));
-        // var closest = findClosestPath(curstroke, curitem.psvg);
-        // var newstroke = interpolate(curstroke, closest[1], 1.0);
-        // newstroke.style = closest[1].style;
-        // if (newstroke.fillColor) {
-        //     newstroke.fillColor.alpha = 1.0;
-        // }
-        // if (newstroke.strokeColor) {
-        //     newstroke.strokeColor.alpha = 1.0;
-        // }
+        post(inkMessage(newstroke, true));
         // curstroke.remove();
         // closest[1].remove();
         // post(inkMessage(newstroke, true));

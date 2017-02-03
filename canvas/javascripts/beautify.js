@@ -2,7 +2,6 @@
  * Created by Valentina on 1/25/2017.
  */
 
-
 function makeLine(path) {
     var from = path.firstSegment.point;//points[0];
     var to = path.lastSegment.point;//points[points.length-1];
@@ -179,4 +178,38 @@ function trace(path, sobel, r) {
         newpath.add(newpoints[i]);
     }
     return newpath;
+};
+
+function traceColor(path, raster, r) {
+    bgcolor = new paper.Color(1,1,1,1);
+    var x = Math.round(path.getPointAt(0).x);//points[i].x);
+    var y = Math.round(path.getPointAt(0).y);//points[i].y);
+    var color = raster.getPixel(x,y);
+    path.strokeColor = color;
+    console.log(color);
+    // var minx = Math.max(0, x - r);
+    // var maxx = Math.min(raster.width, x + r);
+    // var miny = Math.max(0, y - r);
+    // var maxy = Math.min(raster.height, y + r);
+    // var temprect = new paper.Path.Rectangle(minx, miny, maxx-minx, maxy-miny);
+    // temprect.strokeColor = 'red';
+    // var color;
+    // for (var py = miny; py <= maxy; py++ ) {
+    //     for (var px = minx; px <= maxx; px++) {
+    //         // raster.setPixel(px, py, new paper.Color(0,1,0,1));
+    //         console.log(px);
+    //         console.log(py);
+    //         color = raster.getPixel(px, py);
+    //         console.log(color.red);
+    //         console.log(color.blue);
+    //         console.log(color.green);
+    //         console.log(color.alpha);
+    //         if (color.red != bgcolor.red || color.green != bgcolor.green || color.blue != bgcolor.blue) {
+    //             path.strokeColor = color;
+    //             //
+    //             return path;
+    //         }
+    //     }
+    // }
+    return path;
 };
