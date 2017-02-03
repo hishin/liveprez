@@ -25,6 +25,7 @@ function Slide(section) {
         var item = new Item(section.getElementsByClassName('sl-block')[i]);
         this.items.push(item);
     }
+
 }
 
 function Item(block) {
@@ -42,7 +43,7 @@ function Item(block) {
     this.left = parseInt(block.style.left, 10);
     this.type = block.dataset.blockType;
     this.src = this.parseContent(block.getElementsByClassName('sl-block-content')[0]).dataset.src;
-    this.pitem = null;
+    this.psvg = null;
     this.praster = null;
     this.pborder = null;
     this.pbbox = null;
@@ -51,9 +52,9 @@ function Item(block) {
     this.setRaster = function(raster){
         this.praster = raster;
         this.praster.onLoad = function() {
-            console.log("here");
+            // console.log("here");
         //     console.log(this.width);
-        //     this.sobel = computeSobel(this);
+            this.sobel = computeSobel(this);
         //     // console.log(this.bounds);
         //     // this.sobel = this.getImageData(this.bounds);
         //     // console.log(this.sobel.height);

@@ -19,6 +19,7 @@ var DEFAULT_COLOR = '#000000';
 var slidedeck;
 var curitem = null;
 var awindow;
+var reveal = false;
 
 window.onload = function () {
     var parser = new DOMParser();
@@ -115,6 +116,12 @@ function setupPaperTools() {
     inktool.onMouseUp = inkEnd;
     spaper.inktool = inktool;
 
+    // Space tool
+    var spacetool = new spaper.Tool();
+    spacetool.onMouseDown = makeSpaceStart;
+    spacetool.onMouseDrag = makeSpaceContinue;
+    spaper.spacetool = spacetool;
+
 };
 
 function loadSlide(slide) {
@@ -170,7 +177,7 @@ function loadItem(item){
                 expandShapes: true,
                 applyMatrix: true,
                 onLoad: function(svgitem, data) {
-                        item.pitem = svgitem;
+                        item.psvg = svgitem;
                         svgitem.item = item;
 
                         item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
@@ -195,16 +202,16 @@ function loadItem(item){
                         item.pbbox.translate(delta);
                         svgitem.scale(item.width / svgitem.bounds.width * wscale, item.height / svgitem.bounds.height * hscale);
                         svgitem.translate(delta);
-                        item.inkstyles = getInkStyle(item.pitem);
+                        item.inkstyles = getInkStyle(item.psvg);
                         item.activateMouseEvents();
-                        showSpeakerOnlyItems(item.pitem);
+                        hideSpeakerOnlyItems(item.psvg);
                 }
             });
         }
     }
 };
 
-function showSpeakerOnlyItems(pitem) {
+function hideSpeakerOnlyItems(pitem) {
     if (!pitem.visible) {
         pitem.data.speakeronly = true;
         makeSemiTransparent(pitem);
@@ -212,7 +219,7 @@ function showSpeakerOnlyItems(pitem) {
         pitem.data.speakeronly = false;
         if (pitem.children) {
             for (var i = 0; i < pitem.children.length; i++) {
-                showSpeakerOnlyItems(pitem.children[i]);
+                hideSpeakerOnlyItems(pitem.children[i]);
             }
         }
     }
@@ -221,7 +228,7 @@ function showSpeakerOnlyItems(pitem) {
 function makeSemiTransparent(pitem) {
     if (pitem.children) {
         for (var i = 0; i < pitem.children.length; i++) {
-            pitem.children[i].visible = false;
+            // pitem.children[i].visible = false;
             makeSemiTransparent(pitem.children[i]);
         }
     } else {
@@ -231,6 +238,20 @@ function makeSemiTransparent(pitem) {
             pitem.strokeColor.alpha = 0.5;
     }
     pitem.visible = true;
+};
+
+function revealItem(pitem) {
+    if (pitem.children) {
+        for (var i = 0; i < pitem.children.length; i++) {
+            pitem.children[i].visible = true;
+            revealItem(pitem.children[i]);
+        }
+    } else {
+        if (pitem.fillColor)
+            pitem.fillColor.alpha = 1.0;
+        if (pitem.strokeColor)
+            pitem.strokeColor.alpha = 1.0;
+    }
 };
 
 function getInkStyle(pitem, styles) {
@@ -294,30 +315,9 @@ function closeTools(item) {
     spaper.defaulttool.activate();
 };
 
-/**
- * Show semi-opaque item only to speaker
- * @param item
- */
-function hideItem(item) {
-    if (item.className == 'Group') {
-        for (var i = 0;i < item.children.length; i++) {
-            hideItem(item.children[i]);
-        }
-    }
-    else if (item.className == 'PointText') {
-        item.fillColor.alpha = 0.3;
-    } else {
-        item.opacity = 0.3;
-    }
-    item.visible = true;
-    item.data.isHidden = true;
-};
-
 function prevSlide() {
-    console.log("prevslide: " + curslidenum);
     if (curslidenum > 0) {
         curslidenum--;
-        console.log(curslidenum);
     }
     curslide = slidedeck.getSlide(curslidenum);
     loadSlide(curslide);
@@ -328,6 +328,37 @@ function nextSlide() {
         curslidenum ++;
     curslide = slidedeck.getSlide(curslidenum);
     loadSlide(curslide);
+};
+
+function revealSlide() {
+    if (!reveal) {
+        var item;
+        for (var i = 0; i < curslide.nitems; i++) {
+            item = curslide.items[i];
+            if (item.psvg) {
+                revealItem(item.psvg);
+            } else if (item.praster) {
+                item.praster.opacity = 1.0;
+            }
+        }
+        reveal = true;
+    } else {
+        hideSlide();
+    }
+    post(revealSlideMessage());
+};
+
+function hideSlide() {
+    var item;
+    for (var i = 0; i < curslide.nitems; i++) {
+        item = curslide.items[i];
+        if (item.psvg) {
+            hideSpeakerOnlyItems(item.psvg);
+        } else if (item.praster) {
+            item.praster.opacity = 0.5;
+        }
+    }
+    reveal = false;
 };
 
 function setInkStyle(event) {
@@ -368,10 +399,10 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        var newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
-        curstroke.remove();
-        post(inkMessage(newstroke, true));
-        // var closest = findClosestPath(curstroke, curitem.pitem);
+        // var newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
+        // curstroke.remove();
+        post(inkMessage(curstroke, true));
+        // var closest = findClosestPath(curstroke, curitem.psvg);
         // var newstroke = interpolate(curstroke, closest[1], 1.0);
         // newstroke.style = closest[1].style;
         // if (newstroke.fillColor) {
@@ -412,9 +443,83 @@ function inkMessage(inkstroke, end) {
     return msg;
 };
 
+function revealSlideMessage() {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'slide-reveal',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+    } );
+    return msg;
+};
+
 function post(msg) {
     if (awindow) {
         awindow.postMessage( msg, '*' );
     }
 };
 
+
+function activateSpaceTool() {
+    deactivateItemMouseEvents();
+    spaper.spacetool.activate();
+};
+
+var horizontal = false;
+var line_start;
+var line_end;
+var spaceline;
+var spacerect;
+var expand = false;
+var timeout;
+function makeSpaceStart(event) {
+    line_start = event.point;
+};
+function makeSpaceContinue(event) {
+    line_end = event.point;
+    if (!expand) { //
+        var dx = Math.abs(line_end.x - line_start.x);
+        var dy = Math.abs(line_end.y - line_start.y);
+        if (dx > dy) {
+            line_end.y = line_start.y;
+            horizontal = true;
+        }
+        else {
+            line_end.x = line_start.x;
+            horizontal = false;
+        }
+        if (spaceline)
+            spaceline.remove();
+        spaceline = new paper.Path.Line(line_start, line_end);
+        spaceline.strokeColor = '#ff0000';
+        spaceline.dashArray = [5,5];
+        spaceline.strokeWidth = 2;
+        if (timeout)
+            clearTimeout(timeout);
+        timeout = setTimeout(function() {
+            expand = true;
+            spaceline.dashArray = [];
+        }, 300);
+    } else {
+        clearTimeout(timeout);
+        if (!spacerect) {
+            var rect_start = spaceline.strokeBounds.topLeft;
+            var rect_end = spaceline.strokeBounds.bottomRight;
+            spaceline.remove();
+            spacerect = new paper.Path.Rectangle(rect_start, rect_end);
+            spacerect.strokeColor = '#ff0000';
+            spacerect.strokeWidth = 2;
+        } else {
+            if (horizontal) {
+                if (event.point.y - spacerect.strokeWidth > line_start.y) {
+                    spacerect.bounds.bottom = event.point.y - spacerect.strokeWidth;
+                } else if (event.point.y < line_start.y- spacerect.strokeWidth) {
+                    spacerect.bounds.bottom = line_start.y - spacerect.strokeWidth;
+                    spacerect.bounds.top = event.point.y;// - spacerect.strokeWidth;
+
+                }
+            } else {
+                spacerect.right = event.point.x;
+            }
+        }
+    }
+};

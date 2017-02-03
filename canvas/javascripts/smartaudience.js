@@ -13,7 +13,7 @@ var curslide;
 var curstroke = null;
 var slidelayer;
 var inklayer;
-var test;
+var reveal = false;
 
 window.addEventListener('message', function(event) {
     var data = JSON.parse(event.data);
@@ -22,6 +22,8 @@ window.addEventListener('message', function(event) {
             handleConnectMessage(data);
         } else if (data.type === 'slide-change') {
             handleSlideChangeMessage(data);
+        } else if (data.type === 'slide-reveal') {
+            handleSlideRevealMessage(data);
         } else if (data.type === 'toggle-reveal') {
             handleToggleRevealMessage(data);
         } else if (data.type === 'move-item') {
@@ -75,6 +77,29 @@ function handleSlideChangeMessage(data) {
     loadSlide(curslide);
  };
 
+function handleSlideRevealMessage() {
+    if (reveal) {
+        console.log("Implement Hide Slide")
+    }
+    else {
+        console.log("reveal slide");
+        revealSlide();
+    }
+};
+
+function revealSlide() {
+    for (var i = 0; i < curslide.nitems; i++) {
+        var item = curslide.items[i];
+        if (item.praster) {
+            item.clip.add(new paper.Point(item.praster.bounds.topLeft));
+            item.clip.add(new paper.Point(item.praster.bounds.topRight));
+            item.clip.add(new paper.Point(item.praster.bounds.bottomRight));
+            item.clip.add(new paper.Point(item.praster.bounds.bottomLeft));
+        }
+    }
+    reveal = true;
+};
+
 function loadSlide(slide) {
     apaper.project.clear();
     apaper.view.viewSize.width = CANVAS_W;
@@ -109,7 +134,7 @@ function loadItem(item) {
                 expandShapes: true,
                 applyMatrix: true,
                 onLoad: function(svgitem, data) {
-                    item.pitem = svgitem;
+                    item.psvg = svgitem;
                     svgitem.item = item;
                     svgitem.pivot = new paper.Point(0,0);
                     svgitem.scale(item.width / svgitem.bounds.width * wscale, item.height / svgitem.bounds.height * hscale);
