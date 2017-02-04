@@ -180,36 +180,85 @@ function trace(path, sobel, r) {
     return newpath;
 };
 
-function traceColor(path, raster, r) {
-    bgcolor = new paper.Color(1,1,1,1);
-    var x = Math.round(path.getPointAt(0).x);//points[i].x);
-    var y = Math.round(path.getPointAt(0).y);//points[i].y);
-    var color = raster.getPixel(x,y);
-    path.strokeColor = color;
-    console.log(color);
-    // var minx = Math.max(0, x - r);
-    // var maxx = Math.min(raster.width, x + r);
-    // var miny = Math.max(0, y - r);
-    // var maxy = Math.min(raster.height, y + r);
-    // var temprect = new paper.Path.Rectangle(minx, miny, maxx-minx, maxy-miny);
-    // temprect.strokeColor = 'red';
-    // var color;
-    // for (var py = miny; py <= maxy; py++ ) {
-    //     for (var px = minx; px <= maxx; px++) {
-    //         // raster.setPixel(px, py, new paper.Color(0,1,0,1));
-    //         console.log(px);
-    //         console.log(py);
-    //         color = raster.getPixel(px, py);
-    //         console.log(color.red);
-    //         console.log(color.blue);
-    //         console.log(color.green);
-    //         console.log(color.alpha);
-    //         if (color.red != bgcolor.red || color.green != bgcolor.green || color.blue != bgcolor.blue) {
-    //             path.strokeColor = color;
-    //             //
-    //             return path;
-    //         }
-    //     }
-    // }
+function traceColor(praster, path) {
+    var r = 3;
+    var points = resample(path);
+    var px, py, minx, miny, maxx, maxy;
+    var colors = [];
+    var hexes = [];
+    var counts = [];
+    hexes.push(praster.bgcolor.toCSS(true));
+    colors.push(praster.bgcolor);
+    counts.push(0);
+    var c, h;
+    // var avgcolor = new paper.Color(0,0,0);
+    // var numcolor = 0;
+    for (var i = 0; i < points.length; i++) {
+        px = Math.round(points[i].x);
+        py = Math.round(points[i].y);
+        minx = Math.max(0, px-r);
+        maxx = Math.min(praster.width, px + r+1);
+        miny = Math.max(0, py-r);
+        maxy = Math.min(praster.height, py + r+1);
+        for (var x = minx; x < maxx; x++) {
+            for (var y = miny; y < maxy; y++) {
+                c = praster.getPixel(x,y);
+                h = c.toCSS(true);
+                var id = hexes.indexOf(h);
+                if (id < 0) {
+                    hexes.push(h);
+                    colors.push(c);
+                    counts.push(1);
+                    // break;
+                    // avgcolor.add(c);
+                    // numcolor++;
+                } else if (id > 0) {
+                    counts[id]++;
+                    // avgcolor.add(c);
+                    // numcolor++;
+                    // break;
+                }
+            }
+        }
+    }
+    var maxid = counts.indexOf(Math.max.apply(null, counts));
+    var colormode = colors[maxid];
+    // console.log(avgcolor);
+    // console.log(avgcolor.divide(numcolor));
+    path.strokeColor = colormode;//avgcolor.divide(numcolor);
+    path.strokeWidth = 3;
+    console.log(hexes);
+    console.log(counts);
+
     return path;
+};
+
+function getBackgroundColor(praster) {
+    return getColorMode(praster, praster.bounds, 10);
+};
+
+function getColorMode(praster, bounds, r) {
+    var hexes = [];
+    var colors = [];
+    var counts = [];
+    var color, hex;
+    for (var x = bounds.left; x < bounds.right; x+=r) {
+        for (var y = bounds.top; y < bounds.bottom; y+=r) {
+            color = praster.getPixel(x, y);
+            hex = color.toCSS(true);
+            var id = hexes.indexOf(hex);
+            if (id < 0) {
+                hexes.push(hex);
+                colors.push(color);
+                counts.push(1);
+            }
+            else {
+                counts[id]++;
+            }
+        }
+    }
+    var maxid = counts.indexOf(Math.max.apply(null, counts));
+    var colormode = colors[maxid];
+    return colormode;
+
 };

@@ -22,21 +22,43 @@ var awindow;
 var reveal = false;
 var bgcolor;
 
+function preloadImages(srcs) {
+    if (!preloadImages.cache) {
+        preloadImages.cache = [];
+    }
+    var img;
+    for (var i = 0; i < srcs.length; i++) {
+        img = new Image();
+        img.src = srcs[i];
+        preloadImages.cache.push(img);
+    }
+};
+
 window.onload = function () {
     var parser = new DOMParser();
+    popupAudienceView();
     $.get(SLIDE_URL, function( data ) {
         var html = parser.parseFromString(data, 'text/html');
+
+        // Preload images to cache
+        var img_srcs = [];
+        var images = html.getElementsByTagName('img');
+        for (var i = 0; i < images.length; i++) {
+            img_srcs.push(images[i].dataset.src);
+        }
+        preloadImages(img_srcs);
         slidedeck = new SlideDeck(html.getElementsByClassName('slides')[0]);
-        setupSlideCanvas(slidedeck);
-        setupPaperTools();
         numslides = slidedeck.n;
+        setTimeout(function () {
+            setupSlideCanvas(slidedeck);
+            setupPaperTools();
+        }, 1000);
+
     });
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-
     toolbox = document.getElementById("item-toolbox");
-    popupAudienceView();
 };
 
 function handleKeyboardEvents(event) {
@@ -64,9 +86,7 @@ function popupAudienceView() {
             awindow.postMessage( JSON.stringify( {
                 namespace: 'liveprez',
                 type: 'connect',
-                url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
-                state: getSlideState()
-            } ), '*' );
+                url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search            } ), '*' );
         }, 500 );
 
         window.addEventListener( 'message', function( event ) {
@@ -416,10 +436,14 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
+        var color1 = new paper.Color(1, 1, 1);
+        var color2 = new paper.Color(0.5, 0.5, 0.5);
+        var colorsum = color1.multiply(3);
+        console.log(colorsum);
         var newstroke;
         if (curitem.praster) {
             // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
-            newstroke = traceColor(curstroke, curitem.praster, 5);
+            newstroke = traceColor(curitem.praster, curstroke);
         } else if (curitem.psvg) {
             var closest = findClosestPath(curstroke, curitem.psvg);
             newstroke = interpolate(curstroke, closest[1], 1.0);

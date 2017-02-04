@@ -68,12 +68,12 @@ function handleConnectMessage(data) {
         connected = true;
     }
     window.opener.postMessage(JSON.stringify({namespace: 'audience', type: 'connected'}), '*');
-    handleSlideChangeMessage(data);
 };
 
 
 function handleSlideChangeMessage(data) {
     curslide = JSON.parse(data.state);
+    reveal = false;
     loadSlide(curslide);
  };
 
@@ -95,6 +95,8 @@ function revealSlide() {
             item.clip.add(new paper.Point(item.praster.bounds.topRight));
             item.clip.add(new paper.Point(item.praster.bounds.bottomRight));
             item.clip.add(new paper.Point(item.praster.bounds.bottomLeft));
+        } else {
+            console.log("Implement reveal svg");
         }
     }
     reveal = true;
@@ -130,7 +132,7 @@ function loadItem(item) {
             item.pgroup = new paper.Group([item.clip, item.praster]);
             item.pgroup.clipped = true;
         } else if (ext == 'svg') {
-            layer.importSVG(item.src, {
+            slidelayer.importSVG(item.src, {
                 expandShapes: true,
                 applyMatrix: true,
                 onLoad: function(svgitem, data) {
@@ -222,7 +224,6 @@ function handleUpdateViewMessage(data) {
 };
 
 function handleInkMessage(data) {
-    console.log("here");
     if (!inklayer) {
         inklayer = new paper.Layer();
     }
