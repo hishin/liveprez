@@ -20,7 +20,8 @@ var slidedeck;
 var curitem = null;
 var awindow;
 var reveal = false;
-var bgcolor;
+var prevcolor = new paper.Color(0,0,0);
+var dollar = new DollarRecognizer();
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -436,10 +437,14 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        var color1 = new paper.Color(1, 1, 1);
-        var color2 = new paper.Color(0.5, 0.5, 0.5);
-        var colorsum = color1.multiply(3);
-        console.log(colorsum);
+        // var samples = resample(curstroke);
+        var points = new Array();
+        for (var i = 0; i < curstroke.length; i++) {
+            points.push(new Point(curstroke.getPointAt(i).x, curstroke.getPointAt(i).y));
+        }
+        console.log(points.length);
+        var score = dollar.Recognize(points, false);
+        console.log(score);
         var newstroke;
         if (curitem.praster) {
             // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
@@ -457,12 +462,13 @@ function inkEnd(event) {
         } else {
             newstroke = new paper.Path(curstroke.pathData);
         }
-
-        // curstroke.remove();
+        prevcolor = newstroke.strokeColor;
+        var bgrect = new paper.Shape.Rectangle(newstroke.strokeBounds);
+        bgrect.fillColor = curitem.praster.bgcolor;
+        bgrect.moveAbove(curitem.praster);
+        curstroke.remove();
         post(inkMessage(newstroke, true));
-        // curstroke.remove();
-        // closest[1].remove();
-        // post(inkMessage(newstroke, true));
+
     }
 };
 
@@ -559,15 +565,21 @@ function makeSpaceContinue(event) {
             spacerect.strokeWidth = 2;
         } else {
             if (horizontal) {
-                if (event.point.y - spacerect.strokeWidth > line_start.y) {
-                    spacerect.bounds.bottom = event.point.y - spacerect.strokeWidth;
-                } else if (event.point.y < line_start.y- spacerect.strokeWidth) {
-                    spacerect.bounds.bottom = line_start.y - spacerect.strokeWidth;
-                    spacerect.bounds.top = event.point.y;// - spacerect.strokeWidth;
-
+                if (event.point.y > (line_start.y + spacerect.strokeWidth/2.0)) { // expand below
+                    spacerect.bounds.bottom = event.point.y;
+                    spacerect.bounds.top = line_start.y + spacerect.strokeWidth/2.0;
+                } else if (event.point.y < (line_start.y - spacerect.strokeWidth/2.0)) { // expand above
+                    spacerect.bounds.top = event.point.y;
+                    spacerect.bounds.bottom = line_start.y + spacerect.strokeWidth/2.0;
                 }
-            } else {
-                spacerect.right = event.point.x;
+            } else { // vertical
+                if (event.point.x > (line_start.x + spacerect.strokeWidth/2.0)) { // expand right
+                    spacerect.bounds.right = event.point.x;
+                    spacerect.bounds.left = line_start.x + spacerect.strokeWidth/2.0;
+                } else if (event.point.x < (line_start.x - spacerect.strokeWidth/2.0)) { // expand left
+                    spacerect.bounds.left = event.point.x;
+                    spacerect.bounds.right = line_start.x - spacerect.strokeWidth/2.0;
+                }
             }
         }
     }

@@ -209,28 +209,21 @@ function traceColor(praster, path) {
                     hexes.push(h);
                     colors.push(c);
                     counts.push(1);
-                    // break;
-                    // avgcolor.add(c);
-                    // numcolor++;
                 } else if (id > 0) {
                     counts[id]++;
-                    // avgcolor.add(c);
-                    // numcolor++;
-                    // break;
                 }
             }
         }
     }
     var maxid = counts.indexOf(Math.max.apply(null, counts));
     var colormode = colors[maxid];
-    // console.log(avgcolor);
-    // console.log(avgcolor.divide(numcolor));
-    path.strokeColor = colormode;//avgcolor.divide(numcolor);
-    path.strokeWidth = 3;
-    console.log(hexes);
-    console.log(counts);
-
-    return path;
+    var newstroke = new paper.Path(path.pathData);
+    if (maxid == 0) {
+        newstroke.strokeColor = prevcolor;
+    } else {
+        newstroke.strokeColor = colormode;
+    }
+    return newstroke;
 };
 
 function getBackgroundColor(praster) {

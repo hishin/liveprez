@@ -53,7 +53,6 @@ function Item(block) {
         this.praster = raster;
         this.praster.onLoad = function() {
             this.bgcolor = getBackgroundColor(this);
-            console.log("background color: " + this.bgcolor);
         };
     };
 
