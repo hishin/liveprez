@@ -589,7 +589,7 @@ Filters.sobelHorizontalGradient = function(px) {
 Filters.sobelVectors = function(px) {
   var vertical = this.sobelVerticalGradient(px);
   var horizontal = this.sobelHorizontalGradient(px);
-  var id = {width: vertical.width, height: vertical.height,
+  var id = {width: vertical.widtxh, height: vertical.height,
             data: this.getFloat32Array(vertical.width*vertical.height*8)};
   var vd = vertical.data;
   var hd = horizontal.data;
@@ -611,7 +611,7 @@ Filters.sobel = function(px) {
     id.data[i] = v;
     var h = Math.abs(horizontal.data[i]);
     id.data[i+1] = h;
-    id.data[i+2] = (v*v+h*h);///4;
+    id.data[i+2] = Math.sqrt(v*v+h*h);///4;
     id.data[i+3] = 255;
   }
   return id;

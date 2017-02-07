@@ -53,6 +53,7 @@ function Item(block) {
         this.praster = raster;
         this.praster.onLoad = function() {
             this.bgcolor = getBackgroundColor(this);
+            this.sobel = computeSobel(this);
         };
     };
 

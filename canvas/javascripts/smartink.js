@@ -438,17 +438,21 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         // var samples = resample(curstroke);
-        var points = new Array();
-        for (var i = 0; i < curstroke.length; i++) {
-            points.push(new Point(curstroke.getPointAt(i).x, curstroke.getPointAt(i).y));
-        }
-        console.log(points.length);
-        var score = dollar.Recognize(points, false);
-        console.log(score);
+        // var points = new Array();
+        // for (var i = 0; i < curstroke.length; i++) {
+        //     points.push(new Point(curstroke.getPointAt(i).x, curstroke.getPointAt(i).y));
+        // }
+        // console.log(points.length);
+        // var score = dollar.Recognize(points, false);
+        // console.log(score);
         var newstroke;
         if (curitem.praster) {
             // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
-            newstroke = traceColor(curitem.praster, curstroke);
+            newstroke = curstroke;
+            newstroke = traceColor(curitem.praster, newstroke);
+            var bgrect = new paper.Shape.Rectangle(newstroke.strokeBounds);
+            bgrect.fillColor = curitem.praster.bgcolor;
+            bgrect.moveAbove(curitem.praster);
         } else if (curitem.psvg) {
             var closest = findClosestPath(curstroke, curitem.psvg);
             newstroke = interpolate(curstroke, closest[1], 1.0);
@@ -463,9 +467,7 @@ function inkEnd(event) {
             newstroke = new paper.Path(curstroke.pathData);
         }
         prevcolor = newstroke.strokeColor;
-        var bgrect = new paper.Shape.Rectangle(newstroke.strokeBounds);
-        bgrect.fillColor = curitem.praster.bgcolor;
-        bgrect.moveAbove(curitem.praster);
+        newstroke.strokeWidth = 3;
         curstroke.remove();
         post(inkMessage(newstroke, true));
 

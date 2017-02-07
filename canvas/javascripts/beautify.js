@@ -172,8 +172,6 @@ function trace(path, sobel, r) {
         newpoints.push(new paper.Point(newx, newy));
     }
     var newpath = new paper.Path();
-    newpath.strokeColor = 'blue';
-    newpath.strokeWidth = 2;
     for (var i = 0; i < newpoints.length; i++){
         newpath.add(newpoints[i]);
     }
