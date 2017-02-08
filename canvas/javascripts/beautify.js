@@ -54,8 +54,8 @@ function resample(path) {
     for (var i = 0; i <= path.length; i++) {
         points.push(path.getPointAt(i));
     }
-    var samples = simplify(points, 1);
-    return samples;
+    // var samples = simplify(points, 1);
+    return points;
 };
 
 function pathFromPoints(points) {
@@ -179,9 +179,9 @@ function trace(path, sobel, r) {
 };
 
 function traceColor(praster, path) {
-    var r = 3;
+    var r = 5.0;
     var points = resample(path);
-    var px, py, minx, miny, maxx, maxy;
+    var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
     var hexes = [];
     var counts = [];
@@ -189,8 +189,6 @@ function traceColor(praster, path) {
     colors.push(praster.bgcolor);
     counts.push(0);
     var c, h;
-    // var avgcolor = new paper.Color(0,0,0);
-    // var numcolor = 0;
     for (var i = 0; i < points.length; i++) {
         px = Math.round(points[i].x);
         py = Math.round(points[i].y);
@@ -213,14 +211,33 @@ function traceColor(praster, path) {
             }
         }
     }
-    var maxid = counts.indexOf(Math.max.apply(null, counts));
-    var colormode = colors[maxid];
+
+    for (var i = 0; i < points.length; i++) {
+        var circle = new paper.Path.Circle(new paper.Point(points[i].x, points[i].y), 5.0);
+        circle.fillColor = new paper.Color(0,1,0);
+    }
+
+
+    var cclusters = clusterColors(colors, 0.75);
+    var maxn = -1;
+    var maxid = 0;
+    console.log('ccluters.length: ' + cclusters.length);
+    for (var i = 1; i < cclusters.length; i++) { // begin i = 1 to exclude bgcolor
+        console.log("cclusters.ncolors" + cclusters[i].ncolors);
+        console.log("cclusters.maxcolor" + cclusters[i].maxcolor.toCSS(true));
+        if (cclusters[i].ncolors > maxn) {
+            maxn = cclusters[i].ncolors;
+            maxid = i;
+        }
+    }
+    var colormode = cclusters[maxid].maxcolor;//colors[maxid];
     var newstroke = new paper.Path(path.pathData);
     if (maxid == 0) {
         newstroke.strokeColor = prevcolor;
     } else {
         newstroke.strokeColor = colormode;
     }
+
     return newstroke;
 };
 
@@ -252,4 +269,47 @@ function getColorMode(praster, bounds, r) {
     var colormode = colors[maxid];
     return colormode;
 
+};
+
+function clusterColors(colors, thres) {
+    var clusters = [];
+    var color, clusteravg, colordiff, added;
+    for (var i = 0; i < colors.length; i++) {
+        color = colors[i];
+        added = false;
+        for (var c = 0; c < clusters.length; c++) {
+            clusteravg = clusters[c].avgcolor;
+            colordiff = Math.abs(clusteravg.red - color.red)  + Math.abs(clusteravg.green - color.green) + Math.abs(clusteravg.blue - color.blue);
+            if (colordiff < thres) {
+                clusters[c].addColor(color);
+                added = true;
+                break;
+            }
+        }
+        if (!added) {
+            var newc = new ColorCluster();
+            newc.addColor(color);
+            clusters.push(newc);
+        }
+    }
+    return clusters;
+};
+
+
+
+var ColorCluster = function() {
+    this.colors = [];
+    this.sumcolor = new paper.Color(0,0,0);
+    this.avgcolor = new paper.Color(0,0,0);
+    this.maxcolor = new paper.Color(0,0,0);
+    this.ncolors = 0;
+    this.addColor = function(color) {
+        this.colors.push(color);
+        this.sumcolor = this.sumcolor.add(color);
+        this.avgcolor = this.sumcolor.divide(this.colors.length);
+        if (color.saturation > this.maxcolor.saturation) {
+            this.maxcolor = color;
+        }
+        this.ncolors++;
+    };
 };

@@ -437,14 +437,7 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        // var samples = resample(curstroke);
-        // var points = new Array();
-        // for (var i = 0; i < curstroke.length; i++) {
-        //     points.push(new Point(curstroke.getPointAt(i).x, curstroke.getPointAt(i).y));
-        // }
-        // console.log(points.length);
-        // var score = dollar.Recognize(points, false);
-        // console.log(score);
+
         var newstroke;
         if (curitem.praster) {
             // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
@@ -452,6 +445,7 @@ function inkEnd(event) {
             newstroke = traceColor(curitem.praster, newstroke);
             var bgrect = new paper.Shape.Rectangle(newstroke.strokeBounds);
             bgrect.fillColor = curitem.praster.bgcolor;
+            bgrect.fillColor.alpha = 0.3;
             bgrect.moveAbove(curitem.praster);
         } else if (curitem.psvg) {
             var closest = findClosestPath(curstroke, curitem.psvg);
