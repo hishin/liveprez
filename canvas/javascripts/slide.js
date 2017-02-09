@@ -53,15 +53,51 @@ function Item(block) {
         this.praster = raster;
         this.praster.onLoad = function() {
             this.bgcolor = getBackgroundColor(this);
-            this.sobel = computeSobel(this);
+            // colorToAlpha(this, this.bgcolor);
+            // this.sobel = computeSobel(this);
+            // this.gauss1 = computeGaussian(this, 10);
+            // this.gauss2 = computeGaussian(this, 5);
+            // for (var x = 0; x < this.width; x++) {
+            //     for (var y = 0; y < this.height; y++) {
+            //         var offset = (y*this.width + x) * 4;
+            //         var gcolor1 = new paper.Color(this.gauss1.data[offset]/255.0, this.gauss1.data[offset+1]/255.0, this.gauss1.data[offset+2]/255.0);
+            //         var gcolor2 = new paper.Color(this.gauss2.data[offset]/255.0, this.gauss2.data[offset+1]/255.0, this.gauss2.data[offset+2]/255.0);
+            //         var gcolor = gcolor1.subtract(gcolor2);
+            //         if (gcolor.red + gcolor.blue + gcolor.green < 0.1) {
+            //             this.setPixel(x, y, new paper.Color(1,1,1));
+            //
+            //         }
+            //     }
+            // }
         };
     };
+
+
+
 
     function computeSobel(raster) {
         var imagedata = raster.getImageData(raster.bounds);
         var sobel = Filters.sobel(imagedata);
         return sobel;
     };
+
+    function computeGaussian(raster, diameter) {
+        var imagedata = raster.getImageData(raster.bounds);
+        var gauss = Filters.gaussianBlur(imagedata, diameter);
+        return gauss;
+    };
+
+    function computeColorToAlpha(raster, bgcolor) {
+        for (var x = 0; x < raster.width; x++) {
+            for (var y = 0; y < raster.height; y++) {
+                var p = raster.getPixel(x, y);
+                var np = colorToAlpha(p, bgcolor);
+                raster.setPixel(x, y, np);
+            }
+        }
+    };
+
+
 
     function computeLocalMaxima(grad) {
         var nrows = grad.length;

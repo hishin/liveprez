@@ -180,7 +180,7 @@ function trace(path, sobel, r) {
 };
 
 function traceColor(praster, path) {
-    var r = 3.0;
+    var r = 10.0;
     var points = resample(path);
     var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
@@ -203,20 +203,21 @@ function traceColor(praster, path) {
         for (var x = minx; x < maxx; x++) {
             for (var y = miny; y < maxy; y++) {
                 c = praster.getPixel(x,y);
+                c = colorToAlpha(c, praster.bgcolor);
                 pcolors.push(c);
-                h = c.toCSS(true);
-                var id = hexes.indexOf(h);
-                if (id < 0) {
-                    hexes.push(h);
-                    // colors.push(c);
-                    counts.push(1);
-                } else if (id > 0) {
-                    counts[id]++;
-                }
+                // h = c.toCSS(true);
+                // var id = hexes.indexOf(h);
+                // if (id < 0) {
+                //     hexes.push(h);
+                //     // colors.push(c);
+                //     counts.push(1);
+                // } else if (id > 0) {
+                //     counts[id]++;
+                // }
             }
         }
-        var pclusters = clusterColors(pcolors, 1.5);
-        console.log('pclusters.length ' + pclusters.length);
+        var pclusters = clusterColors(pcolors, 1.0);
+        // console.log('pclusters.length ' + pclusters.length);
         for (var p = 0; p < pclusters.length; p++) {
             // console.log('' + pclusters[p].maxcolor);
             colors.push(pclusters[p].maxcolor);
@@ -224,9 +225,9 @@ function traceColor(praster, path) {
         }
     }
 
-    console.log('points length: ' + points.length);
+    // console.log('points length: ' + points.length);
     // for (var i = 0; i < points.length; i++) {
-    //     var ncircle = new paper.Path.Circle(points[i], 5.0);
+    //     var ncircle = new paper.Path.Circle(points[i], r);
     //     ncircle.fillColor = 'green';
     // }
 
@@ -249,8 +250,11 @@ function traceColor(praster, path) {
     var newstroke = new paper.Path(path.pathData);
     if (maxid == 0) {
         newstroke.strokeColor = prevcolor;
+        newstroke.strokeColor.alpha = 1.0;
+
     } else {
         newstroke.strokeColor = colormode;
+        newstroke.strokeColor.alpha = 1.0;
     }
 
     return newstroke;
@@ -338,4 +342,43 @@ var ColorCluster = function() {
         }
         this.ncolors++;
     };
+};
+
+function colorToAlpha(p, bgcolor) {
+    var r1 = bgcolor.red;
+    var r2 = bgcolor.green;
+    var r3 = bgcolor.blue;
+    var p1, p2, p3;
+    var a1, a2, a3, aA;
+    p1 = p.red;
+    p2 = p.green;
+    p3 = p.blue;
+    // a1 calculation
+    if (p1 > r1) a1 = 1.0 * (p1 - r1) / (1.0 - r1);
+    else if (p1 < r1) a1 = 1.0 * (r1 - p1) / r1;
+    else a1 = 0.0;
+
+    // a2 calculation
+    if (p2 > r2) a1 = 1.0 * (p2 - r2) / (1.0 - r2);
+    else if (p2 < r2) a2 = 1.0 * (r2 - p2) / r2;
+    else a2 = 0.0;
+
+    // a3 calculation
+    if (p3 > r3) a3 = 1.0 * (p3 - r3) / (1.0 - r3);
+    else if (p3 < r3) a3 = 1.0 * (r3 - p3) / r3;
+    else a3 = 0.0;
+
+    aA = a1;
+    if (a2 > aA) aA = a2;
+    if (a3 > aA) aA = a3;
+    // apply to pixel
+    // console.log(aA);
+    if (aA > 0.0) {
+        p1 = (p1 - r1) / aA + r1;
+        p2 = (p2 - r2) / aA + r2;
+        p3 = (p3 - r3) / aA + r3;
+        return new paper.Color(p1,p2,p3,1.0);
+    } else {
+        return bgcolor;
+    }
 };
