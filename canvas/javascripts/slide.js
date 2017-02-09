@@ -53,6 +53,7 @@ function Item(block) {
         this.praster = raster;
         this.praster.onLoad = function() {
             this.bgcolor = getBackgroundColor(this);
+            computeColorToAlpha(this, this.bgcolor);
             // colorToAlpha(this, this.bgcolor);
             // this.sobel = computeSobel(this);
             // this.gauss1 = computeGaussian(this, 10);

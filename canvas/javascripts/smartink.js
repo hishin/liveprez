@@ -412,6 +412,7 @@ function inkStart(event){
         curstroke.strokeColor = inkstyle.strokeColor;
     }
     curstroke.add(event.point);
+    curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
     post(inkMessage(curstroke, false));
 };
 
@@ -437,7 +438,8 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-
+        // curstroke.simplify(0.5);
+        // curstroke.smooth({type: 'continuous'});//(1.0);
         var newstroke;
         if (curitem.praster) {
             // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
@@ -461,7 +463,7 @@ function inkEnd(event) {
             newstroke = new paper.Path(curstroke.pathData);
         }
         prevcolor = newstroke.strokeColor;
-        newstroke.strokeWidth = 3;
+        newstroke.strokeWidth = 1.0;
         curstroke.remove();
         post(inkMessage(newstroke, true));
 

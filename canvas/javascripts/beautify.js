@@ -54,7 +54,7 @@ function resample(path) {
     for (var i = 0; i <= path.length; i++) {
         points.push(path.getPointAt(i));
     }
-    // points = simplify(points, 1);
+    points = simplify(points, 1);
     // var samples = simplify(points, 1);
     return points;
 };
@@ -235,9 +235,9 @@ function traceColor(praster, path) {
     var cclusters = clusterColors(colors, 1.0);
     var maxn = -1;
     var maxid = 0;
-    console.log('cclusters.length: ' + cclusters.length);
+    // console.log('cclusters.length: ' + cclusters.length);
     for (var i = 1; i < cclusters.length; i++) { // begin i = 1 to exclude bgcolor
-        console.log("cclusters.maxcolor " + cclusters[i].maxcolor.toCSS(true) + ' ' + cclusters[i].ncolors);
+        // console.log("cclusters.maxcolor " + cclusters[i].maxcolor.toCSS(true) + ' ' + cclusters[i].ncolors);
         // console.log("cclusters.ncolors " + cclusters[i].ncolors);
         // console.log("cclusters.avgcolor " + cclusters[i].avgcolor.toCSS(true));
         // console.log("ccluster.colors " + cclusters[i].colors);
@@ -373,7 +373,7 @@ function colorToAlpha(p, bgcolor) {
     if (a3 > aA) aA = a3;
     // apply to pixel
     // console.log(aA);
-    if (aA > 0.0) {
+    if (aA > 0.30) {
         p1 = (p1 - r1) / aA + r1;
         p2 = (p2 - r2) / aA + r2;
         p3 = (p3 - r3) / aA + r3;
