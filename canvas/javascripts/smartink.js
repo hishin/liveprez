@@ -192,7 +192,7 @@ function loadItem(item){
             item.pborder.translate(delta);
             item.pbbox.translate(delta);
             item.praster.fitBounds(paper.view.bounds, true);
-            item.praster.opacity = 0.5;
+            item.praster.opacity = 1.0;
             item.activateMouseEvents();
 
         } else if (ext == 'svg') {
@@ -378,7 +378,7 @@ function hideSlide() {
         if (item.psvg) {
             hideSpeakerOnlyItems(item.psvg);
         } else if (item.praster) {
-            item.praster.opacity = 0.5;
+            item.praster.opacity = 1.0;
         }
     }
     reveal = false;

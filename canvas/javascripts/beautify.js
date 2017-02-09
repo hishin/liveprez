@@ -54,6 +54,7 @@ function resample(path) {
     for (var i = 0; i <= path.length; i++) {
         points.push(path.getPointAt(i));
     }
+    // points = simplify(points, 1);
     // var samples = simplify(points, 1);
     return points;
 };
@@ -179,7 +180,7 @@ function trace(path, sobel, r) {
 };
 
 function traceColor(praster, path) {
-    var r = 5.0;
+    var r = 3.0;
     var points = resample(path);
     var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
@@ -187,9 +188,12 @@ function traceColor(praster, path) {
     var counts = [];
     hexes.push(praster.bgcolor.toCSS(true));
     colors.push(praster.bgcolor);
+    // console.log(praster.bgcolor);
     counts.push(0);
     var c, h;
     for (var i = 0; i < points.length; i++) {
+        //pick salient colors
+        var pcolors = [];
         px = Math.round(points[i].x);
         py = Math.round(points[i].y);
         minx = Math.max(0, px-r);
@@ -199,32 +203,43 @@ function traceColor(praster, path) {
         for (var x = minx; x < maxx; x++) {
             for (var y = miny; y < maxy; y++) {
                 c = praster.getPixel(x,y);
+                pcolors.push(c);
                 h = c.toCSS(true);
                 var id = hexes.indexOf(h);
                 if (id < 0) {
                     hexes.push(h);
-                    colors.push(c);
+                    // colors.push(c);
                     counts.push(1);
                 } else if (id > 0) {
                     counts[id]++;
                 }
             }
         }
+        var pclusters = clusterColors(pcolors, 1.5);
+        console.log('pclusters.length ' + pclusters.length);
+        for (var p = 0; p < pclusters.length; p++) {
+            // console.log('' + pclusters[p].maxcolor);
+            colors.push(pclusters[p].maxcolor);
+            // console.log("pclusters[p].maxcolor " + pclusters[p].maxcolor);
+        }
     }
 
-    for (var i = 0; i < points.length; i++) {
-        var circle = new paper.Path.Circle(new paper.Point(points[i].x, points[i].y), 5.0);
-        circle.fillColor = new paper.Color(0,1,0);
-    }
+    console.log('points length: ' + points.length);
+    // for (var i = 0; i < points.length; i++) {
+    //     var ncircle = new paper.Path.Circle(points[i], 5.0);
+    //     ncircle.fillColor = 'green';
+    // }
 
 
-    var cclusters = clusterColors(colors, 0.75);
+    var cclusters = clusterColors(colors, 1.0);
     var maxn = -1;
     var maxid = 0;
-    console.log('ccluters.length: ' + cclusters.length);
+    console.log('cclusters.length: ' + cclusters.length);
     for (var i = 1; i < cclusters.length; i++) { // begin i = 1 to exclude bgcolor
-        console.log("cclusters.ncolors" + cclusters[i].ncolors);
-        console.log("cclusters.maxcolor" + cclusters[i].maxcolor.toCSS(true));
+        console.log("cclusters.maxcolor " + cclusters[i].maxcolor.toCSS(true) + ' ' + cclusters[i].ncolors);
+        // console.log("cclusters.ncolors " + cclusters[i].ncolors);
+        // console.log("cclusters.avgcolor " + cclusters[i].avgcolor.toCSS(true));
+        // console.log("ccluster.colors " + cclusters[i].colors);
         if (cclusters[i].ncolors > maxn) {
             maxn = cclusters[i].ncolors;
             maxid = i;
@@ -273,20 +288,31 @@ function getColorMode(praster, bounds, r) {
 
 function clusterColors(colors, thres) {
     var clusters = [];
-    var color, clusteravg, colordiff, added;
+    var color, clusteravg, colordiff, added, mindiff, bestc;
+    var dr, dg, db;
     for (var i = 0; i < colors.length; i++) {
         color = colors[i];
         added = false;
+        bestc = -1;
+        mindiff = thres;
         for (var c = 0; c < clusters.length; c++) {
-            clusteravg = clusters[c].avgcolor;
-            colordiff = Math.abs(clusteravg.red - color.red)  + Math.abs(clusteravg.green - color.green) + Math.abs(clusteravg.blue - color.blue);
-            if (colordiff < thres) {
-                clusters[c].addColor(color);
-                added = true;
-                break;
+            clusteravg = clusters[c].colors[0];
+            dr = clusteravg.red - color.red;
+            dg = clusteravg.green - color.green;
+            db = clusteravg.blue - color.blue;
+            colordiff = Math.sqrt(2*dr*dr + 4*dg*dg + 3*db*db);
+            if (colordiff < mindiff) {
+                mindiff = colordiff;
+                bestc = c;
+                // clusters[c].addColor(color);
+                // added = true;
+                // break;
             }
         }
-        if (!added) {
+        if (bestc >= 0) {
+            clusters[bestc].addColor(color);
+        }
+        else {
             var newc = new ColorCluster();
             newc.addColor(color);
             clusters.push(newc);
@@ -307,7 +333,7 @@ var ColorCluster = function() {
         this.colors.push(color);
         this.sumcolor = this.sumcolor.add(color);
         this.avgcolor = this.sumcolor.divide(this.colors.length);
-        if (color.saturation > this.maxcolor.saturation) {
+        if (this.ncolors == 0 || color.saturation > this.maxcolor.saturation) {
             this.maxcolor = color;
         }
         this.ncolors++;
