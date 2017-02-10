@@ -7,21 +7,22 @@ var scanvas;
 var spaper;
 var SLIDE_W = 960;
 var SLIDE_H = 720;
-var CANVAS_W = 960;
-var CANVAS_H = 720;
+// var CANVAS_W = 960;
+// var CANVAS_H = 720;
+var aspectratio;
 var numslides;
 var curslidenum = 0;
 var curslide;
 var toolbox;
 var inkstyle = null;
 var SLIDE_URL = "slidedeck.html";
-var DEFAULT_COLOR = '#000000';
+// var DEFAULT_COLOR = '#000000';
 var slidedeck;
 var curitem = null;
 var awindow;
 var reveal = false;
 var prevcolor = new paper.Color(0,0,0);
-var dollar = new DollarRecognizer();
+// var dollar = new DollarRecognizer();
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -31,6 +32,20 @@ function preloadImages(srcs) {
     for (var i = 0; i < srcs.length; i++) {
         img = new Image();
         img.src = srcs[i];
+        // assume slide-deck has fixed aspect ratio
+        img.onload = function(){
+            if (!aspectratio) {
+                aspectratio = this.height/this.width;
+                // console.log(aspectratio);
+                SLIDE_W = $(window).width() * 0.75;
+                SLIDE_H = SLIDE_W * aspectratio;
+                if (SLIDE_H > $(window).height()) {
+                    SLIDE_H = $(window).height() * 0.75;
+                    SLIDE_W = SLIDE_H/aspectratio;
+                }
+            }
+        };
+
         preloadImages.cache.push(img);
     }
 };
@@ -110,10 +125,11 @@ function setupSlideCanvas(slidedeck) {
     spaper = new paper.PaperScope();
     spaper.setup(scanvas);
 
-    spaper.view.viewSize.width = CANVAS_W;
-    spaper.view.viewSize.height = CANVAS_H;
-    scanvas.width = CANVAS_W;
-    scanvas.height = CANVAS_H;
+    resizeCanvas(SLIDE_W, SLIDE_H);
+    // spaper.view.viewSize.width = CANVAS_W;
+    // spaper.view.viewSize.height = CANVAS_H;
+    // scanvas.width = CANVAS_W;
+    // scanvas.height = CANVAS_H;
 
     sslide.paper = spaper;
     sslide.canvas = scanvas;
@@ -124,6 +140,16 @@ function setupSlideCanvas(slidedeck) {
 
     curslide = slidedeck.getSlide(curslidenum);
     loadSlide(curslide);
+};
+
+function resizeCanvas(width, height) {
+    sslide.style.width = width +'px';
+    sslide.style.height = height +'px';
+    scanvas.width = width;
+    scanvas.height = height;
+    spaper.view.viewSize.width = width;
+    spaper.view.viewSize.height = height;
+    post(resizeMessage());
 };
 
 function setupPaperTools() {
@@ -149,10 +175,10 @@ function setupPaperTools() {
 
 function loadSlide(slide) {
     spaper.project.clear();
-    spaper.view.viewSize.width = CANVAS_W;
-    spaper.view.viewSize.height = CANVAS_H;
-    scanvas.width = CANVAS_W;
-    scanvas.height = CANVAS_H;
+    // spaper.view.viewSize.width = CANVAS_W;
+    // spaper.view.viewSize.height = CANVAS_H;
+    // scanvas.width = CANVAS_W;
+    // scanvas.height = CANVAS_H;
 
     for (var i = 0; i < slide.nitems; i++) {
         var item = slide.items[i];
@@ -165,16 +191,16 @@ function loadSlide(slide) {
 function loadItem(item){
     if (item.type == 'image' && item.src) {
         var layer = new paper.Layer();
-        var wscale = parseFloat(CANVAS_W) / SLIDE_W;
-        var hscale = parseFloat(CANVAS_H) / SLIDE_H;
+        // var wscale = parseFloat(CANVAS_W) / SLIDE_W;
+        // var hscale = parseFloat(CANVAS_H) / SLIDE_H;
 
         var ext = item.src.split('.').pop();
         if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp') {
             item.setRaster(new paper.Raster(item.src));
             item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
-            item.pborder.pivot = item.pborder.bounds.topLeft;
+            // item.pborder.pivot = item.pborder.bounds.topLeft;
             // item.praster.pivot = item.pborder.bounds.topLeft;
-            item.pborder.scale(wscale, hscale, item.pborder.pivot);
+            // item.pborder.scale(wscale, hscale, item.pborder.pivot);
             item.pborder.item = item;
             item.pborder.strokeColor = 'black';
             item.pborder.strokeWidth = 3;
@@ -182,15 +208,15 @@ function loadItem(item){
             item.pborder.opacity = 0.5;
 
             item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
-            item.pbbox.pivot = item.pbbox.bounds.topLeft;
-            item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
+            // item.pbbox.pivot = item.pbbox.bounds.topLeft;
+            // item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
             item.pbbox.item = item;
             item.pbbox.fillColor = 'red';
             item.pbbox.opacity = 0;
 
-            var delta = new paper.Point(item.left * wscale, item.top * hscale);
-            item.pborder.translate(delta);
-            item.pbbox.translate(delta);
+            // var delta = new paper.Point(item.left * wscale, item.top * hscale);
+            item.pborder.fitBounds(paper.view.bounds, true);
+            item.pbbox.fitBounds(paper.view.bounds, true);
             item.praster.fitBounds(paper.view.bounds, true);
             item.praster.opacity = 1.0;
             item.activateMouseEvents();
@@ -500,7 +526,18 @@ function revealSlideMessage() {
     var msg = JSON.stringify( {
         namespace: 'liveprez',
         type: 'slide-reveal',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search
+    } );
+    return msg;
+};
+
+function resizeMessage() {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'slide-resize',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        width: SLIDE_W,
+        height: SLIDE_H
     } );
     return msg;
 };

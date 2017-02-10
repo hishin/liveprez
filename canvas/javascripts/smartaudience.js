@@ -1,10 +1,10 @@
 /**
  * Created by Hijung Shin on 1/30/2017.
  */
-var SLIDE_W = 960;
-var SLIDE_H = 720;
-var CANVAS_W = 960;
-var CANVAS_H = 720;
+var SLIDE_W;// = 960;
+var SLIDE_H;// = 720;
+// var CANVAS_W = 960;
+// var CANVAS_H = 720;
 var aslide;
 var acanvas;
 var apaper;
@@ -14,6 +14,9 @@ var curstroke = null;
 var slidelayer;
 var inklayer;
 var reveal = false;
+var aspectratio = 0.75;
+var scale = 1.0;
+var speakerwidth;
 
 window.addEventListener('message', function(event) {
     var data = JSON.parse(event.data);
@@ -36,6 +39,8 @@ window.addEventListener('message', function(event) {
             handleInkMessage(data);
         } else if (data.type === 'release-target') {
             handleReleaseTargetMessage(data);
+        } else if (data.type === 'slide-resize') {
+            handleSlideResizeMessage(data);
         }
 
     }
@@ -50,10 +55,18 @@ window.onload = function() {
     apaper = new paper.PaperScope();
     apaper.setup(acanvas);
 
-    apaper.view.viewSize.width = CANVAS_W;
-    apaper.view.viewSize.height = CANVAS_H;
-    acanvas.width = CANVAS_W;
-    acanvas.height = CANVAS_H;
+    SLIDE_W = $(window).width() * 0.95;
+    SLIDE_H = SLIDE_W * aspectratio;
+    if (SLIDE_H > $(window).height()) {
+        SLIDE_H = $(window).height() *0.95;
+        SLIDE_W = SLIDE_H/aspectratio;
+    }
+    resizeCanvas(SLIDE_W, SLIDE_H);
+    // resizeCanvas(screen.width, screen.height);
+    // apaper.view.viewSize.width = CANVAS_W;
+    // apaper.view.viewSize.height = CANVAS_H;
+    // acanvas.width = CANVAS_W;
+    // acanvas.height = CANVAS_H;
 
     aslide.paper = apaper;
     aslide.canvas = acanvas;
@@ -61,6 +74,18 @@ window.onload = function() {
     acanvas.slide = aslide;
     apaper.slide = aslide;
     apaper.canvas = acanvas;
+};
+
+window.onresize = function() {
+    // var origw = SLIDE_w;
+    SLIDE_W = $(window).width() * 0.95;
+    SLIDE_H = SLIDE_W * aspectratio;
+    if (SLIDE_H > $(window).height()) {
+        SLIDE_H = $(window).height() * 0.95;
+        SLIDE_W = SLIDE_H/aspectratio;
+    }
+    resizeCanvas(SLIDE_W, SLIDE_H);
+    // loadSlide(curslide);
 };
 
 function handleConnectMessage(data) {
@@ -77,12 +102,16 @@ function handleSlideChangeMessage(data) {
     loadSlide(curslide);
  };
 
+function handleSlideResizeMessage(data) {
+    speakerwidth = JSON.parse(data.width);
+    scale = SLIDE_W/speakerwidth;
+};
+
 function handleSlideRevealMessage() {
     if (reveal) {
         console.log("Implement Hide Slide")
     }
     else {
-        console.log("reveal slide");
         revealSlide();
     }
 };
@@ -104,10 +133,10 @@ function revealSlide() {
 
 function loadSlide(slide) {
     apaper.project.clear();
-    apaper.view.viewSize.width = CANVAS_W;
-    apaper.view.viewSize.height = CANVAS_H;
-    acanvas.width = CANVAS_W;
-    acanvas.height = CANVAS_H;
+    // apaper.view.viewSize.width = CANVAS_W;
+    // apaper.view.viewSize.height = CANVAS_H;
+    // acanvas.width = CANVAS_W;
+    // acanvas.height = CANVAS_H;
     inklayer = null;
 
     for (var i = 0; i < slide.nitems; i++) {
@@ -116,11 +145,32 @@ function loadSlide(slide) {
     }
 };
 
+function resizeCanvas(width, height) {
+    var origw = apaper.view.viewSize.width;
+    var rscale = width/origw;
+    aslide.style.width = width + 'px';
+    aslide.style.height = height + 'px';
+    apaper.view.viewSize.width = width;
+    apaper.view.viewSize.height = height;
+    acanvas.width = width;
+    acanvas.height = height;
+
+    if (apaper.project.layers) {
+        console.log('rscale: ' + rscale);
+        for (var i = 0; i < apaper.project.layers.length; i++) {
+            apaper.project.layers[i].scale(rscale, new paper.Point(0,0));
+        }
+    }
+
+    scale = SLIDE_W/speakerwidth;
+
+};
+
 function loadItem(item) {
     if (item.type == 'image' && item.src) {
         slidelayer = new paper.Layer();
-        var wscale = parseFloat(CANVAS_W) / SLIDE_W;
-        var hscale = parseFloat(CANVAS_H) / SLIDE_H;
+        var wscale = 1.0;//parseFloat(CANVAS_W) / SLIDE_W;
+        var hscale = 1.0;//parseFloat(CANVAS_H) / SLIDE_H;
         var ext = item.src.split('.').pop();
 
         if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp') {
@@ -233,13 +283,12 @@ function handleInkMessage(data) {
         curstroke.remove();
     }
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
+    console.log(scale);
+    curstroke.scale(scale, new paper.Point(0,0));
     if (data.end) {
         curstroke = null;
     }
 };
-
-
-
 function handleReleaseTargetMessage(data) {
     curtargetitem = null;
 }

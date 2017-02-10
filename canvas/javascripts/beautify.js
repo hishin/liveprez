@@ -235,10 +235,10 @@ function traceColor(praster, path) {
     var cclusters = clusterColors(colors, 1.0);
     var maxn = -1;
     var maxid = 0;
-    // console.log('cclusters.length: ' + cclusters.length);
+    console.log('cclusters.length: ' + cclusters.length);
     for (var i = 1; i < cclusters.length; i++) { // begin i = 1 to exclude bgcolor
-        // console.log("cclusters.maxcolor " + cclusters[i].maxcolor.toCSS(true) + ' ' + cclusters[i].ncolors);
-        // console.log("cclusters.ncolors " + cclusters[i].ncolors);
+        console.log("cclusters.maxcolor " + cclusters[i].maxcolor.toCSS(true) + ' ' + cclusters[i].ncolors);
+        console.log("cclusters.ncolors " + cclusters[i].ncolors);
         // console.log("cclusters.avgcolor " + cclusters[i].avgcolor.toCSS(true));
         // console.log("ccluster.colors " + cclusters[i].colors);
         if (cclusters[i].ncolors > maxn) {
@@ -246,7 +246,7 @@ function traceColor(praster, path) {
             maxid = i;
         }
     }
-    var colormode = cclusters[maxid].maxcolor;//colors[maxid];
+    var colormode = cclusters[maxid].avgcolor;//colors[maxid];
     var newstroke = new paper.Path(path.pathData);
     if (maxid == 0) {
         newstroke.strokeColor = prevcolor;
@@ -331,13 +331,13 @@ var ColorCluster = function() {
     this.colors = [];
     this.sumcolor = new paper.Color(0,0,0);
     this.avgcolor = new paper.Color(0,0,0);
-    this.maxcolor = new paper.Color(0,0,0);
+    this.maxcolor = new paper.Color(0,0,0,0);
     this.ncolors = 0;
     this.addColor = function(color) {
         this.colors.push(color);
         this.sumcolor = this.sumcolor.add(color);
         this.avgcolor = this.sumcolor.divide(this.colors.length);
-        if (this.ncolors == 0 || color.saturation > this.maxcolor.saturation) {
+        if (this.ncolors == 0 || color.alpha > this.maxcolor.alpha) {
             this.maxcolor = color;
         }
         this.ncolors++;
@@ -377,7 +377,7 @@ function colorToAlpha(p, bgcolor) {
         p1 = (p1 - r1) / aA + r1;
         p2 = (p2 - r2) / aA + r2;
         p3 = (p3 - r3) / aA + r3;
-        return new paper.Color(p1,p2,p3,1.0);
+        return new paper.Color(p1,p2,p3, aA);
     } else {
         return bgcolor;
     }
