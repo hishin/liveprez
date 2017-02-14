@@ -387,9 +387,11 @@ function getInkStyle(pitem, styles) {
 function deactivateItemMouseEvents() {
     for (var i = 0; i < curslide.nitems; i++) {
         var item = curslide.items[i];
-        item.pbbox.onMouseEnter = null;
-        item.pbbox.onMouseLeave = null;
-        item.pbbox.onClick = null;
+        if (item.pbbox) {
+            item.pbbox.onMouseEnter = null;
+            item.pbbox.onMouseLeave = null;
+            item.pbbox.onClick = null;
+        }
     }
 };
 
