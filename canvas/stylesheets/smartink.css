@@ -27,7 +27,7 @@ html, body {
     float: left;
     /*width: 50%;*/
     height: 100%;
-    background: #0375B4;
+    background: #a0afb4;
     color: white;
     padding-top: 25px;
 }
@@ -58,6 +58,14 @@ h1 {
     display: inline-block;
     background-color: white;
     /*margin-bottom: 10px;*/
+}
+
+.btn {
+    color: black;
+}
+
+.btn:hover{
+    background: #007ea2;
 }
 
 #audience-slide {

@@ -7,6 +7,7 @@ var SlideDeck = function(slides) {
     this.n = slides.getElementsByTagName('section').length;
     for (var i = 0; i < this.n; i++) {
         var slide = new Slide(slides.getElementsByTagName('section')[i]);
+        slide.num = this.slides.length;
         this.slides.push(slide);
     }
 
@@ -19,6 +20,11 @@ var SlideDeck = function(slides) {
 };
 
 function Slide(section) {
+    this.loaded = false;
+    this.itemlayer = null
+    this.lowermask = null;
+    this.masklayer = null;;
+    this.inklayer = null;
     this.items = [];
     this.nitems = section.getElementsByClassName('sl-block').length;
     for (var i = 0; i < this.nitems; i++) {
@@ -26,6 +32,18 @@ function Slide(section) {
         this.items.push(item);
     }
 
+
+    this.hide = function() {
+        this.itemlayer.visible = false;
+        this.inklayer.visible = false;
+        this.masklayer.visible = false;
+    };
+
+    this.show = function() {
+        this.itemlayer.visible = true;
+        this.inklayer.visible = true;
+        this.masklayer.visible = true;
+    };
 }
 
 function Item(block) {

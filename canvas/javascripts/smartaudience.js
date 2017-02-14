@@ -10,19 +10,22 @@ var acanvas;
 var apaper;
 var connected;
 var curslide;
+var curslidenum;
 var curstroke = null;
 var slidelayer;
-var inklayer;
 var reveal = false;
 var aspectratio = 0.75;
 var scale = 1.0;
 var speakerwidth;
+var slides;
 
 window.addEventListener('message', function(event) {
     var data = JSON.parse(event.data);
     if (data && data.namespace === 'liveprez') {
         if (data.type === 'connect') {
             handleConnectMessage(data);
+        } else if (data.type ==='slide-setup') {
+            handleSlideSetupMessage(data);
         } else if (data.type === 'slide-change') {
             handleSlideChangeMessage(data);
         } else if (data.type === 'slide-reveal') {
@@ -37,6 +40,10 @@ window.addEventListener('message', function(event) {
             handleDrawMessage(data);
         } else if (data.type === 'ink') {
             handleInkMessage(data);
+        } else if (data.type ==='lowermask') {
+            handleLowerMaskMessage(data);
+        } else if (data.type === 'mask') {
+            handleMaskMessage(data);
         } else if (data.type === 'release-target') {
             handleReleaseTargetMessage(data);
         } else if (data.type === 'slide-resize') {
@@ -95,6 +102,10 @@ function handleConnectMessage(data) {
     window.opener.postMessage(JSON.stringify({namespace: 'audience', type: 'connected'}), '*');
 };
 
+function handleSlideSetupMessage(data) {
+    var numslide = JSON.parse(data.num);
+    slides = new Array(numslide);
+};
 
 function handleSlideChangeMessage(data) {
     curslide = JSON.parse(data.state);
@@ -132,17 +143,59 @@ function revealSlide() {
 };
 
 function loadSlide(slide) {
-    apaper.project.clear();
-    // apaper.view.viewSize.width = CANVAS_W;
-    // apaper.view.viewSize.height = CANVAS_H;
-    // acanvas.width = CANVAS_W;
-    // acanvas.height = CANVAS_H;
-    inklayer = null;
+    // apaper.project.clear();
+    if (!slides[slide.num]) {
+        slides[slide.num] = slide;
+        slide.itemlayer = new paper.Layer();
+        for (var i = 0; i < slide.nitems; i++) {
+            var item = slide.items[i];
+            loadItem(item);
+        }
+        var lowermask = new paper.Layer();
+        var lowermaskitems = slide.lowermask[1].children;
+        if (lowermaskitems) {
+            for (var i = 0; i < lowermaskitems.length; i ++) {
+                lowermask.addChild(new paper.Path(lowermaskitems[i][1]));
+            }
+        }
+        lowermask.insertAbove(slide.itemlayer);
+        slide.lowermask = lowermask;
 
-    for (var i = 0; i < slide.nitems; i++) {
-        var item = slide.items[i];
-        loadItem(item);
+        var masklayer = new paper.Layer();
+        var maskitems = slide.masklayer[1].children;
+        if (maskitems) {
+            for (var i = 0; i < maskitems.length; i ++) {
+                masklayer.addChild(new paper.Path(maskitems[i][1]));
+            }
+        }
+        masklayer.insertAbove(slide.lowermask);
+        slide.masklayer = masklayer;
+
+        var inklayer = new paper.Layer();
+        var inkitems = slide.inklayer[1].children;
+        if (inkitems) {
+            for (var i = 0; i < inkitems.length; i ++) {
+                inklayer.addChild(new paper.Path(inkitems[i][1]));
+            }
+        }
+        inklayer.insertAbove(slide.masklayer);
+        slide.inklayer = inklayer;
+
+    } else {
+        // hide current slide
+        if (curslidenum) {
+            slides[curslidenum].itemlayer.visible = false;
+            slides[curslidenum].lowermask.visible = false;
+            slides[curslidenum].masklayer.visible = false;
+            slides[curslidenum].inklayer.visible = false;
+            }
+        slides[slide.num].itemlayer.visible = true;
+        slides[slide.num].lowermask.visible = true;
+        slides[slide.num].masklayer.visible = true;
+        slides[slide.num].inklayer.visible = true;
     }
+    curslide = slides[slide.num];
+    curslidenum = curslide.num;
 };
 
 function resizeCanvas(width, height) {
@@ -156,7 +209,6 @@ function resizeCanvas(width, height) {
     acanvas.height = height;
 
     if (apaper.project.layers) {
-        console.log('rscale: ' + rscale);
         for (var i = 0; i < apaper.project.layers.length; i++) {
             apaper.project.layers[i].scale(rscale, new paper.Point(0,0));
         }
@@ -168,7 +220,7 @@ function resizeCanvas(width, height) {
 
 function loadItem(item) {
     if (item.type == 'image' && item.src) {
-        slidelayer = new paper.Layer();
+        curslide.itemlayer.activate();
         var wscale = 1.0;//parseFloat(CANVAS_W) / SLIDE_W;
         var hscale = 1.0;//parseFloat(CANVAS_H) / SLIDE_H;
         var ext = item.src.split('.').pop();
@@ -177,10 +229,10 @@ function loadItem(item) {
             item.praster = new paper.Raster(item.src);
             item.praster.fitBounds(paper.view.bounds, true);
             // create a clipmask
-            item.clip = new paper.Path();
+            // item.clip = new paper.Path();
             // item.clip.segments = [];
-            item.pgroup = new paper.Group([item.clip, item.praster]);
-            item.pgroup.clipped = true;
+            // item.pgroup = new paper.Group([item.clip, item.praster]);
+            // item.pgroup.clipped = true;
         } else if (ext == 'svg') {
             slidelayer.importSVG(item.src, {
                 expandShapes: true,
@@ -274,21 +326,57 @@ function handleUpdateViewMessage(data) {
 };
 
 function handleInkMessage(data) {
-    if (!inklayer) {
-        inklayer = new paper.Layer();
+    if (!curslide.inklayer) {
+        curslide.inklayer = new paper.Layer();
     }
     else
-        inklayer.activate();
+        curslide.inklayer.activate();
     if (curstroke) {
         curstroke.remove();
     }
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
-    console.log(scale);
     curstroke.scale(scale, new paper.Point(0,0));
     if (data.end) {
         curstroke = null;
     }
 };
+
+function handleLowerMaskMessage(data) {
+    if (!curslide.lowermask) {
+        curslide.lowermask = new paper.Layer();
+    }
+    else
+        curslide.lowermask.activate();
+
+    var maskstroke = new paper.Path(JSON.parse(data.content)[1]);
+    maskstroke.scale(scale, new paper.Point(0,0));
+}
+
+function handleMaskMessage(data) {
+    if (!curslide.masklayer) {
+        curslide.masklayer = new paper.Layer();
+    }
+    else
+        curslide.masklayer.activate();
+
+    if (!data.add && curslide.masklayer.getItems().length == 0) {
+        return;
+    }
+    var maskbox = new paper.Path(JSON.parse(data.content)[1]);
+    maskbox.scale(scale, new paper.Point(0,0));
+    maskbox.fillColor = JSON.parse(data.bgcolor);
+    maskbox.fillColor.alpha = 1.0;
+    if (curslide.masklayer.getItems().length > 0) {
+        var maskitem = curslide.masklayer.getItems()[0];
+        if (data.add)
+            maskitem.unite(maskbox);
+        else if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath')
+            maskitem.subtract(maskbox);
+        maskitem.remove();
+        maskbox.remove();
+    }
+};
+
 function handleReleaseTargetMessage(data) {
     curtargetitem = null;
 }

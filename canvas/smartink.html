@@ -21,11 +21,21 @@
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
         <div id="speaker-slide" class="slide"></div><br>
-        <div id="item-toolbox" class="toolbox">
-            <button type="button" title="Reveal Slide" class="btn btn-warning btn-circle btn-lg" onclick="revealSlide()"><i class="glyphicon glyphicon-flash"></i></button>
-            <button type="button" title="Ink" class="btn btn-success btn-circle btn-lg" onclick="activateInkTool()"><i class="glyphicon glyphicon-pencil"></i></button>
-            <button type="button" class="btn btn-primary btn-circle btn-lg"><i class="glyphicon glyphicon-eye-open"></i></button>
-            <button type="button" title="Insert Space" class="btn btn-default btn-circle btn-lg" onclick="activateSpaceTool()"><i class="glyphicon glyphicon-resize-horizontal"></i></button>
+        <div id="page-btns" class="btn-group">
+            <button type="button" title="Next" class="btn btn-default btn-circle btn-lg" onclick="prevSlide()">
+                <i class="glyphicon glyphicon-arrow-left"></i></button>
+            <button type="button" title="Previous" class="btn btn-default btn-circle btn-lg" onclick="nextSlide()">
+                <i class="glyphicon glyphicon-arrow-right"></i></button>
+        </div>
+
+        <div id="item-toolbox" class="btn-group">
+            <button type="button" title="Ink" class="btn-tool btn btn-primary btn-circle btn-lg" onclick="activateInkTool()">
+                <i class="glyphicon glyphicon-pencil"></i></button>
+            <button type="button" title="Reveal" class="btn-tool btn btn-default btn-circle btn-lg" onclick="activateRevealPen()">
+                <i class="glyphicon glyphicon-flash"></i>
+            </button>
+            <button type="button" title="Set Mask" class="btn-tool btn btn-default btn-circle btn-lg" onclick="setMask()">
+                <i class="glyphicon glyphicon-eye-close"></i></button>
         </div>
     </div>
 

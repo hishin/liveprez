@@ -1,5 +1,5 @@
 /**
- * Created by hijun on 1/16/2017.
+ * Created by hijung on 1/16/2017.
  */
 
 var sslide;
@@ -9,7 +9,9 @@ var SLIDE_W = 960;
 var SLIDE_H = 720;
 // var CANVAS_W = 960;
 // var CANVAS_H = 720;
-var aspectratio;
+var aspectratio; // matches the slide aspect ratio
+var scale;
+var img_w;
 var numslides;
 var curslidenum = 0;
 var curslide;
@@ -37,12 +39,14 @@ function preloadImages(srcs) {
             if (!aspectratio) {
                 aspectratio = this.height/this.width;
                 // console.log(aspectratio);
+                img_w = this.width;
                 SLIDE_W = $(window).width() * 0.75;
                 SLIDE_H = SLIDE_W * aspectratio;
                 if (SLIDE_H > $(window).height()) {
                     SLIDE_H = $(window).height() * 0.75;
                     SLIDE_W = SLIDE_H/aspectratio;
                 }
+                scale = img_w/SLIDE_W;
             }
         };
 
@@ -75,6 +79,22 @@ window.onload = function () {
         handleKeyboardEvents(event);
     });
     toolbox = document.getElementById("item-toolbox");
+    var buttons = document.getElementsByClassName('btn-tool');
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener("click", function(event) {
+            selectButton(event);
+        });
+    }
+};
+
+function selectButton(event) {
+    var btn = event.currentTarget;
+    var btngroup = $(btn).closest('.btn-group');
+    var btns = btngroup.children('.btn');
+    for (var i = 0; i < btns.length; i++) {
+        btns[i].style.background = '#ffffff';
+    }
+    btn.style.background = '#337ab7';
 };
 
 function handleKeyboardEvents(event) {
@@ -126,10 +146,6 @@ function setupSlideCanvas(slidedeck) {
     spaper.setup(scanvas);
 
     resizeCanvas(SLIDE_W, SLIDE_H);
-    // spaper.view.viewSize.width = CANVAS_W;
-    // spaper.view.viewSize.height = CANVAS_H;
-    // scanvas.width = CANVAS_W;
-    // scanvas.height = CANVAS_H;
 
     sslide.paper = spaper;
     sslide.canvas = scanvas;
@@ -138,8 +154,9 @@ function setupSlideCanvas(slidedeck) {
     spaper.slide = sslide;
     spaper.canvas = scanvas;
 
-    curslide = slidedeck.getSlide(curslidenum);
-    loadSlide(curslide);
+    post(setupSlidesMessage());
+
+    loadSlide(slidedeck.getSlide(curslidenum));
 };
 
 function resizeCanvas(width, height) {
@@ -149,6 +166,8 @@ function resizeCanvas(width, height) {
     scanvas.height = height;
     spaper.view.viewSize.width = width;
     spaper.view.viewSize.height = height;
+    scale = img_w/width;
+    // console.log("scale: " + scale);
     post(resizeMessage());
 };
 
@@ -168,29 +187,70 @@ function setupPaperTools() {
     var spacetool = new spaper.Tool();
     spacetool.onMouseDown = makeSpaceStart;
     spacetool.onMouseDrag = makeSpaceContinue;
+    // spacetool.onMouseUp = makeSpaceEnd;
     spaper.spacetool = spacetool;
+
+    // Mask tool
+    var masktool = new spaper.Tool();
+    masktool.onMouseDown = maskStart;
+    masktool.onMouseDrag = maskContinue;
+    masktool.onMouseUp = maskEnd;
+    spaper.masktool = masktool;
+
+    // Reveal tool
+    var revealtool = new spaper.Tool();
+    revealtool.onMouseDown = revealStart;
+    revealtool.onMouseDrag = revealContinue;
+    revealtool.onMouseUp = revealEnd;
+    spaper.revealtool = revealtool;
 
     activateInkTool();
 };
 
 function loadSlide(slide) {
-    spaper.project.clear();
-    // spaper.view.viewSize.width = CANVAS_W;
-    // spaper.view.viewSize.height = CANVAS_H;
-    // scanvas.width = CANVAS_W;
-    // scanvas.height = CANVAS_H;
-
-    for (var i = 0; i < slide.nitems; i++) {
-        var item = slide.items[i];
-        loadItem(item);
+    // hide current slide
+    if (curslide) {
+        curslide.hide();
+    }
+    curslide = slide;
+    // load or show new slide
+    if (!slide.loaded) {
+        slide.itemlayer = new paper.Layer();
+        slide.lowermask = new paper.Layer();
+        slide.lowermask.insertAbove(slide.itemlayer);
+        slide.masklayer = new paper.Layer();
+        slide.masklayer.insertAbove(slide.lowermask);
+        slide.inklayer = new paper.Layer();
+        slide.inklayer.insertAbove(slide.masklayer);
+        for (var i = 0; i < slide.nitems; i++) {
+            var item = slide.items[i];
+            loadItem(item);
+            slide.loaded = true;
+        }
+    } else {
+        slide.show();
     }
     spaper.view.update();
     post(slideChangeMessage());
 };
 
+function setMask() {
+    if (!curslide.masklayer) {
+        curslide.masklayer = new paper.Layer();
+        curslide.masklayer.insertAbove(curslide.itemlayer);
+    }
+    activateMaskTool();
+};
+
 function loadItem(item){
+    curitem = item;
     if (item.type == 'image' && item.src) {
-        var layer = new paper.Layer();
+        if (!curslide.itemlayer) {
+            var layer = new paper.Layer();
+            curslide.itemlayer = layer;
+        } else {
+            curslide.itemlayer.activate();
+        }
         // var wscale = parseFloat(CANVAS_W) / SLIDE_W;
         // var hscale = parseFloat(CANVAS_H) / SLIDE_H;
 
@@ -368,15 +428,13 @@ function prevSlide() {
     if (curslidenum > 0) {
         curslidenum--;
     }
-    curslide = slidedeck.getSlide(curslidenum);
-    loadSlide(curslide);
+    loadSlide(slidedeck.getSlide(curslidenum));
 };
 
 function nextSlide() {
     if (curslidenum < numslides -1)
         curslidenum ++;
-    curslide = slidedeck.getSlide(curslidenum);
-    loadSlide(curslide);
+    loadSlide(slidedeck.getSlide(curslidenum));
 };
 
 function revealSlide() {
@@ -421,9 +479,16 @@ function activateInkTool() {
 };
 
 var curstroke;
-var curtargetrect;
-var curtargetitems = [];
+var curbound;
 function inkStart(event){
+
+    if (!curslide.inklayer) {
+        var layer = new paper.Layer();
+        curslide.inklayer = layer;
+    } else {
+        curslide.inklayer.activate();
+    }
+
     // if cursor is inside item, select as curitem
     selectItem(event.point);
 
@@ -471,10 +536,7 @@ function inkEnd(event) {
             // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
             newstroke = curstroke;
             newstroke = traceColor(curitem.praster, newstroke);
-            var bgrect = new paper.Shape.Rectangle(newstroke.strokeBounds);
-            bgrect.fillColor = curitem.praster.bgcolor;
-            bgrect.fillColor.alpha = 0.3;
-            bgrect.moveAbove(curitem.praster);
+
         } else if (curitem.psvg) {
             var closest = findClosestPath(curstroke, curitem.psvg);
             newstroke = interpolate(curstroke, closest[1], 1.0);
@@ -491,10 +553,109 @@ function inkEnd(event) {
         prevcolor = newstroke.strokeColor;
         newstroke.strokeWidth = 1.0;
         curstroke.remove();
+
         post(inkMessage(newstroke, true));
 
+
+        curslide.lowermask.activate();
+        var maskstroke = new paper.Path(newstroke.pathData);
+        maskstroke.strokeWidth = 10.0;
+        maskstroke.strokeColor = curitem.praster.bgcolor;
+        post(lowerMaskMessage(maskstroke));
     }
 };
+
+function activateMaskTool() {
+    spaper.masktool.activate();
+    deactivateItemMouseEvents();
+};
+
+function maskStart(event) {
+    if (!curslide.inklayer) {
+        var layer = new paper.Layer();
+        curslide.inklayer = layer;
+    } else {
+        curslide.inklayer.activate();
+    }
+    selectItem(event.point);
+
+    curstroke = new paper.Path();
+    curstroke.add(event.point);
+    curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
+    curstroke.strokeWidth = 5;
+    curstroke.strokeColor = 'black';
+
+    curbound = new paper.Path.Rectangle(curstroke.strokeBounds);
+    curbound.strokeWidth = 1;
+    curbound.dashArray = [5,5];
+    curbound.strokeColor = 'black';
+};
+
+function maskContinue(event) {
+    if (curstroke) {
+        curstroke.add(event.point);
+    }
+    if (curbound) {
+        curbound.remove();
+        curbound = new paper.Path.Rectangle(curstroke.strokeBounds);
+        curbound.strokeWidth = 1;
+        curbound.dashArray = [5,5];
+        curbound.strokeColor = 'black';
+    }
+};
+
+function maskEnd(event) {
+    if (curstroke) {
+        curslide.masklayer.activate();
+        var maskbox = new paper.Path.Rectangle(curstroke.strokeBounds);
+        maskbox.fillColor = 'grey';
+        maskbox.fillColor.alpha = 0.5;
+        post(addMaskMessage(maskbox, true));
+        if (curslide.masklayer.getItems().length > 0) {
+            var maskitem = curslide.masklayer.getItems()[0];
+            maskitem.unite(maskbox);
+            maskitem.remove();
+            maskbox.remove();
+        }
+        curstroke.remove();
+        curbound.remove();
+    }
+};
+
+
+function activateRevealPen() {
+    spaper.revealtool.activate();
+    deactivateItemMouseEvents();
+};
+
+function revealStart(event) {
+    maskStart(event);
+    curstroke.strokeColor = 'yellow';
+    curstroke.strokeColor.alpha = 0.8;
+};
+
+function revealContinue(event) {
+    maskContinue(event);
+};
+
+function revealEnd(event) {
+    if (curstroke) {
+        var maskbox = new paper.Path.Rectangle(curstroke.strokeBounds);
+        post(addMaskMessage(maskbox, false));
+
+        if (curslide.masklayer.getItems().length > 0) {
+            var maskitem = curslide.masklayer.getItems()[0];
+            if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
+                maskitem.subtract(maskbox);
+            }
+            maskitem.remove();
+            maskbox.remove();
+        }
+        curstroke.remove();
+        curbound.remove();
+    }
+};
+
 
 function slideChangeMessage() {
     var msg = JSON.stringify( {
@@ -522,6 +683,28 @@ function inkMessage(inkstroke, end) {
     return msg;
 };
 
+function lowerMaskMessage(maskstroke) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'lowermask',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        content: JSON.stringify(maskstroke),
+    } );
+    return msg;
+};
+
+function addMaskMessage(pathitem, add) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'mask',
+        add: add,
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        content: JSON.stringify(pathitem),
+        bgcolor: JSON.stringify(curitem.praster.bgcolor.toCSS(true))
+    } );
+    return msg;
+};
+
 function revealSlideMessage() {
     var msg = JSON.stringify( {
         namespace: 'liveprez',
@@ -538,6 +721,16 @@ function resizeMessage() {
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         width: SLIDE_W,
         height: SLIDE_H
+    } );
+    return msg;
+};
+
+function setupSlidesMessage() {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'slide-setup',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        num: slidedeck.slides.length
     } );
     return msg;
 };
