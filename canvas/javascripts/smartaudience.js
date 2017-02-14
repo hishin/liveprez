@@ -83,16 +83,17 @@ window.onload = function() {
     apaper.canvas = acanvas;
 };
 
-window.onresize = function() {
-    // var origw = SLIDE_w;
+window.onresize = function(event) {
+    event.preventDefault();
     SLIDE_W = $(window).width() * 0.95;
     SLIDE_H = SLIDE_W * aspectratio;
     if (SLIDE_H > $(window).height()) {
         SLIDE_H = $(window).height() * 0.95;
         SLIDE_W = SLIDE_H/aspectratio;
     }
+
     resizeCanvas(SLIDE_W, SLIDE_H);
-    // loadSlide(curslide);
+
 };
 
 function handleConnectMessage(data) {
@@ -201,6 +202,7 @@ function loadSlide(slide) {
 function resizeCanvas(width, height) {
     var origw = apaper.view.viewSize.width;
     var rscale = width/origw;
+    if (rscale == 1) return;
     aslide.style.width = width + 'px';
     aslide.style.height = height + 'px';
     apaper.view.viewSize.width = width;
@@ -208,13 +210,15 @@ function resizeCanvas(width, height) {
     acanvas.width = width;
     acanvas.height = height;
 
+
     if (apaper.project.layers) {
         for (var i = 0; i < apaper.project.layers.length; i++) {
-            apaper.project.layers[i].scale(rscale, new paper.Point(0,0));
+            apaper.project.layers[i].scale(rscale, new paper.Point(0, 0));
         }
     }
 
     scale = SLIDE_W/speakerwidth;
+    apaper.view.update();
 
 };
 

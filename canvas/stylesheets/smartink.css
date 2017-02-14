@@ -37,7 +37,7 @@ html, body {
     float: right;
     /*width: 50%;*/
     height: 100%;
-    background: #FFCE00;
+    background: #ffffff;
     color: black;
     /*padding-top: 25px;*/
 }
@@ -65,7 +65,7 @@ h1 {
 }
 
 .btn:hover{
-    background: #007ea2;
+    background: #337ab7;;
 }
 
 #audience-slide {
@@ -84,10 +84,6 @@ h1 {
     /*color: black;*/
 }
 
-#item-toolbox li:hover {
-    background-color: #ffda00;
-}
-
 img {
     -webkit-user-drag: none;
     max-width: 100%;
@@ -102,12 +98,6 @@ div>img {
     height: 100%;
 }
 
-
-canvas {
-    width: 960px;
-    height: 720px;
-    z-index: 100;
-}
 
 .btn-circle.btn-lg
 {

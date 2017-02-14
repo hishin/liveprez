@@ -262,10 +262,10 @@ function loadItem(item){
             // item.praster.pivot = item.pborder.bounds.topLeft;
             // item.pborder.scale(wscale, hscale, item.pborder.pivot);
             item.pborder.item = item;
-            item.pborder.strokeColor = 'black';
-            item.pborder.strokeWidth = 3;
-            item.pborder.dashArray = [3, 2];
-            item.pborder.opacity = 0.5;
+            // item.pborder.strokeColor = 'black';
+            // item.pborder.strokeWidth = 3;
+            // item.pborder.dashArray = [3, 2];
+            // item.pborder.opacity = 0.5;
 
             item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
             // item.pbbox.pivot = item.pbbox.bounds.topLeft;
@@ -560,8 +560,8 @@ function inkEnd(event) {
 
 
         curslide.lowermask.activate();
-        var maskstroke = new paper.Path(newstroke.pathData);
-        maskstroke.strokeWidth = 10.0;
+        var maskstroke = maskColor(curitem.praster, newstroke);//new paper.Path(newstroke.pathData);
+        //maskstroke.strokeWidth = 10.0;
         maskstroke.strokeColor = curitem.praster.bgcolor;
         post(lowerMaskMessage(maskstroke));
     }

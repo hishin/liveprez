@@ -252,6 +252,39 @@ function traceColor(praster, path) {
     return newstroke;
 };
 
+function maskColor(praster, newstroke) {
+    var r = 10.0;
+    var color = newstroke.strokeColor;
+    var points = resample(newstroke);
+
+    var maskstroke = new paper.Path();
+    var px, py, minx, miny, maxx, maxy;
+    var c, dr, dg, db, colordiff;
+    for (var i = 0; i < points.length; i++) {
+        px = Math.round(points[i].x*scale);
+        py = Math.round(points[i].y*scale);
+        minx = Math.max(0, px-r);
+        maxx = Math.min(praster.width, px + r+1);
+        miny = Math.max(0, py-r);
+        maxy = Math.min(praster.height, py + r+1);
+        for (var x = minx; x < maxx; x++) {
+            for (var y = miny; y < maxy; y++) {
+                c = praster.getPixel(x,y);
+                c = colorToAlpha(c, praster.bgcolor);
+                dr = c.red - color.red;
+                dg = c.green - color.green;
+                db = c.blue - color.blue;
+                colordiff = Math.sqrt(2*dr*dr + 4*dg*dg + 3*db*db);
+                // console.log(colordiff);
+                if (colordiff < 0.5) {
+                    maskstroke.add(new paper.Point(x/scale, y/scale));
+                }
+            }
+        }
+    }
+    return maskstroke;
+};
+
 function getBackgroundColor(praster) {
     return getColorMode(praster, praster.bounds, 10);
 };
