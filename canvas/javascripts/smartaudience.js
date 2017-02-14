@@ -225,7 +225,7 @@ function loadItem(item) {
         var hscale = 1.0;//parseFloat(CANVAS_H) / SLIDE_H;
         var ext = item.src.split('.').pop();
 
-        if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp') {
+        if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp' || ext == 'PNG') {
             item.praster = new paper.Raster(item.src);
             item.praster.fitBounds(paper.view.bounds, true);
             // create a clipmask
