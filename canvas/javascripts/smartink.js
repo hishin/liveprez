@@ -255,7 +255,7 @@ function loadItem(item){
         // var hscale = parseFloat(CANVAS_H) / SLIDE_H;
 
         var ext = item.src.split('.').pop();
-        if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp') {
+        if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp' || ext == 'PNG') {
             item.setRaster(new paper.Raster(item.src));
             item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
             // item.pborder.pivot = item.pborder.bounds.topLeft;
