@@ -73,21 +73,24 @@ function Item(block) {
             this.bgcolor = getBackgroundColor(this);
             // computeColorToAlpha(this, this.bgcolor);
             // colorToAlpha(this, this.bgcolor);
-            // this.sobel = computeSobel(this);
+            this.sobel = computeSobel(this);
             // this.gauss1 = computeGaussian(this, 10);
             // this.gauss2 = computeGaussian(this, 5);
-            // for (var x = 0; x < this.width; x++) {
-            //     for (var y = 0; y < this.height; y++) {
-            //         var offset = (y*this.width + x) * 4;
-            //         var gcolor1 = new paper.Color(this.gauss1.data[offset]/255.0, this.gauss1.data[offset+1]/255.0, this.gauss1.data[offset+2]/255.0);
-            //         var gcolor2 = new paper.Color(this.gauss2.data[offset]/255.0, this.gauss2.data[offset+1]/255.0, this.gauss2.data[offset+2]/255.0);
-            //         var gcolor = gcolor1.subtract(gcolor2);
-            //         if (gcolor.red + gcolor.blue + gcolor.green < 0.1) {
-            //             this.setPixel(x, y, new paper.Color(1,1,1));
-            //
-            //         }
-            //     }
-            // }
+            for (var x = 0; x < this.sobel.width; x++) {
+                for (var y = 0; y < this.sobel.height; y++) {
+                    var offset = (y*this.sobel.width + x) * 4;
+                    var dx = this.sobel.data[offset]/255.0;
+                    var dy = this.sobel.data[offset+1]/255.0;
+                    this.setPixel(x,y, new paper.Color(dx, dy, 0));
+                    // var gcolor1 = new paper.Color(this.gauss1.data[offset]/255.0, this.gauss1.data[offset+1]/255.0, this.gauss1.data[offset+2]/255.0);
+                    // var gcolor2 = new paper.Color(this.gauss2.data[offset]/255.0, this.gauss2.data[offset+1]/255.0, this.gauss2.data[offset+2]/255.0);
+                    // var gcolor = gcolor1.subtract(gcolor2);
+                    // if (gcolor.red + gcolor.blue + gcolor.green < 0.1) {
+                    //     this.setPixel(x, y, new paper.Color(1,1,1));
+                    //
+                    // }
+                }
+            }
         };
     };
 
@@ -95,7 +98,7 @@ function Item(block) {
 
 
     function computeSobel(raster) {
-        var imagedata = raster.getImageData(raster.bounds);
+        var imagedata = raster.getImageData(new paper.Rectangle(0, 0, raster.width, raster.height));
         var sobel = Filters.sobel(imagedata);
         return sobel;
     };
