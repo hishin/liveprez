@@ -230,7 +230,7 @@ function traceColor(praster, path) {
     var maxid = 0;
     // console.log('cclusters.length: ' + cclusters.length);
     for (var i = 1; i < cclusters.length; i++) { // begin i = 1 to exclude bgcolor
-        console.log("cclusters.maxcolor " + cclusters[i].maxcolor + ' ' + cclusters[i].ncolors);
+        // console.log("cclusters.maxcolor " + cclusters[i].maxcolor + ' ' + cclusters[i].ncolors);
         // console.log("cclusters.ncolors " + cclusters[i].ncolors);
         // console.log("cclusters.avgcolor " + cclusters[i].avgcolor.toCSS(true));
         // console.log("ccluster.colors " + cclusters[i].colors);
@@ -240,7 +240,7 @@ function traceColor(praster, path) {
         }
     }
     var colormode = cclusters[maxid].maxcolor;
-    console.log(' ' + colormode);
+    // console.log(' ' + colormode);
     var newstroke = new paper.Path(path.pathData);
     if (maxid == 0) { // written on background
         newstroke.strokeColor = prevcolor;

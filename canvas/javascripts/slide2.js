@@ -2,11 +2,11 @@
  * Created by Valentina on 1/23/2017.
  */
 
-var SlideDeck = function(slide_files) {
+var SlideDeck = function(slides) {
     this.slides = [];
-    this.n = slide_files.length;
+    this.n = slides.getElementsByTagName('section').length;
     for (var i = 0; i < this.n; i++) {
-        var slide = new Slide(slide_files[i]);
+        var slide = new Slide(slides.getElementsByTagName('section')[i]);
         slide.num = this.slides.length;
         this.slides.push(slide);
     }
@@ -19,41 +19,19 @@ var SlideDeck = function(slide_files) {
     };
 };
 
-var Slide = function(sfile) {
+function Slide(section) {
     this.loaded = false;
     this.itemlayer = null
     this.lowermask = null;
     this.masklayer = null;;
     this.inklayer = null;
     this.items = [];
-    this.nitems = 1;
-    this.sfile = sfile;
-    var slide = this;
-    var reader = new FileReader();
-    reader.onload = function(theFile) {
-        return function (e) {
-            var item = new Item(e.target.result);
-            var img = new Image();
-            img.src = e.target.result;
-            img.onload = function() {
-                item.width = this.width;
-                item.height = this.height;
-                if (!aspectratio) {
-                    aspectratio = this.height/this.width;
-                    img_w = this.width;
-                    SLIDE_W = $(window).width() * 0.75;
-                    SLIDE_H = SLIDE_W * aspectratio;
-                    if (SLIDE_H > $(window).height()) {
-                        SLIDE_H = $(window).height() * 0.75;
-                        SLIDE_W = SLIDE_H/aspectratio;
-                    }
-                    scale = img_w/SLIDE_W;
-                }
-            }
-            slide.items.push(item);
-        }
-    }(sfile);
-    reader.readAsDataURL(sfile);
+    this.nitems = section.getElementsByClassName('sl-block').length;
+    for (var i = 0; i < this.nitems; i++) {
+        var item = new Item(section.getElementsByClassName('sl-block')[i]);
+        this.items.push(item);
+    }
+
 
     this.hide = function() {
         this.itemlayer.visible = false;
@@ -68,13 +46,26 @@ var Slide = function(sfile) {
     };
 }
 
-function Item(url) {
-    this.src = url;
+function Item(block) {
+    this.parseContent = function(contentdiv) {
+        if (this.type == 'image') {
+            return contentdiv.getElementsByTagName('img')[0];
+        } else {
+            return null;
+        }
+    };
+
+    this.width = parseInt(block.style.width, 10);
+    this.height = parseInt(block.style.height, 10);
+    this.top = parseInt(block.style.top, 10);
+    this.left = parseInt(block.style.left, 10);
+    this.type = block.dataset.blockType;
+    this.src = this.parseContent(block.getElementsByClassName('sl-block-content')[0]).dataset.src;
     this.psvg = null;
     this.praster = null;
     this.pborder = null;
     this.pbbox = null;
-    var item = this;
+    this.inkstyles = [];
 
     this.setRaster = function(raster){
         this.praster = raster;
@@ -166,18 +157,18 @@ function Item(url) {
         this.pborder.opacity = 0.5;
     };
 
-    // this.activateMouseEvents = function() {
-    //     this.pbbox.onMouseEnter = function(event) {
-    //         this.item.pborder.dashArray = [];
-    //     };
-    //     this.pbbox.onMouseLeave = function(event) {
-    //         this.item.pborder.dashArray = [3,2];
-    //     };
-    //     this.pbbox.onClick = function(event) {
-    //         deactivateItemMouseEvents();
-    //         openItem(this.item);
-    //     };
-    // }
+    this.activateMouseEvents = function() {
+        this.pbbox.onMouseEnter = function(event) {
+            this.item.pborder.dashArray = [];
+        };
+        this.pbbox.onMouseLeave = function(event) {
+            this.item.pborder.dashArray = [3,2];
+        };
+        this.pbbox.onClick = function(event) {
+            deactivateItemMouseEvents();
+            openItem(this.item);
+        };
+    }
 };
 
 var InkStyle = function(pitem) {

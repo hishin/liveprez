@@ -223,35 +223,36 @@ function resizeCanvas(width, height) {
 };
 
 function loadItem(item) {
-    if (item.type == 'image' && item.src) {
-        curslide.itemlayer.activate();
-        var wscale = 1.0;//parseFloat(CANVAS_W) / SLIDE_W;
-        var hscale = 1.0;//parseFloat(CANVAS_H) / SLIDE_H;
-        var ext = item.src.split('.').pop();
+    // if (item.type == 'image' && item.src) {
+    curslide.itemlayer.activate();
+        // var wscale = 1.0;//parseFloat(CANVAS_W) / SLIDE_W;
+        // var hscale = 1.0;//parseFloat(CANVAS_H) / SLIDE_H;
+        // var ext = item.src.split('.').pop();
 
-        if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp' || ext == 'PNG') {
-            item.praster = new paper.Raster(item.src);
-            item.praster.fitBounds(paper.view.bounds, true);
+        // if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp' || ext == 'PNG') {
+    item.praster = new paper.Raster(item.src);
+    item.praster.fitBounds(paper.view.bounds, true);
             // create a clipmask
             // item.clip = new paper.Path();
             // item.clip.segments = [];
             // item.pgroup = new paper.Group([item.clip, item.praster]);
             // item.pgroup.clipped = true;
-        } else if (ext == 'svg') {
-            slidelayer.importSVG(item.src, {
-                expandShapes: true,
-                applyMatrix: true,
-                onLoad: function(svgitem, data) {
-                    item.psvg = svgitem;
-                    svgitem.item = item;
-                    svgitem.pivot = new paper.Point(0,0);
-                    svgitem.scale(item.width / svgitem.bounds.width * wscale, item.height / svgitem.bounds.height * hscale);
-                    var delta = new paper.Point(item.left * wscale, item.top * hscale);
-                    svgitem.translate(delta);
-                }
-            });
-        }
-    }
+        // }
+        // else if (ext == 'svg') {
+        //     slidelayer.importSVG(item.src, {
+        //         expandShapes: true,
+        //         applyMatrix: true,
+        //         onLoad: function(svgitem, data) {
+        //             item.psvg = svgitem;
+        //             svgitem.item = item;
+        //             svgitem.pivot = new paper.Point(0,0);
+        //             svgitem.scale(item.width / svgitem.bounds.width * wscale, item.height / svgitem.bounds.height * hscale);
+        //             var delta = new paper.Point(item.left * wscale, item.top * hscale);
+        //             svgitem.translate(delta);
+        //         }
+        //     });
+        // }
+    // }
 };
 
 function handleToggleRevealMessage(data) {

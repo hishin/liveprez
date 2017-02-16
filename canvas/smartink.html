@@ -21,6 +21,8 @@
 <div class="container col-md-12">
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
+        <input id="files" type="file" webkitdirectory directory multiple/>
+
         <div id="speaker-slide" class="slide"></div><br>
         <div id="page-btns" class="btn-group">
             <button type="button" title="Next" class="btn btn-default btn-circle btn-lg" onclick="prevSlide()">
@@ -38,6 +40,7 @@
             <button type="button" title="Set Mask" class="btn-tool btn btn-default btn-circle btn-lg" onclick="setMask()">
                 <i class="glyphicon glyphicon-eye-close"></i></button>
         </div>
+        <output id="list"></output>
     </div>
 
 
