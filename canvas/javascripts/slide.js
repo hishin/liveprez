@@ -6,7 +6,7 @@ var SlideDeck = function(slide_files) {
     this.slides = [];
     this.n = slide_files.length;
     for (var i = 0; i < this.n; i++) {
-        var slide = new Slide(slide_files[i]);
+        var slide = new Slide(slide_files[i], i);
         slide.num = this.slides.length;
         this.slides.push(slide);
     }
@@ -19,7 +19,8 @@ var SlideDeck = function(slide_files) {
     };
 };
 
-var Slide = function(sfile) {
+var Slide = function(sfile, p) {
+    this.pagenum = p;
     this.loaded = false;
     this.itemlayer = null
     this.lowermask = null;
@@ -32,6 +33,7 @@ var Slide = function(sfile) {
     var reader = new FileReader();
     reader.onload = function(theFile) {
         return function (e) {
+            // document.getElementById('thumb-'+slide.pagenum).src = e.target.result;
             var item = new Item(e.target.result);
             var img = new Image();
             img.src = e.target.result;
@@ -83,14 +85,15 @@ function Item(url) {
             // computeColorToAlpha(this, this.bgcolor);
             // colorToAlpha(this, this.bgcolor);
             // this.sobel = computeSobel(this);
+            this.sobel = edgeTangentFlow(this, 3);
             // this.gauss1 = computeGaussian(this, 10);
             // this.gauss2 = computeGaussian(this, 5);
-            // for (var x = 0; x < this.sobel.width; x++) {
-            //     for (var y = 0; y < this.sobel.height; y++) {
-            //         var offset = (y*this.sobel.width + x) * 4;
-            //         var dx = this.sobel.data[offset]/255.0;
-            //         var dy = this.sobel.data[offset+1]/255.0;
-            //         this.setPixel(x,y, new paper.Color(dx, dy, 0));
+            for (var x = 0; x < this.sobel.width; x++) {
+                for (var y = 0; y < this.sobel.height; y++) {
+                    var offset = (y*this.sobel.width + x) * 4;
+                    var dx = this.sobel.data[offset];
+                    var dy = this.sobel.data[offset+1];
+                    this.setPixel(x,y, new paper.Color(dy, dx, 0));
                     // var gcolor1 = new paper.Color(this.gauss1.data[offset]/255.0, this.gauss1.data[offset+1]/255.0, this.gauss1.data[offset+2]/255.0);
                     // var gcolor2 = new paper.Color(this.gauss2.data[offset]/255.0, this.gauss2.data[offset+1]/255.0, this.gauss2.data[offset+2]/255.0);
                     // var gcolor = gcolor1.subtract(gcolor2);
@@ -98,13 +101,10 @@ function Item(url) {
                     //     this.setPixel(x, y, new paper.Color(1,1,1));
                     //
                     // }
-                // }
-            // }
+                }
+            }
         };
     };
-
-
-
 
     function computeSobel(raster) {
         var imagedata = raster.getImageData(new paper.Rectangle(0, 0, raster.width, raster.height));

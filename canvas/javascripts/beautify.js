@@ -258,7 +258,7 @@ function maskColor(praster, newstroke) {
     var color = newstroke.strokeColor;
     var points = resample(newstroke);
 
-    var maskstroke = new paper.Path();
+    // var maskstroke = new paper.Path();
     var px, py, minx, miny, maxx, maxy;
     var c, dr, dg, db, colordiff;
     for (var i = 0; i < points.length; i++) {
@@ -278,12 +278,13 @@ function maskColor(praster, newstroke) {
                 colordiff = Math.sqrt(2*dr*dr + 4*dg*dg + 3*db*db);
                 // console.log(colordiff);
                 if (colordiff < 0.5) {
-                    maskstroke.add(new paper.Point(x/scale, y/scale));
+                    praster.setPixel(x,y, new paper.Color(1,0,1));
+                    // maskstroke.add(new paper.Point(x/scale, y/scale));
                 }
             }
         }
     }
-    return maskstroke;
+    // return maskstroke;
 };
 
 function getBackgroundColor(praster) {

@@ -89,7 +89,15 @@ function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
     // files is a FileList of File objects. Filter image files.
     slide_files = [];
+
+    // var thumbdiv = document.getElementById('slide-thumbnails');
     for (var i = 0, f; f = files[i]; i++) {
+        // var div = document.createElement('div');
+        // var img = document.createElement('img');
+        // img.setAttribute('id', 'thumb-'+i);
+        // img.className += 'thumb';
+        // div.appendChild(img);
+        // thumbdiv.appendChild(div);
         if (!f.type.match('image.*')) {
             continue;
         }
@@ -112,7 +120,6 @@ function handleFileSelect(evt) {
         setupSlideCanvas(slidedeck);
         setupPaperTools();
     }, 1000);
-
 };
 
 function compareFileName(a,b) {
@@ -579,10 +586,12 @@ function inkEnd(event) {
 
 
         curslide.lowermask.activate();
-        var maskstroke = maskColor(curitem.praster, newstroke);//new paper.Path(newstroke.pathData);
+        // var maskstroke =
+        maskColor(curitem.praster, newstroke);//new paper.Path(newstroke.pathData);
+        newstroke.remove();
         //maskstroke.strokeWidth = 10.0;
-        maskstroke.strokeColor = curitem.praster.bgcolor;
-        post(lowerMaskMessage(maskstroke));
+        // maskstroke.strokeColor = curitem.praster.bgcolor;
+        // post(lowerMaskMessage(maskstroke));
     }
 };
 

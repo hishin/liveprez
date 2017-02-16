@@ -607,9 +607,9 @@ Filters.sobel = function(px) {
   var horizontal = this.sobelHorizontalGradient(px);
   var id = this.createImageData(vertical.width, vertical.height);
   for (var i=0; i<id.data.length; i+=4) {
-    var v = Math.abs(vertical.data[i]);
+    var v = Math.abs(vertical.data[i])/255.0;
     id.data[i] = v;
-    var h = Math.abs(horizontal.data[i]);
+    var h = Math.abs(horizontal.data[i])/255.0;
     id.data[i+1] = h;
     id.data[i+2] = Math.sqrt(v*v+h*h);///4;
     id.data[i+3] = 255;
@@ -814,3 +814,4 @@ Filters.erode = function(pixels) {
 if (typeof require != 'undefined') {
   exports.Filters = Filters;
 }
+
