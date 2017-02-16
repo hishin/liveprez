@@ -81,19 +81,42 @@ function Item(url) {
     this.setRaster = function(raster){
         this.praster = raster;
         this.praster.onLoad = function() {
-            this.bgcolor = getBackgroundColor(this);
-            // computeColorToAlpha(this, this.bgcolor);
-            // colorToAlpha(this, this.bgcolor);
-            // this.sobel = computeSobel(this);
-            this.sobel = edgeTangentFlow(this, 3);
-            // this.gauss1 = computeGaussian(this, 10);
-            // this.gauss2 = computeGaussian(this, 5);
-            for (var x = 0; x < this.sobel.width; x++) {
-                for (var y = 0; y < this.sobel.height; y++) {
-                    var offset = (y*this.sobel.width + x) * 4;
-                    var dx = this.sobel.data[offset];
-                    var dy = this.sobel.data[offset+1];
-                    this.setPixel(x,y, new paper.Color(dy, dx, 0));
+            this.bgcolor = new paper.Color(1,1,1);
+            var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+            var kcluster = new KMeans();
+            kcluster.determineCentroids(4, imgdata.data);
+            //
+            // var histo = new ColorQuantizationHistogram();
+            // var newimgdata = histo.convertImage(imgdata);
+            // var off;
+            // var hexes = [];
+            // // this.etf = edgeTangentFlow(this, 3);
+            // for (var x = 0; x < this.width; x++) {
+            //     for (var y = 0; y < this.height; y++) {
+            //         off = (y*this.width + x) * 4;
+            //         var color = new paper.Color(imgdata.data[off]/255.0, imgdata.data[off+1]/255.0, imgdata.data[off+2]/255.0);
+            //         var h = color.toCSS(true);
+            //         var id = hexes.indexOf(h);
+            //         if (id < 0) {
+            //             hexes.push(h);
+            //         }
+            //         this.setPixel(x,y, color);
+            //     }
+            // }
+            // console.log(hexes);
+            // // var result = clusterfck.cluster(colors, 3);
+            // console.log(result);
+            // console.log(clusterfck.centroids);
+
+            //         var offset = (y*this.sobel.width + x) * 4;
+            //         var dx = this.sobel.data[offset];
+            //         var dy = this.sobel.data[offset+1];
+            //         // if (dx != 0) {
+            //         //     console.log("dx: " + dx);//, dx/255: " + dx/255.0);
+            //
+            //         // }
+            //         // console.log("dx/255: " + x2 + ", dy/255: " + y2);
+            //         this.setPixel(x,y, new paper.Color(dy/255.0, dx/255.0, 0));
                     // var gcolor1 = new paper.Color(this.gauss1.data[offset]/255.0, this.gauss1.data[offset+1]/255.0, this.gauss1.data[offset+2]/255.0);
                     // var gcolor2 = new paper.Color(this.gauss2.data[offset]/255.0, this.gauss2.data[offset+1]/255.0, this.gauss2.data[offset+2]/255.0);
                     // var gcolor = gcolor1.subtract(gcolor2);
@@ -101,9 +124,9 @@ function Item(url) {
                     //     this.setPixel(x, y, new paper.Color(1,1,1));
                     //
                     // }
-                }
-            }
-        };
+                // }
+        }
+        // };
     };
 
     function computeSobel(raster) {

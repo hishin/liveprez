@@ -3,6 +3,34 @@ function KMeans(centroids) {
     this.centroids = centroids || [];
 }
 
+KMeans.prototype.determineCentroids = function(b, data) {
+    console.log(data.length/4);
+    // assign colors into b*b*b bins in RGB space
+    var hist = new Uint32Array(b*b*b);
+    var ri, gi, bi;
+    var mod = 256/b;
+    for (var i = 0; i < data.length; i+=4) {
+        ri = Math.trunc(data[i]/mod);
+        gi = Math.trunc(data[i+1]/mod);
+        bi = Math.trunc(data[i+2]/mod);
+        // Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
+        var id = (b*b*ri)+(b*gi)+bi;
+        hist[id]++;
+
+    }
+    var idx = hist.indexOf(Math.max.apply(null, hist));
+
+    var maxb = Math.trunc(idx % b);
+    var maxg = Math.trunc((idx/b)%b);
+    var maxr = Math.trunc(idx/(b*b));
+    var sum = hist.reduce(function(acc, val) {
+        return acc + val;
+    }, 0);
+    console.log(maxr + " " + maxg + " " + maxb);
+    console.log(hist);
+    console.log(sum);
+}
+
 KMeans.prototype.randomCentroids = function(points, k) {
     var centroids = points.slice(0); // copy
     centroids.sort(function() {

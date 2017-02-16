@@ -59,20 +59,6 @@ window.onload = function () {
     var parser = new DOMParser();
     popupAudienceView();
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-    // $.get(SLIDE_URL, function( data ) {
-    //     var html = parser.parseFromString(data, 'text/html');
-    //
-        // Preload images to cache
-        // var img_srcs = [];
-        // var images = html.getElementsByTagName('img');
-        // for (var i = 0; i < images.length; i++) {
-        //     img_srcs.push(images[i].dataset.src);
-        // }
-        // preloadImages(img_srcs);
-        // slidedeck = new SlideDeck(html.getElementsByClassName('slides')[0]);
-        // numslides = slidedeck.n;
-    //
-    // });
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
@@ -588,7 +574,7 @@ function inkEnd(event) {
         curslide.lowermask.activate();
         // var maskstroke =
         maskColor(curitem.praster, newstroke);//new paper.Path(newstroke.pathData);
-        newstroke.remove();
+        // newstroke.remove();
         //maskstroke.strokeWidth = 10.0;
         // maskstroke.strokeColor = curitem.praster.bgcolor;
         // post(lowerMaskMessage(maskstroke));
