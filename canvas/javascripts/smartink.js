@@ -23,7 +23,7 @@ var slidedeck;
 var curitem = null;
 var awindow;
 var reveal = false;
-var prevcolor = new paper.Color(0,0,0);
+var prevcolor = new paper.Color(0.5,0,1);
 var slide_files;
 // var dollar = new DollarRecognizer();
 
@@ -552,10 +552,8 @@ function inkEnd(event) {
         var newstroke = traceColor(curitem.praster, curstroke);
         curstroke.remove();
 
-        prevcolor = newstroke.strokeColor;
-        newstroke.strokeWidth = 1.0;
+        newstroke.strokeWidth = 5.0;
         curstroke = newstroke;
-
 
         post(inkMessage(newstroke, true));
 
@@ -685,6 +683,7 @@ function inkMessage(inkstroke, end) {
         type: 'ink',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         content: JSON.stringify(inkstroke),
+        free: inkstroke.data.free,
         end: end
     } );
     return msg;

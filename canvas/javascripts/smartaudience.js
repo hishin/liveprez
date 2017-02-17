@@ -342,6 +342,7 @@ function handleInkMessage(data) {
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
     curstroke.scale(scale, new paper.Point(0,0));
     if (data.end) {
+        curstroke.data.free = data.free;
         curstroke = null;
     }
 };
@@ -379,6 +380,16 @@ function handleMaskMessage(data) {
             maskitem.subtract(maskbox);
         maskitem.remove();
         maskbox.remove();
+
+        // get ink inside this region
+        var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
+        for (var i = 0; i < inkitems.length; i++) {
+            if (!inkitems[i].data.free)
+                inkitems[i].onFrame = function(event) {
+                    if (this.strokeColor.alpha <= 0) return;
+                    this.strokeColor.alpha -= 0.02;
+                }
+        }
     }
 };
 

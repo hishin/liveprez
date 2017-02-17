@@ -43,11 +43,11 @@ var Slide = function(sfile, p) {
                 if (!aspectratio) {
                     aspectratio = this.height/this.width;
                     img_w = this.width;
-                    SLIDE_W = $(window).width() * 0.75;
-                    SLIDE_H = SLIDE_W * aspectratio;
-                    if (SLIDE_H > $(window).height()) {
-                        SLIDE_H = $(window).height() * 0.75;
-                        SLIDE_W = SLIDE_H/aspectratio;
+                    SLIDE_H = $(window).height() * 0.85;
+                    SLIDE_W = SLIDE_H / aspectratio;
+                    if (SLIDE_W > $(window).width()) {
+                        SLIDE_W = $(window).width() * 0.90;
+                        SLIDE_H = SLIDE_W*aspectratio;
                     }
                     scale = img_w/SLIDE_W;
                 }

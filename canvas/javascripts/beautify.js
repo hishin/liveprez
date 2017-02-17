@@ -238,7 +238,6 @@ function traceColor(praster, path) {
 };
 
 function rotateStrokeColor(path) {
-    console.log("rotating strokecolor: " + path.data.colors.length);
     if (!path) return;
     if (path.data.cn < path.data.colors.length - 1) {
         path.data.cn++;
@@ -247,8 +246,6 @@ function rotateStrokeColor(path) {
         path.strokeColor = prevcolor;
         path.data.free = true;
     }
-    console.log(path.strokeColor);
-
 };
 
 function maskColor(praster, newstroke) {
