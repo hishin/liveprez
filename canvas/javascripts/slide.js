@@ -82,31 +82,31 @@ function Item(url) {
         this.praster = raster;
         this.praster.onLoad = function() {
             this.bgcolor = new paper.Color(1,1,1);
-            var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
-            var kcluster = new KMeans();
-            kcluster.determineCentroids(4, imgdata.data);
-            //
-            // var histo = new ColorQuantizationHistogram();
-            // var newimgdata = histo.convertImage(imgdata);
-            // var off;
-            // var hexes = [];
-            // // this.etf = edgeTangentFlow(this, 3);
+            // var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+            // var kcluster = new KMeans();
+            // kcluster.determineCentroids(4, 8, imgdata.data);
+            // var colors = [];
+            // // // this.etf = edgeTangentFlow(this, 3);
             // for (var x = 0; x < this.width; x++) {
             //     for (var y = 0; y < this.height; y++) {
-            //         off = (y*this.width + x) * 4;
-            //         var color = new paper.Color(imgdata.data[off]/255.0, imgdata.data[off+1]/255.0, imgdata.data[off+2]/255.0);
-            //         var h = color.toCSS(true);
-            //         var id = hexes.indexOf(h);
-            //         if (id < 0) {
-            //             hexes.push(h);
-            //         }
-            //         this.setPixel(x,y, color);
+            //         // var off = (y*this.width + x) * 4;
+            //         var color = colorToAlpha(this.getPixel(x, y), this.bgcolor);
+            //         colors.push([color.red*255, color.green*255, color.blue*255]);
             //     }
             // }
-            // console.log(hexes);
-            // // var result = clusterfck.cluster(colors, 3);
+            //
+            // // imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+            // // for (var x = 0; x < this.width; x++) {
+            // //     for (var y = 0; y < this.height; y++) {
+            // //         var off = (y*this.width + x) * 4;
+            // //         var color = [imgdata.data[off], imgdata.data[off+1], imgdata.data[off+2]];
+            // //         colors.push(color);
+            // //     }
+            // // }
+            // // console.log(hexes);
+            // var result = kcluster.cluster(colors, kcluster.centroids.length);
             // console.log(result);
-            // console.log(clusterfck.centroids);
+            // console.log(kcluster.centroids);
 
             //         var offset = (y*this.sobel.width + x) * 4;
             //         var dx = this.sobel.data[offset];

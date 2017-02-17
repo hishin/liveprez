@@ -22,6 +22,7 @@ function lab2rgb(lab){
     g = (g > 0.0031308) ? (1.055 * Math.pow(g, 1/2.4) - 0.055) : 12.92 * g;
     b = (b > 0.0031308) ? (1.055 * Math.pow(b, 1/2.4) - 0.055) : 12.92 * b;
 
+
     return [Math.max(0, Math.min(1, r)) * 255,
         Math.max(0, Math.min(1, g)) * 255,
         Math.max(0, Math.min(1, b)) * 255]
@@ -70,5 +71,11 @@ function deltaE(labA, labB){
     return i < 0 ? 0 : Math.sqrt(i);
 };
 
+function deltaRGB(rgbA, rgbB) {
+    var dr = Math.abs(rgbA[0] - rgbB[0]);
+    var dg = Math.abs(rgbA[1] - rgbB[1]);
+    var db = Math.abs(rgbA[2] - rgbB[2]);
+    return (dr + dg + db)/3.0;
+};
 
 

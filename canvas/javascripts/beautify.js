@@ -256,14 +256,14 @@ function traceColor(praster, path) {
 function maskColor(praster, newstroke) {
     var r = 10.0;
     var color = newstroke.strokeColor;
-    var points = resample(newstroke);
+    // var points = resample(newstroke);
 
     // var maskstroke = new paper.Path();
     var px, py, minx, miny, maxx, maxy;
     var c, dr, dg, db, colordiff;
-    for (var i = 0; i < points.length; i++) {
-        px = Math.round(points[i].x*scale);
-        py = Math.round(points[i].y*scale);
+    for (var i = 0; i <= newstroke.length; i++) {
+        px = Math.round(newstroke.getPointAt(i).x*scale);
+        py = Math.round(newstroke.getPointAt(i).y*scale);
         minx = Math.max(0, px-r);
         maxx = Math.min(praster.width, px + r+1);
         miny = Math.max(0, py-r);
@@ -336,9 +336,6 @@ function clusterColors(colors, thres) {
             if (colordiff < mindiff) { // find the closest cluster with distance < 1
                 mindiff = colordiff;
                 bestc = c;
-                // clusters[c].addColor(color);
-                // added = true;
-                // break;
             }
         }
         if (bestc >= 0) {

@@ -3,10 +3,13 @@ function KMeans(centroids) {
     this.centroids = centroids || [];
 }
 
-KMeans.prototype.determineCentroids = function(b, data) {
-    console.log(data.length/4);
+KMeans.prototype.determineCentroids = function(b, maxk, data) {
     // assign colors into b*b*b bins in RGB space
-    var hist = new Uint32Array(b*b*b);
+    var hist = new Array(b*b*b).fill(0);
+    var lmeans = new Array(b*b*b).fill(0);
+    var ameans = new Array(b*b*b).fill(0);
+    var bmeans = new Array(b*b*b).fill(0);
+    var cents = [];
     var ri, gi, bi;
     var mod = 256/b;
     for (var i = 0; i < data.length; i+=4) {
@@ -16,19 +19,56 @@ KMeans.prototype.determineCentroids = function(b, data) {
         // Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
         var id = (b*b*ri)+(b*gi)+bi;
         hist[id]++;
-
+        var rgb = [data[i], data[i+1], data[i+2]];
+        var lab = rgb2lab(rgb);
+        lmeans[id] += lab[0];
+        ameans[id] += lab[1];
+        bmeans[id] += lab[2];
     }
-    var idx = hist.indexOf(Math.max.apply(null, hist));
+    for (var i = 0; i < lmeans.length; i++ ) {
+        if (hist[i] == 0) continue;
+        lmeans[i] /= hist[i];
+        ameans[i] /= hist[i];
+        bmeans[i] /= hist[i];
+    }
+    var finished = false;
+    while (cents.length < maxk && !finished) {
+        var idx = hist.indexOf(Math.max.apply(null, hist));
+        // find the mean
+        var maxlab = [lmeans[idx], ameans[idx], bmeans[idx]];
+        var meanrgb = lab2rgb(maxlab);
 
-    var maxb = Math.trunc(idx % b);
-    var maxg = Math.trunc((idx/b)%b);
-    var maxr = Math.trunc(idx/(b*b));
-    var sum = hist.reduce(function(acc, val) {
-        return acc + val;
-    }, 0);
-    console.log(maxr + " " + maxg + " " + maxb);
-    console.log(hist);
-    console.log(sum);
+        // find min dist to existing centroid
+        var mindist = Infinity;
+        for (var i = 0; i < cents.length; i++) {
+            var dist = deltaE(maxlab, rgb2lab(cents[i]));
+            if (dist < mindist) {
+                mindist = dist;
+            }
+        }
+        if (mindist < 20) {
+            finished = true;
+            continue;
+        } else {
+
+        }
+        cents.push(meanrgb);
+        // remove max
+        hist.splice(idx, 1);
+        lmeans.splice(idx, 1);
+        ameans.splice(idx, 1);
+        bmeans.splice(idx, 1);
+        // attenuate
+        var labdist, ilab, irgb;
+        for (var i = 0; i < hist.length; i++) {
+            ilab = [lmeans[i], ameans[i], bmeans[i]];
+            // irgb = lab2rgb(ilab);
+            labdist = deltaE(maxlab, ilab);
+            hist[i] *= (1.0 - Math.exp(-labdist*labdist/(100*100)));
+        }
+    }
+    this.centroids = cents;
+    return cents;
 }
 
 KMeans.prototype.randomCentroids = function(points, k) {
@@ -57,7 +97,8 @@ KMeans.prototype.classify = function(point) {
 KMeans.prototype.cluster = function(points, k, snapshotPeriod, snapshotCb) {
     k = k || Math.max(2, Math.ceil(Math.sqrt(points.length / 2)));
 
-    this.centroids = this.randomCentroids(points, k);
+    if (this.centroids.length == 0)
+        this.centroids = this.randomCentroids(points, k);
 
     var assignment = new Array(points.length);
     var clusters = new Array(k);
