@@ -213,44 +213,42 @@ function traceColor(praster, path) {
                 // }
             }
         }
-        var result = clusterColors(pcolors, 0.5);
-        var pclusters = result[0];
-        var idclusters = result[1];
+        var pclusters = clusterColors(pcolors, 0.5);
         for (var p = 0; p < pclusters.length; p++) {
             colors.push(pclusters[p].maxcolor);
-            // console.log("pclusters[p].maxcolor " + pclusters[p].maxcolor);
         }
     }
-
-    // console.log("colors.length " + colors.length);
-    var result = clusterColors(colors, 0.5);
-    var cclusters = result[0];
-    var idclusters = result[1];
-    var maxn = -1;
-    var maxid = 0;
-    // console.log('cclusters.length: ' + cclusters.length);
-    for (var i = 1; i < cclusters.length; i++) { // begin i = 1 to exclude bgcolor
-        // console.log("cclusters.maxcolor " + cclusters[i].maxcolor + ' ' + cclusters[i].ncolors);
-        // console.log("cclusters.ncolors " + cclusters[i].ncolors);
-        // console.log("cclusters.avgcolor " + cclusters[i].avgcolor.toCSS(true));
-        // console.log("ccluster.colors " + cclusters[i].colors);
-        if (cclusters[i].ncolors > maxn) {
-            maxn = cclusters[i].ncolors;
-            maxid = i;
-        }
-    }
-    var colormode = cclusters[maxid].maxcolor;
-    // console.log(' ' + colormode);
+    var cclusters = clusterColors(colors, 0.5);
+    // written on background
     var newstroke = new paper.Path(path.pathData);
-    if (maxid == 0) { // written on background
+    if (cclusters.length == 1) {
         newstroke.strokeColor = prevcolor;
-        newstroke.strokeColor.alpha = 1.0;
+        newstroke.data.free = true;
+    } else {
+        cclusters.splice(0,1); // remove background cluster
+        cclusters.sort(compareClusters);
+        newstroke.strokeColor = cclusters[0].maxcolor;
+        newstroke.data.colors = cclusters.slice(0,3);
+        newstroke.data.cn = 0;
+        newstroke.data.free = false;
 
-    } else { // written over prepared material with color = colormode
-        newstroke.strokeColor = colormode;
-        newstroke.strokeColor.alpha = 1.0;
     }
+    newstroke.strokeColor.alpha = 1.0;
     return newstroke;
+};
+
+function rotateStrokeColor(path) {
+    console.log("rotating strokecolor: " + path.data.colors.length);
+    if (!path) return;
+    if (path.data.cn < path.data.colors.length - 1) {
+        path.data.cn++;
+        path.strokeColor = path.data.colors[path.data.cn].maxcolor;
+    } else {
+        path.strokeColor = prevcolor;
+        path.data.free = true;
+    }
+    console.log(path.strokeColor);
+
 };
 
 function maskColor(praster, newstroke) {
@@ -319,7 +317,7 @@ function getColorMode(praster, bounds, r) {
 
 function clusterColors(colors, thres) {
     var clusters = [];
-    var idclusters = [];
+    // var idclusters = [];
     var color, clusteravg, colordiff, added, mindiff, bestc;
     var dr, dg, db;
     for (var i = 0; i < colors.length; i++) {
@@ -340,7 +338,7 @@ function clusterColors(colors, thres) {
         }
         if (bestc >= 0) {
             clusters[bestc].addColor(color);
-            idclusters[bestc].push(i);
+            // idclusters[bestc].push(i);
         }
         else {
             var newc = new ColorCluster();
@@ -348,13 +346,11 @@ function clusterColors(colors, thres) {
             clusters.push(newc);
             var newids = new Array();
             newids.push(i);
-            idclusters.push(newids);
+            // idclusters.push(newids);
         }
     }
-    return [clusters, idclusters];
+    return clusters;
 };
-
-
 
 var ColorCluster = function() {
     this.colors = [];
@@ -373,6 +369,14 @@ var ColorCluster = function() {
         this.ncolors++;
     };
 };
+
+function compareClusters(a,b) {
+    if (a.ncolors < b.ncolors)
+        return 1;
+    if (a.ncolors > b.ncolors)
+        return -1;
+    return 0;
+}
 
 function colorToAlpha(p, bgcolor) {
     var r1 = bgcolor.red;

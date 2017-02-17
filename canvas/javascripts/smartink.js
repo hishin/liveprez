@@ -137,6 +137,12 @@ function handleKeyboardEvents(event) {
         case "ArrowRight":
             nextSlide();
             break;
+        case "c":
+            rotateStrokeColor(curstroke);
+            break;
+        default:
+            console.log(event.key);
+
     }
 };
 
@@ -543,41 +549,16 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        // curstroke.simplify(0.5);
-        // curstroke.smooth({type: 'continuous'});//(1.0);
-        var newstroke;
-        if (curitem.praster) {
-            // newstroke = trace(curstroke, curitem.praster.getImageData(curitem.praster.bounds), 10);
-            newstroke = curstroke;
-            newstroke = traceColor(curitem.praster, newstroke);
+        var newstroke = traceColor(curitem.praster, curstroke);
+        curstroke.remove();
 
-        } else if (curitem.psvg) {
-            var closest = findClosestPath(curstroke, curitem.psvg);
-            newstroke = interpolate(curstroke, closest[1], 1.0);
-            newstroke.style = closest[1].style;
-            if (newstroke.fillColor) {
-                newstroke.fillColor.alpha = 1.0;
-            }
-            if (newstroke.strokeColor) {
-                newstroke.strokeColor.alpha = 1.0;
-            }
-        } else {
-            newstroke = new paper.Path(curstroke.pathData);
-        }
         prevcolor = newstroke.strokeColor;
         newstroke.strokeWidth = 1.0;
-        curstroke.remove();
+        curstroke = newstroke;
+
 
         post(inkMessage(newstroke, true));
 
-
-        curslide.lowermask.activate();
-        // var maskstroke =
-        maskColor(curitem.praster, newstroke);//new paper.Path(newstroke.pathData);
-        // newstroke.remove();
-        //maskstroke.strokeWidth = 10.0;
-        // maskstroke.strokeColor = curitem.praster.bgcolor;
-        // post(lowerMaskMessage(maskstroke));
     }
 };
 
@@ -666,12 +647,22 @@ function revealEnd(event) {
             }
             maskitem.remove();
             maskbox.remove();
+
+            // get ink inside this region
+            var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
+            for (var i = 0; i < inkitems.length; i++) {
+                if (!inkitems[i].data.free)
+                    inkitems[i].strokeColor.alpha = 0;
+            }
         }
         curstroke.remove();
         curbound.remove();
     }
 };
 
+function graduallyDisappear() {
+
+};
 
 function slideChangeMessage() {
     var msg = JSON.stringify( {
