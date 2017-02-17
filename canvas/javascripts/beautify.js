@@ -237,16 +237,6 @@ function traceColor(praster, path) {
     return newstroke;
 };
 
-function rotateStrokeColor(path) {
-    if (!path) return;
-    if (path.data.cn < path.data.colors.length - 1) {
-        path.data.cn++;
-        path.strokeColor = path.data.colors[path.data.cn].maxcolor;
-    } else {
-        path.strokeColor = prevcolor;
-        path.data.free = true;
-    }
-};
 
 function maskColor(praster, newstroke) {
     var r = 10.0;

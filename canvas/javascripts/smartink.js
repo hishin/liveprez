@@ -560,6 +560,20 @@ function inkEnd(event) {
     }
 };
 
+
+function rotateStrokeColor(path) {
+    if (!path) return;
+    if (path.data.cn < path.data.colors.length - 1) {
+        path.data.cn++;
+        path.strokeColor = path.data.colors[path.data.cn].maxcolor;
+    } else {
+        path.strokeColor = prevcolor;
+        path.data.free = true;
+    }
+    post(colorChangeMessage(path.strokeColor, path.data.free));
+
+};
+
 function activateMaskTool() {
     spaper.masktool.activate();
     // deactivateItemMouseEvents();
@@ -685,6 +699,17 @@ function inkMessage(inkstroke, end) {
         content: JSON.stringify(inkstroke),
         free: inkstroke.data.free,
         end: end
+    } );
+    return msg;
+};
+
+function colorChangeMessage(color, free) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'color-change',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        content: color,
+        free: free,
     } );
     return msg;
 };

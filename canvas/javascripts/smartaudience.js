@@ -12,6 +12,7 @@ var connected;
 var curslide;
 var curslidenum;
 var curstroke = null;
+var prevstroke = null;
 var slidelayer;
 var reveal = false;
 var aspectratio = 0.75;
@@ -48,6 +49,8 @@ window.addEventListener('message', function(event) {
             handleReleaseTargetMessage(data);
         } else if (data.type === 'slide-resize') {
             handleSlideResizeMessage(data);
+        } else if (data.type === 'color-change') {
+            handleColorChangeMessage(data);
         }
 
     }
@@ -343,8 +346,15 @@ function handleInkMessage(data) {
     curstroke.scale(scale, new paper.Point(0,0));
     if (data.end) {
         curstroke.data.free = data.free;
+        prevstroke = curstroke;
         curstroke = null;
     }
+};
+
+function handleColorChangeMessage(data) {
+    if (!prevstroke) return;
+    prevstroke.strokeColor = new paper.Color(data.content[1], data.content[2], data.content[3]);
+    prevstroke.data.free = data.free;
 };
 
 function handleLowerMaskMessage(data) {
