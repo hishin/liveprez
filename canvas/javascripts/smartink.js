@@ -566,7 +566,7 @@ function inkEnd(event) {
         var newstroke = traceColor(curitem.praster, curstroke);
         curstroke.remove();
 
-        newstroke.strokeWidth = 5.0;
+        newstroke.strokeWidth = 2.0;
         curstroke = newstroke;
 
         post(inkMessage(newstroke, true));
