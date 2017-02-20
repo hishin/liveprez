@@ -56,6 +56,9 @@ function preloadImages(srcs) {
 };
 
 window.onload = function () {
+    document.oncontextmenu = function(event) {
+        event.preventDefault();
+    };
     var parser = new DOMParser();
     popupAudienceView();
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
@@ -124,9 +127,9 @@ function selectButton(event) {
     var btngroup = $(btn).closest('.btn-group');
     var btns = btngroup.children('.btn');
     for (var i = 0; i < btns.length; i++) {
-        btns[i].style.background = '#ffffff';
+        $(btns[i]).removeClass('selected');//.background = '#ffffff';
     }
-    btn.style.background = '#337ab7';
+    $(btn).addClass('selected');//.background = '#337ab7';
 };
 
 function handleKeyboardEvents(event) {
@@ -258,13 +261,23 @@ function loadSlide(slide) {
     curslide = slide;
     // load or show new slide
     if (!slide.loaded) {
-        slide.itemlayer = new paper.Layer();
-        slide.lowermask = new paper.Layer();
+        if (!slide.itemlayer)
+            slide.itemlayer = new paper.Layer();
+        if (!slide.lowermask) {
+            slide.lowermask = new paper.Layer();
+        }
         slide.lowermask.insertAbove(slide.itemlayer);
-        slide.masklayer = new paper.Layer();
+        if (!slide.masklayer) {
+            slide.masklayer = new paper.Layer();
+        } else {
+            slide.masklayer.visible = true;
+        }
         slide.masklayer.insertAbove(slide.lowermask);
-        slide.inklayer = new paper.Layer();
+        if (!slide.inklayer) {
+            slide.inklayer = new paper.Layer();
+        }
         slide.inklayer.insertAbove(slide.masklayer);
+
         for (var i = 0; i < slide.nitems; i++) {
             var item = slide.items[i];
             loadItem(item);
@@ -504,6 +517,7 @@ function setInkStyle(event) {
 };
 
 function activateInkTool() {
+    if (!spaper) return;
     spaper.inktool.activate();
     // deactivateItemMouseEvents();
 };
@@ -523,14 +537,14 @@ function inkStart(event){
     if (!inkstyle) {
         curstroke.strokeWidth = 1;
         curstroke.fillStroke = null;
-        curstroke.strokeColor = 'black';
+        curstroke.strokeColor = curitem.praster.annocolor;
     } else {
         curstroke.strokeWidth = inkstyle.strokeWidth;
         curstroke.fillColor = inkstyle.fillColor;
         curstroke.strokeColor = inkstyle.strokeColor;
     }
     curstroke.add(event.point);
-    curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
+    // curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
     post(inkMessage(curstroke, false));
 };
 
@@ -575,11 +589,17 @@ function rotateStrokeColor(path) {
 };
 
 function activateMaskTool() {
+    if (!spaper) return;
     spaper.masktool.activate();
     // deactivateItemMouseEvents();
 };
 
 function maskStart(event) {
+    // Right mouse click: show context menu
+    if (event.event.button == 2) {
+        revealMenu(document.getElementById('mask-context-menu'), event);
+        return;
+    }
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
         curslide.inklayer = layer;
@@ -590,7 +610,7 @@ function maskStart(event) {
 
     curstroke = new paper.Path();
     curstroke.add(event.point);
-    curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
+    // curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
     curstroke.strokeWidth = 5;
     curstroke.strokeColor = 'black';
 
@@ -631,49 +651,110 @@ function maskEnd(event) {
     }
 };
 
+function maskPropagate() {
+    hideMenu(document.getElementById('mask-context-menu'));
+    var slide;
+    for (var i = curslidenum+1; i < slidedeck.n; i++) {
+        slide = slidedeck.getSlide(i);
+        if (slide.masklayer)
+            slide.masklayer.remove();
+        slide.masklayer = new paper.Layer();
+        slide.masklayer.activate();
+        var mitems = curslide.masklayer.getItems();
+        for (var j = 0; j < mitems.length; j++) {
+            var maskitem = new paper.Path(mitems[j].pathData);
+            maskitem.fillColor = mitems[j].fillColor;
+            maskitem.fillColor.alpha = 0.5;
+        }
+        slide.masklayer.visible = false;
+        if (slide.lowermask)
+            slide.masklayer.insertAbove(slide.lowermask);
+        if (slide.inklayer)
+            slide.masklayer.insertBelow(slide.inklayer);
+    }
+};
 
 function activateRevealPen() {
+    if (!spaper) return;
     spaper.revealtool.activate();
     // deactivateItemMouseEvents();
 };
 
 function revealStart(event) {
-    maskStart(event);
+    if (!curslide.inklayer) {
+        var layer = new paper.Layer();
+        curslide.inklayer = layer;
+    } else {
+        curslide.inklayer.activate();
+    }
+    selectItem(event.point);
+
+    curstroke = new paper.Path();
+    curstroke.add(event.point);
     curstroke.strokeColor = 'yellow';
     curstroke.strokeColor.alpha = 0.8;
 };
 
 function revealContinue(event) {
-    maskContinue(event);
+    if (curstroke) {
+        curstroke.add(event.point);
+    }
+    if (curbound) {
+        curbound.remove();
+    }
+    curbound = new paper.Path.Line(curstroke.getPointAt(0), event.point);
+    curbound.strokeWidth = 1;
+    curbound.dashArray = [5,5];
+    curbound.strokeColor = 'black';
+
 };
 
 function revealEnd(event) {
     if (curstroke) {
-        var maskbox = new paper.Path.Rectangle(curstroke.strokeBounds);
-        post(addMaskMessage(maskbox, false));
+        curstroke.closePath();
+        curstroke.fillColor = 'white';
+        curstroke.fillColor.alpha = 1.0;
+        curbound.remove();
 
+        post(addMaskMessage(curstroke, false));
         if (curslide.masklayer.getItems().length > 0) {
             var maskitem = curslide.masklayer.getItems()[0];
             if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
-                maskitem.subtract(maskbox);
+                maskitem.subtract(curstroke);
             }
             maskitem.remove();
-            maskbox.remove();
 
-            // get ink inside this region
-            var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
+            // get inkstrokes inside this region
+            var inkitems = curslide.inklayer.getItems({inside: curstroke.bounds});
             for (var i = 0; i < inkitems.length; i++) {
-                if (!inkitems[i].data.free)
-                    inkitems[i].strokeColor.alpha = 0;
+                if (!inkitems[i].data.free && isInside(curstroke, inkitems[i])) {
+                    inkitems[i].onFrame = function() {
+                        if (this.strokeColor.alpha <= 0) this.remove();
+                        this.strokeColor.alpha -= 0.02;
+                    };
+
+                }
             }
+
         }
-        curstroke.remove();
-        curbound.remove();
+        var maskstroke = curstroke;
+        maskstroke.onFrame = function() {
+            if (this.fillColor.alpha <= 0) this.remove();
+            this.fillColor.alpha -= 0.05;
+        };
+        // curstroke.remove();
     }
 };
 
-function graduallyDisappear() {
 
+
+function isInside(apath, cpath) {
+    var points = resample(cpath);
+    var incount = 0;
+    for (var i = 0; i < points.length; i++) {
+        if (apath.contains(points[i])) incount++;
+    }
+    if (incount/points.length > 0.75) return true;
 };
 
 function slideChangeMessage() {
@@ -719,7 +800,7 @@ function lowerMaskMessage(maskstroke) {
         namespace: 'liveprez',
         type: 'lowermask',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
-        content: JSON.stringify(maskstroke),
+        content: JSON.stringify(maskstroke)
     } );
     return msg;
 };
@@ -731,7 +812,7 @@ function addMaskMessage(pathitem, add) {
         add: add,
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         content: JSON.stringify(pathitem),
-        bgcolor: JSON.stringify(curitem.praster.bgcolor.toCSS(true))
+        bgcolor: curitem.praster.bgcolor.toCSS(true)
     } );
     return msg;
 };
@@ -842,4 +923,17 @@ function makeSpaceContinue(event) {
             }
         }
     }
+};
+
+
+function revealMenu(elem, event) {
+    // console.log(event.event);
+    elem.style.position = 'absolute';
+    elem.style.left = event.event.x + 'px';
+    elem.style.top = event.event.y + 'px';
+    elem.style.display = 'block';
+};
+
+function hideMenu(elem) {
+    elem.style.display = 'none';
 };

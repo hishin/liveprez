@@ -34,7 +34,7 @@ var Slide = function(sfile, p) {
     reader.onload = function(theFile) {
         return function (e) {
             // document.getElementById('thumb-'+slide.pagenum).src = e.target.result;
-            var item = new Item(e.target.result);
+            var item = new Item(e.target.result, slide);
             var img = new Image();
             img.src = e.target.result;
             img.onload = function() {
@@ -70,19 +70,23 @@ var Slide = function(sfile, p) {
     };
 }
 
-function Item(url) {
+function Item(url, slide) {
     this.src = url;
     this.psvg = null;
     this.praster = null;
     this.pborder = null;
     this.pbbox = null;
+    // this.slide = slide;
     var item = this;
 
     this.setRaster = function(raster){
         this.praster = raster;
         this.praster.onLoad = function() {
-            this.bgcolor = new paper.Color(1,1,1);
-            // var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+            var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+            var c = getBackgroundColor(imgdata.data)
+            this.bgcolor = new paper.Color(c.red, c.green, c.blue);
+            // slide.bgcolor = this.bgcolor;
+            this.annocolor = invertColor(this.bgcolor);
             // var kcluster = new KMeans();
             // kcluster.determineCentroids(4, 8, imgdata.data);
             // var colors = [];
@@ -246,5 +250,4 @@ var InkStyle = function(pitem) {
 
     };
 };
-
 

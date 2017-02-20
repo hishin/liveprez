@@ -11,6 +11,8 @@ var apaper;
 var connected;
 var curslide;
 var curslidenum;
+var curitem;
+var bgcolor;
 var curstroke = null;
 var prevstroke = null;
 var slidelayer;
@@ -159,7 +161,8 @@ function loadSlide(slide) {
         var lowermaskitems = slide.lowermask[1].children;
         if (lowermaskitems) {
             for (var i = 0; i < lowermaskitems.length; i ++) {
-                lowermask.addChild(new paper.Path(lowermaskitems[i][1]));
+                var item = lowermask.addChild(new paper.Path(lowermaskitems[i][1]));
+                item.scale(scale, new paper.Point(0,0));
             }
         }
         lowermask.insertAbove(slide.itemlayer);
@@ -169,7 +172,13 @@ function loadSlide(slide) {
         var maskitems = slide.masklayer[1].children;
         if (maskitems) {
             for (var i = 0; i < maskitems.length; i ++) {
-                masklayer.addChild(new paper.Path(maskitems[i][1]));
+                var item = masklayer.addChild(new paper.Path(maskitems[i][1]));
+                if (bgcolor) {
+                    item.fillColor = bgcolor;
+                } else {
+                    item.fillColor = 'white';
+                }
+                item.scale(scale, new paper.Point(0,0));
             }
         }
         masklayer.insertAbove(slide.lowermask);
@@ -179,7 +188,9 @@ function loadSlide(slide) {
         var inkitems = slide.inklayer[1].children;
         if (inkitems) {
             for (var i = 0; i < inkitems.length; i ++) {
-                inklayer.addChild(new paper.Path(inkitems[i][1]));
+                var item = inklayer.addChild(new paper.Path(inkitems[i][1]));
+                item.scale(scale, new paper.Point(0,0));
+
             }
         }
         inklayer.insertAbove(slide.masklayer);
@@ -200,6 +211,7 @@ function loadSlide(slide) {
     }
     curslide = slides[slide.num];
     curslidenum = curslide.num;
+    curitem = curslide.items[0];
 };
 
 function resizeCanvas(width, height) {
@@ -228,34 +240,21 @@ function resizeCanvas(width, height) {
 function loadItem(item) {
     // if (item.type == 'image' && item.src) {
     curslide.itemlayer.activate();
-        // var wscale = 1.0;//parseFloat(CANVAS_W) / SLIDE_W;
-        // var hscale = 1.0;//parseFloat(CANVAS_H) / SLIDE_H;
-        // var ext = item.src.split('.').pop();
-
-        // if (ext == 'png' || ext == 'jpg' || ext=='jpeg' || ext == 'bmp' || ext == 'PNG') {
     item.praster = new paper.Raster(item.src);
+    item.praster.onLoad = function() {
+        var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+        var c = getBackgroundColor(imgdata.data)
+        this.bgcolor = new paper.Color(c.red, c.green, c.blue);
+        bgcolor = this.bgcolor;
+        if (curslide.masklayer) {
+            var maskitems = curslide.masklayer.getItems();
+            for (var i = 0; i < maskitems.length; i ++) {
+                var item = maskitems[i];
+                item.fillColor = bgcolor;
+            }
+        }
+    };
     item.praster.fitBounds(paper.view.bounds, true);
-            // create a clipmask
-            // item.clip = new paper.Path();
-            // item.clip.segments = [];
-            // item.pgroup = new paper.Group([item.clip, item.praster]);
-            // item.pgroup.clipped = true;
-        // }
-        // else if (ext == 'svg') {
-        //     slidelayer.importSVG(item.src, {
-        //         expandShapes: true,
-        //         applyMatrix: true,
-        //         onLoad: function(svgitem, data) {
-        //             item.psvg = svgitem;
-        //             svgitem.item = item;
-        //             svgitem.pivot = new paper.Point(0,0);
-        //             svgitem.scale(item.width / svgitem.bounds.width * wscale, item.height / svgitem.bounds.height * hscale);
-        //             var delta = new paper.Point(item.left * wscale, item.top * hscale);
-        //             svgitem.translate(delta);
-        //         }
-        //     });
-        // }
-    // }
 };
 
 function handleToggleRevealMessage(data) {
@@ -379,24 +378,35 @@ function handleMaskMessage(data) {
         return;
     }
     var maskbox = new paper.Path(JSON.parse(data.content)[1]);
-    maskbox.scale(scale, new paper.Point(0,0));
-    maskbox.fillColor = JSON.parse(data.bgcolor);
+    maskbox.fillColor = data.bgcolor;
     maskbox.fillColor.alpha = 1.0;
+    maskbox.strokeWidth = 0;
+    maskbox.scale(scale, new paper.Point(0,0));
+
     if (curslide.masklayer.getItems().length > 0) {
         var maskitem = curslide.masklayer.getItems()[0];
-        if (data.add)
+        if (data.add) {
             maskitem.unite(maskbox);
-        else if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath')
+            maskbox.remove();
+        }
+        else if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
             maskitem.subtract(maskbox);
+            maskbox.onFrame = function() {
+              if (this.fillColor.alpha <= 0) {
+                  this.remove();
+              }
+              this.fillColor.alpha -= 0.01;
+            };
+            // maskbox.remove();
+        }
         maskitem.remove();
-        maskbox.remove();
 
         // get ink inside this region
         var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
         for (var i = 0; i < inkitems.length; i++) {
             if (!inkitems[i].data.free)
                 inkitems[i].onFrame = function(event) {
-                    if (this.strokeColor.alpha <= 0) return;
+                    if (this.strokeColor.alpha <= 0) this.remove();
                     this.strokeColor.alpha -= 0.02;
                 }
         }

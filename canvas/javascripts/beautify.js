@@ -55,7 +55,6 @@ function resample(path) {
         points.push(path.getPointAt(i));
     }
     points = simplify(points, 1);
-    // var samples = simplify(points, 1);
     return points;
 };
 
@@ -213,16 +212,17 @@ function traceColor(praster, path) {
                 // }
             }
         }
-        var pclusters = clusterColors(pcolors, 0.5);
+        var pclusters = clusterColors(pcolors, 0.3);
         for (var p = 0; p < pclusters.length; p++) {
             colors.push(pclusters[p].maxcolor);
         }
     }
-    var cclusters = clusterColors(colors, 0.5);
+    var cclusters = clusterColors(colors, 0.3);
+    console.log(cclusters);
     // written on background
     var newstroke = new paper.Path(path.pathData);
     if (cclusters.length == 1) {
-        newstroke.strokeColor = prevcolor;
+        newstroke.strokeColor = praster.annocolor;
         newstroke.data.free = true;
     } else {
         cclusters.splice(0,1); // remove background cluster
@@ -271,10 +271,10 @@ function maskColor(praster, newstroke) {
     }
     // return maskstroke;
 };
-
-function getBackgroundColor(praster) {
-    return getColorMode(praster, praster.bounds, 10);
-};
+//
+// function getBackgroundColor(praster) {
+//     return getColorMode(praster, praster.bounds, 10);
+// };
 
 function getColorMode(praster, bounds, r) {
     var hexes = [];
@@ -403,3 +403,4 @@ function colorToAlpha(p, bgcolor) {
         return bgcolor;
     }
 };
+

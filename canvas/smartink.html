@@ -6,11 +6,9 @@
     <link rel="stylesheet"
           type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
     <link href="stylesheets/smartink.css" rel="stylesheet" type="text/css">
-    <!--<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick.css"/>-->
     <script src="javascripts/paper-full.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <!--<script type="text/javascript" src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>-->
-    <!--<script src="javascripts/dollar.js"></script>-->
+    <script src="javascripts/colorutil.js"></script>
     <script src="javascripts/kmeans.js"></script>
     <script src="javascripts/smartink.js"></script>
     <script src="javascripts/slide.js"></script>
@@ -18,12 +16,8 @@
     <script src="javascripts/simplify.js"></script>
     <script src="javascripts/filters.js"></script>
     <script src="javascripts/etf.js"></script>
-    <script src="javascripts/colorutil.js"></script>
     <script src="javascripts/kmeans.js"></script>
     <script src="javascripts/histogram.js"></script>
-
-    <!--<script type="text/javascript" src="//cdn.jsdelivr.net/jquery.slick/1.6.0/slick.min.js"></script>-->
-
 
 </head>
 <body>
@@ -41,7 +35,7 @@
         </div>
 
         <div id="item-toolbox" class="btn-group">
-            <button type="button" title="Ink" class="btn-tool btn btn-primary btn-circle btn-lg" onclick="activateInkTool()">
+            <button type="button" title="Ink" class="btn-tool btn btn-default btn-circle btn-lg" onclick="activateInkTool()">
                 <i class="glyphicon glyphicon-pencil"></i></button>
             <button type="button" title="Reveal" class="btn-tool btn btn-default btn-circle btn-lg" onclick="activateRevealPen()">
                 <i class="glyphicon glyphicon-flash"></i>
@@ -55,6 +49,10 @@
 
 </div>
 
+<!-- Context Menu for Masking -->
+<ul id="mask-context-menu" class="dropdown-menu" role="menu" style="display:none" >
+    <li><a tabindex="-1" href="#" onclick="maskPropagate()">Propagate Mask Region</a></li>
+</ul>
 </body>
 </html>
 

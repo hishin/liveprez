@@ -3,6 +3,36 @@
  */
 // the following functions are based off of the pseudocode
 // found on www.easyrgb.com
+function getBackgroundColor(data, b = 4) {
+    var hist = new Uint32Array(b*b*b).fill(0);
+    var ri, bi, gi;
+    var rmeans = new Array(b*b*b).fill(0.0);
+    var gmeans = new Array(b*b*b).fill(0.0);
+    var bmeans = new Array(b*b*b).fill(0.0);
+    var mod = 256/b;
+
+    for (var i = 0; i < data.length; i+=4) {
+        ri = Math.trunc(data[i]/mod);
+        gi = Math.trunc(data[i+1]/mod);
+        bi = Math.trunc(data[i+2]/mod);
+        // Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
+        var id = (b*b*ri)+(b*gi)+bi;
+        hist[id]++;
+        rmeans[id] += data[i];
+        gmeans[id] += data[i+1];
+        bmeans[id] += data[i+2];
+    }
+    var idx = hist.indexOf(Math.max.apply(null, hist));
+    var r = rmeans[idx] / hist[idx];
+    var g = gmeans[idx] / hist[idx];
+    var b = bmeans[idx] / hist[idx];
+    r = Math.round( r/255.0 * 10) / 10;
+    g = Math.round( g/255.0 * 10) / 10;
+    b = Math.round( b/255.0 * 10) / 10;
+
+    var colormode = {red: r, green: g, blue: b};
+    return colormode;
+};
 
 function lab2rgb(lab){
     var y = (lab[0] + 16) / 116,
@@ -78,4 +108,13 @@ function deltaRGB(rgbA, rgbB) {
     return (dr + dg + db)/3.0;
 };
 
-
+function invertColor(pcolor) {
+    var color = pcolor.toCSS(true);
+    color = color.substring(1);           // remove #
+    color = parseInt(color, 16);          // convert to integer
+    color = 0xFFFFFF ^ color;             // invert three bytes
+    color = color.toString(16);           // convert to hex
+    color = ("000000" + color).slice(-6); // pad with leading zeros
+    color = "#" + color;                  // prepend #
+    return color;
+};
