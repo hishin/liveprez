@@ -228,12 +228,14 @@ function traceColor(praster, path) {
         cclusters.splice(0,1); // remove background cluster
         cclusters.sort(compareClusters);
         newstroke.strokeColor = cclusters[0].maxcolor;
+        console.log(newstroke.strokeColor);
+        console.log(cclusters[0].maxcolor.alpha);
         newstroke.data.colors = cclusters.slice(0,3);
         newstroke.data.cn = 0;
         newstroke.data.free = false;
 
     }
-    newstroke.strokeColor.alpha = 1.0;
+    // newstroke.strokeColor.alpha = 1.0;
     return newstroke;
 };
 

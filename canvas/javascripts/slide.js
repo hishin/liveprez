@@ -95,9 +95,9 @@ function Item(url, slide) {
             //     for (var y = 0; y < this.height; y++) {
             //         var c = colorToAlpha(this.getPixel(x,y), this.bgcolor);
             //         this.setPixel(x,y, c);
-            // //         // var off = (y*this.width + x) * 4;
-            // //         var color = colorToAlpha(this.getPixel(x, y), this.bgcolor);
-            // //         colors.push([color.red*255, color.green*255, color.blue*255]);
+            // // //         // var off = (y*this.width + x) * 4;
+            // // //         var color = colorToAlpha(this.getPixel(x, y), this.bgcolor);
+            // // //         colors.push([color.red*255, color.green*255, color.blue*255]);
             //     }
             // }
             // console.log("done");
