@@ -71,9 +71,9 @@ window.onload = function () {
     // document.addEventListener("pointermove", function(event) {
     //     handlePointerEvents(event);
     // });
-    // document.addEventListener("pointerdown", function(event) {
-    //     handlePointerEvents(event);
-    // });
+    document.addEventListener("pointerdown", function(event) {
+        handlePointerEvents(event);
+    });
 
     // toolbox = document.getElementById("item-toolbox");
     var buttons = document.getElementsByClassName('btn-tool');
@@ -155,6 +155,10 @@ function handleKeyboardEvents(event) {
             break;
         default:
     }
+};
+
+function handlePointerEvents(event) {
+    console.log(event.pointerType);
 };
 
 
