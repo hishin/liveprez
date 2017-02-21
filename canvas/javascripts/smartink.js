@@ -65,9 +65,16 @@ window.onload = function () {
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-    document.addEventListener("pointermove", function(event) {
-       handlePointerEvents(event);
-    });
+    // document.addEventListener("pointerover", function(event) {
+    //    handlePointerEvents(event);
+    // });
+    // document.addEventListener("pointermove", function(event) {
+    //     handlePointerEvents(event);
+    // });
+    // document.addEventListener("pointerdown", function(event) {
+    //     handlePointerEvents(event);
+    // });
+
     // toolbox = document.getElementById("item-toolbox");
     var buttons = document.getElementsByClassName('btn-tool');
     for (var i = 0; i < buttons.length; i++) {
@@ -150,10 +157,6 @@ function handleKeyboardEvents(event) {
     }
 };
 
-function handlePointerEvents(event) {
-    // console.log(event);
-    console.log(event.button);
-};
 
 function popupAudienceView() {
     awindow = window.open('smartaudience.html', 'Audience View');

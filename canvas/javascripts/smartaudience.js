@@ -391,25 +391,27 @@ function handleMaskMessage(data) {
         }
         else if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
             maskitem.subtract(maskbox);
-            maskbox.onFrame = function() {
-              if (this.fillColor.alpha <= 0) {
-                  this.remove();
-              }
-              this.fillColor.alpha -= 0.01;
+            maskbox.onFrame = function () {
+                if (this.fillColor.alpha <= 0) {
+                    this.remove();
+                }
+                this.fillColor.alpha -= 0.01;
             };
-            // maskbox.remove();
         }
         maskitem.remove();
 
         // get ink inside this region
-        var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
-        for (var i = 0; i < inkitems.length; i++) {
-            if (!inkitems[i].data.free)
-                inkitems[i].onFrame = function(event) {
-                    if (this.strokeColor.alpha <= 0) this.remove();
-                    this.strokeColor.alpha -= 0.02;
-                }
+        if (!data.add) {
+            var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
+            for (var i = 0; i < inkitems.length; i++) {
+                if (!inkitems[i].data.free)
+                    inkitems[i].onFrame = function (event) {
+                        if (this.strokeColor.alpha <= 0) this.remove();
+                        this.strokeColor.alpha -= 0.02;
+                    }
+            }
         }
+
     }
 };
 
