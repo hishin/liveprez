@@ -93,11 +93,14 @@ function Item(url, slide) {
             // // // this.etf = edgeTangentFlow(this, 3);
             // for (var x = 0; x < this.width; x++) {
             //     for (var y = 0; y < this.height; y++) {
-            //         // var off = (y*this.width + x) * 4;
-            //         var color = colorToAlpha(this.getPixel(x, y), this.bgcolor);
-            //         colors.push([color.red*255, color.green*255, color.blue*255]);
+            //         var c = colorToAlpha(this.getPixel(x,y), this.bgcolor);
+            //         this.setPixel(x,y, c);
+            // //         // var off = (y*this.width + x) * 4;
+            // //         var color = colorToAlpha(this.getPixel(x, y), this.bgcolor);
+            // //         colors.push([color.red*255, color.green*255, color.blue*255]);
             //     }
             // }
+            // console.log("done");
             //
             // // imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
             // // for (var x = 0; x < this.width; x++) {

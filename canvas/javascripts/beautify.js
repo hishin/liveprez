@@ -366,6 +366,8 @@ function compareClusters(a,b) {
 }
 
 function colorToAlpha(p, bgcolor) {
+    // console.log(' ' + p);
+
     var r1 = bgcolor.red;
     var r2 = bgcolor.green;
     var r3 = bgcolor.blue;
@@ -394,11 +396,11 @@ function colorToAlpha(p, bgcolor) {
     if (a3 > aA) aA = a3;
     // apply to pixel
     // console.log(aA);
-    if (aA > 0.30) {
+    if (aA > 0.10) {
         p1 = (p1 - r1) / aA + r1;
         p2 = (p2 - r2) / aA + r2;
         p3 = (p3 - r3) / aA + r3;
-        return new paper.Color(p1,p2,p3, aA);
+        return p;//new paper.Color(p1,p2,p3, aA);
     } else {
         return bgcolor;
     }
