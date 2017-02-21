@@ -85,8 +85,8 @@ function Item(url, slide) {
             var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
             var c = getBackgroundColor(imgdata.data)
             this.bgcolor = new paper.Color(c.red, c.green, c.blue);
-            // slide.bgcolor = this.bgcolor;
             this.annocolor = invertColor(this.bgcolor);
+            this.sobel = computeSobel(this);
             // var kcluster = new KMeans();
             // kcluster.determineCentroids(4, 8, imgdata.data);
             // var colors = [];
@@ -114,26 +114,24 @@ function Item(url, slide) {
             // var result = kcluster.cluster(colors, kcluster.centroids.length);
             // console.log(result);
             // console.log(kcluster.centroids);
-
-            //         var offset = (y*this.sobel.width + x) * 4;
-            //         var dx = this.sobel.data[offset];
-            //         var dy = this.sobel.data[offset+1];
-            //         // if (dx != 0) {
-            //         //     console.log("dx: " + dx);//, dx/255: " + dx/255.0);
-            //
-            //         // }
-            //         // console.log("dx/255: " + x2 + ", dy/255: " + y2);
-            //         this.setPixel(x,y, new paper.Color(dy/255.0, dx/255.0, 0));
-                    // var gcolor1 = new paper.Color(this.gauss1.data[offset]/255.0, this.gauss1.data[offset+1]/255.0, this.gauss1.data[offset+2]/255.0);
-                    // var gcolor2 = new paper.Color(this.gauss2.data[offset]/255.0, this.gauss2.data[offset+1]/255.0, this.gauss2.data[offset+2]/255.0);
-                    // var gcolor = gcolor1.subtract(gcolor2);
-                    // if (gcolor.red + gcolor.blue + gcolor.green < 0.1) {
-                    //     this.setPixel(x, y, new paper.Color(1,1,1));
-                    //
-                    // }
-                // }
         }
         // };
+    };
+
+    function booleanImageFromSobel(sobel, threshold) {
+        var m = sobel.width;
+        var n = sobel.height;
+        var idx = 0;
+        var booleanImage = new Array(m*n);
+        for (var j = 0; j < n; j++) {
+            for (var i = 0; i < m; i++) {
+                var c = sobel.data[idx*4+2] > threshold ? 1:0;
+                booleanImage[idx] = c;
+                idx++;
+            }
+        }
+        return booleanImage;
+
     };
 
     function computeSobel(raster) {
@@ -157,8 +155,6 @@ function Item(url, slide) {
             }
         }
     };
-
-
 
     function computeLocalMaxima(grad) {
         var nrows = grad.length;

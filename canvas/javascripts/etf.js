@@ -77,7 +77,7 @@ function isBackground(praster, x, y) {
     if (dr + dg + db < 0.2)
         return true;
     return false;
-}
+};
 
 function edgeTangentFlow(praster, r) {
     var raster = praster.getImageData(new paper.Rectangle(0, 0, praster.width, praster.height));
