@@ -400,7 +400,7 @@ function colorToAlpha(p, bgcolor) {
         p1 = (p1 - r1) / aA + r1;
         p2 = (p2 - r2) / aA + r2;
         p3 = (p3 - r3) / aA + r3;
-        return p;//new paper.Color(p1,p2,p3, aA);
+        return new paper.Color(p1,p2,p3, aA);
     } else {
         return bgcolor;
     }
