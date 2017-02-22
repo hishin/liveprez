@@ -18,31 +18,31 @@
     <script src="javascripts/etf.js"></script>
     <script src="javascripts/kmeans.js"></script>
     <script src="javascripts/histogram.js"></script>
-
+    <script src="javascripts/hammer.min.js"></script>
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
 </head>
 <body>
-<div class="container col-md-12">
+<div class="container col-md-12 ">
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
         <input id="files" type="file" webkitdirectory directory multiple/>
 
         <div id="speaker-slide" class="slide"></div><br>
         <div id="page-btns" class="btn-group">
-            <button type="button" title="Next" class="btn btn-default btn-circle btn-lg" onclick="prevSlide()">
+            <button type="button" title="Next" class="btn btn-default" onclick="prevSlide()">
                 <i class="glyphicon glyphicon-arrow-left"></i></button>
-            <button type="button" title="Previous" class="btn btn-default btn-circle btn-lg" onclick="nextSlide()">
+            <button type="button" title="Previous" class="btn btn-default" onclick="nextSlide()">
                 <i class="glyphicon glyphicon-arrow-right"></i></button>
         </div>
+        <input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning" checked>
 
-        <div id="item-toolbox" class="btn-group">
-            <button type="button" title="Ink" class="btn-tool btn btn-default btn-circle btn-lg" onclick="activateInkTool()">
-                <i class="glyphicon glyphicon-pencil"></i></button>
-            <button type="button" title="Reveal" class="btn-tool btn btn-default btn-circle btn-lg" onclick="activateRevealPen()">
-                <i class="glyphicon glyphicon-flash"></i>
-            </button>
-            <button type="button" title="Set Mask" class="btn-tool btn btn-default btn-circle btn-lg" onclick="setMask()">
-                <i class="glyphicon glyphicon-eye-close"></i></button>
-        </div>
+        <!--<div id="item-toolbox" class="btn-group">-->
+            <!--<button type="button" title="Ink" class="btn-tool btn btn-default btn-circle btn-lg" onclick="activateInkTool()">-->
+                <!--<i class="glyphicon glyphicon-pencil"></i></button>-->
+            <!--<button type="button" title="Set Mask" class="btn-tool btn btn-default btn-circle btn-lg" onclick="setMask()">-->
+                <!--<i class="glyphicon glyphicon-eye-close"></i></button>-->
+        <!--</div>-->
         <br>
     </div>
 
