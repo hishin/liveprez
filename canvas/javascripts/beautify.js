@@ -220,23 +220,23 @@ function traceColor(praster, path) {
     var cclusters = clusterColors(colors, 0.3);
     // console.log(cclusters);
     // written on background
-    var newstroke = new paper.Path(path.pathData);
+    // var newstroke = new paper.Path(path.pathData);
     if (cclusters.length == 1) {
-        newstroke.strokeColor = praster.annocolor;
-        newstroke.data.free = true;
+        path.strokeColor = praster.annocolor;
+        path.data.free = true;
     } else {
         cclusters.splice(0,1); // remove background cluster
         cclusters.sort(compareClusters);
-        newstroke.strokeColor = cclusters[0].maxcolor;
+        path.strokeColor = cclusters[0].maxcolor;
         // console.log(newstroke.strokeColor);
         // console.log(cclusters[0].maxcolor.alpha);
-        newstroke.data.colors = cclusters.slice(0,3);
-        newstroke.data.cn = 0;
-        newstroke.data.free = false;
+        path.data.colors = cclusters.slice(0,3);
+        path.data.cn = 0;
+        path.data.free = false;
 
     }
     // newstroke.strokeColor.alpha = 1.0;
-    return newstroke;
+    return path;
 };
 
 
@@ -408,3 +408,32 @@ function colorToAlpha(p, bgcolor) {
     }
 };
 
+function closePath(path) {
+    var p, q, dist, minpi, minqj;
+    var mindist = Infinity;
+    for (var i = 0; i < path.segments.length * 0.1; i++) {
+        p = path.segments[i].point;
+        for (var j = path.segments.length; j > path.segments.length * 0.9; j--) {
+            q = path.segments[j-1].point;
+            dist = p.getDistance(q);
+            if (dist < mindist) {
+                mindist = dist;
+                minpi = i;
+                minqj = j;
+            }
+        }
+    }
+
+    path.removeSegments(0, minpi);
+    path.removeSegments(minqj+1-minpi, path.segments.length);
+    path.closePath();
+    return path;
+};
+
+function isClosed(path) {
+    if (path.closed) return true;
+    var p = path.getPointAt(0);
+    var q = path.getPointAt(path.length);
+    var dist = p.getDistance(q);
+    return (dist < path.length*0.05 && dist < 15);
+};

@@ -292,9 +292,11 @@ function setupPaperTools() {
     revealtool.onMouseUp = revealEnd;
     spaper.revealtool = revealtool;
 
-
-    if (!$('#pen-tool').checked) {
+    console.log($('#pen-tool'));
+    if (!document.getElementById('pen-tool').checked) {
         activateMaskTool();
+    } else {
+        activateInkTool();
     }
 };
 
@@ -604,13 +606,19 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        var newstroke = traceColor(curitem.praster, curstroke);
-        curstroke.remove();
 
-        newstroke.strokeWidth = 2.0;
-        curstroke = newstroke;
+        // get stroke color
+        traceColor(curitem.praster, curstroke);
+        // get stroke fillcolor
+        if (isClosed(curstroke)) {
+            closePath(curstroke);
+            curstroke.fillColor = curitem.praster.getAverageColor(curstroke);
+        }
 
-        post(inkMessage(newstroke, true));
+        // get stroke width
+        curstroke.strokeWidth = 2.0;
+        post(inkMessage(curstroke, true));
+        curstroke = null;
 
     }
 };
