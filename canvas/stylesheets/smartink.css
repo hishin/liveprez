@@ -25,11 +25,10 @@ html, body {
 #speaker-view {
     display: inline-block;
     float: left;
-    /*width: 50%;*/
     height: 100%;
     background: #a0afb4;
     color: white;
-    /*padding-top: 25px;*/
+    padding: 0;
 }
 
 #audience-view {
@@ -96,26 +95,3 @@ h1 {
     /*height: 100%;*/
 /*}*/
 
-
-.btn-circle.btn-lg
-{
-    width: 50px;
-    height: 50px;
-    padding: 10px 16px;
-    font-size: 18px;
-    line-height: 1.33;
-    border-radius: 25px;
-}
-
-.btn {
-    color: black;
-}
-
-.btn:hover{
-    background: #337ab7;
-}
-
-.btn.selected{
-    background: #337ab7;
-
-}

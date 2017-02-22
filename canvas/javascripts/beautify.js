@@ -218,7 +218,7 @@ function traceColor(praster, path) {
         }
     }
     var cclusters = clusterColors(colors, 0.3);
-    console.log(cclusters);
+    // console.log(cclusters);
     // written on background
     var newstroke = new paper.Path(path.pathData);
     if (cclusters.length == 1) {
@@ -228,8 +228,8 @@ function traceColor(praster, path) {
         cclusters.splice(0,1); // remove background cluster
         cclusters.sort(compareClusters);
         newstroke.strokeColor = cclusters[0].maxcolor;
-        console.log(newstroke.strokeColor);
-        console.log(cclusters[0].maxcolor.alpha);
+        // console.log(newstroke.strokeColor);
+        // console.log(cclusters[0].maxcolor.alpha);
         newstroke.data.colors = cclusters.slice(0,3);
         newstroke.data.cn = 0;
         newstroke.data.free = false;

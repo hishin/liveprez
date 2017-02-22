@@ -17,15 +17,13 @@ var curslidenum = 0;
 var curslide;
 var toolbox;
 var inkstyle = null;
-var SLIDE_URL = "slidedeck.html";
-// var DEFAULT_COLOR = '#000000';
 var slidedeck;
 var curitem = null;
 var awindow;
 var reveal = false;
 var prevcolor = new paper.Color(0.5,0,1);
 var slide_files;
-// var dollar = new DollarRecognizer();
+var hammertime;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -56,6 +54,15 @@ function preloadImages(srcs) {
 };
 
 window.onload = function () {
+    $('#pen-tool').change(function(event) {
+        if (!spaper) return;
+        if (event.target.checked) {
+            spaper.tool = null;
+        } else {
+            activateMaskTool(0);
+        }
+    });
+
     document.oncontextmenu = function(event) {
         event.preventDefault();
     };
@@ -65,23 +72,18 @@ window.onload = function () {
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-    // document.addEventListener("pointerover", function(event) {
-    //    handlePointerEvents(event);
-    // });
-    // document.addEventListener("pointermove", function(event) {
-    //     handlePointerEvents(event);
-    // });
+
     document.addEventListener("pointerdown", function(event) {
         handlePointerEvents(event);
     });
 
-    // toolbox = document.getElementById("item-toolbox");
-    var buttons = document.getElementsByClassName('btn-tool');
-    for (var i = 0; i < buttons.length; i++) {
-        buttons[i].addEventListener("click", function(event) {
-            selectButton(event);
-        });
-    }
+    // // toolbox = document.getElementById("item-toolbox");
+    // var buttons = document.getElementsByClassName('btn-tool');
+    // for (var i = 0; i < buttons.length; i++) {
+    //     buttons[i].addEventListener("click", function(event) {
+    //         selectButton(event);
+    //     });
+    // }
 };
 
 function handleFileSelect(evt) {
@@ -158,9 +160,19 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
-    console.log(event.pointerType);
+    if(spaper && spaper.tool && spaper.tool.name == 'mask') {
+        return;
+    }
+    if (event.pointerType == 'pen' || event.pointerType == 'mouse') {
+        if (event.buttons == 2) {
+            activateRevealPen();
+        } else {
+            activateInkTool();
+        }
+    } else if (spaper) {
+        spaper.tool = null;
+    }
 };
-
 
 function popupAudienceView() {
     awindow = window.open('smartaudience.html', 'Audience View');
@@ -208,6 +220,20 @@ function setupSlideCanvas(slidedeck) {
         spaper.slide = sslide;
         spaper.canvas = scanvas;
 
+
+        hammertime = new Hammer(document.getElementById('speaker-view'));
+        hammertime.on('swipeleft', function(ev) {
+            if (ev.pointerType == 'touch') {
+                nextSlide();
+            }
+            return;
+        });
+        hammertime.on('swiperight', function(ev) {
+           if (ev.pointerType == 'touch') {
+               prevSlide();
+           }
+        });
+
         post(setupSlidesMessage());
 
     }
@@ -237,6 +263,7 @@ function setupPaperTools() {
 
     // Ink tool
     var inktool = new spaper.Tool();
+    inktool.name = 'ink';
     inktool.onMouseDown = inkStart;
     inktool.onMouseDrag = inkContinue;
     inktool.onMouseUp = inkEnd;
@@ -251,6 +278,7 @@ function setupPaperTools() {
 
     // Mask tool
     var masktool = new spaper.Tool();
+    masktool.name = 'mask';
     masktool.onMouseDown = maskStart;
     masktool.onMouseDrag = maskContinue;
     masktool.onMouseUp = maskEnd;
@@ -258,12 +286,16 @@ function setupPaperTools() {
 
     // Reveal tool
     var revealtool = new spaper.Tool();
+    revealtool.name = 'reveal';
     revealtool.onMouseDown = revealStart;
     revealtool.onMouseDrag = revealContinue;
     revealtool.onMouseUp = revealEnd;
     spaper.revealtool = revealtool;
 
-    activateInkTool();
+
+    if (!$('#pen-tool').checked) {
+        activateMaskTool();
+    }
 };
 
 function loadSlide(slide) {
@@ -524,11 +556,6 @@ function hideSlide() {
     reveal = false;
 };
 
-function setInkStyle(event) {
-    inkstyle = event.target.inkstyle;
-    activateInkTool();
-};
-
 function activateInkTool() {
     if (!spaper) return;
     spaper.inktool.activate();
@@ -538,6 +565,7 @@ function activateInkTool() {
 var curstroke;
 var curbound;
 function inkStart(event){
+
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
         curslide.inklayer = layer;
@@ -609,6 +637,9 @@ function activateMaskTool() {
 
 function maskStart(event) {
     // Right mouse click: show context menu
+    if (event.event.type.includes('touch')) {
+        return;
+    }
     if (event.event.button == 2) {
         revealMenu(document.getElementById('mask-context-menu'), event);
         return;
