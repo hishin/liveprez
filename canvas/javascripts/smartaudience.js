@@ -346,6 +346,7 @@ function handleInkMessage(data) {
     if (data.end) {
         curstroke.data.free = data.free;
         if (data.fillalpha) {
+            console.log(data.fillalpha);
             curstroke.fillColor.alpha = data.fillalpha;
         }
         prevstroke = curstroke;
