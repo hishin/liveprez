@@ -613,6 +613,8 @@ function inkEnd(event) {
         if (isClosed(curstroke)) {
             closePath(curstroke);
             curstroke.fillColor = curitem.praster.getAverageColor(curstroke);
+            curstroke.data.fillalpha = curstroke.fillColor.alpha;
+            curstroke.fillColor.alpha = 0.5;
         }
 
         // get stroke width
@@ -831,6 +833,7 @@ function inkMessage(inkstroke, end) {
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         content: JSON.stringify(inkstroke),
         free: inkstroke.data.free,
+        fillalpha: inkstroke.data.fillalpha,
         end: end
     } );
     return msg;

@@ -409,6 +409,7 @@ function colorToAlpha(p, bgcolor) {
 };
 
 function closePath(path) {
+    if (path.closed) return;
     var p, q, dist, minpi, minqj;
     var mindist = Infinity;
     for (var i = 0; i < path.segments.length * 0.1; i++) {

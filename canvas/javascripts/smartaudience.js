@@ -345,6 +345,9 @@ function handleInkMessage(data) {
     curstroke.scale(scale, new paper.Point(0,0));
     if (data.end) {
         curstroke.data.free = data.free;
+        if (data.fillalpha) {
+            curstroke.fillColor.alpha = data.fillalpha;
+        }
         prevstroke = curstroke;
         curstroke = null;
     }
