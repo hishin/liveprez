@@ -611,6 +611,7 @@ function inkEnd(event) {
         traceColor(curitem.praster, curstroke);
         // get stroke fillcolor
         if (isClosed(curstroke)) {
+            console.log("closed");
             closePath(curstroke);
             curstroke.fillColor = curitem.praster.getAverageColor(curstroke);
             curstroke.data.fillalpha = curstroke.fillColor.alpha;
