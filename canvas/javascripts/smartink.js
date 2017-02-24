@@ -23,7 +23,8 @@ var awindow;
 var reveal = false;
 var prevcolor = new paper.Color(0.5,0,1);
 var slide_files;
-var hammertime;
+var viewhammer;
+var canvashammer;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -221,26 +222,30 @@ function setupSlideCanvas(slidedeck) {
         spaper.canvas = scanvas;
 
 
-        hammertime = new Hammer(document.getElementById('speaker-view'));
-        hammertime.on('swipeleft', function(ev) {
+        viewhammer = new Hammer(document.getElementById('speaker-view'));
+        viewhammer.on('swipeleft', function(ev) {
             if (ev.pointerType == 'touch') {
                 nextSlide();
             }
             return;
         });
-        hammertime.on('swiperight', function(ev) {
+        viewhammer.on('swiperight', function(ev) {
            if (ev.pointerType == 'touch') {
                prevSlide();
            }
         });
 
-        post(setupSlidesMessage());
+        canvashammer = new Hammer(document.getElementById('speaker-canvas'));
+        canvashammer.on('pinch', function(ev) {
+            console.log(ev);
+        });
+
 
     }
     else {
         curslidenum = 0;
     }
-
+    post(setupSlidesMessage());
     loadSlide(slidedeck.getSlide(curslidenum));
 };
 
@@ -610,7 +615,6 @@ function inkEnd(event) {
 
         // get stroke color
         traceColor(curitem.praster, curstroke);
-        console.log(curstroke.strokeColor);
         // get stroke fillcolor
         if (isClosed(curstroke)) {
             closePath(curstroke);

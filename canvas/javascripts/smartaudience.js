@@ -12,7 +12,7 @@ var connected;
 var curslide;
 var curslidenum;
 var curitem;
-var bgcolor;
+// var bgcolor;
 var curstroke = null;
 var prevstroke = null;
 var slidelayer;
@@ -151,18 +151,19 @@ function revealSlide() {
 function loadSlide(slide) {
     // apaper.project.clear();
     if (!slides[slide.num]) {
+        var item;
         slides[slide.num] = slide;
         slide.itemlayer = new paper.Layer();
         for (var i = 0; i < slide.nitems; i++) {
-            var item = slide.items[i];
+            item = slide.items[i];
             loadItem(item);
         }
         var lowermask = new paper.Layer();
         var lowermaskitems = slide.lowermask[1].children;
         if (lowermaskitems) {
             for (var i = 0; i < lowermaskitems.length; i ++) {
-                var item = lowermask.addChild(new paper.Path(lowermaskitems[i][1]));
-                item.scale(scale, new paper.Point(0,0));
+                var lmitem = lowermask.addChild(new paper.Path(lowermaskitems[i][1]));
+                lmitem.scale(scale, new paper.Point(0,0));
             }
         }
         lowermask.insertAbove(slide.itemlayer);
@@ -172,13 +173,13 @@ function loadSlide(slide) {
         var maskitems = slide.masklayer[1].children;
         if (maskitems) {
             for (var i = 0; i < maskitems.length; i ++) {
-                var item = masklayer.addChild(new paper.Path(maskitems[i][1]));
-                if (bgcolor) {
-                    item.fillColor = bgcolor;
+                var mitem = masklayer.addChild(new paper.Path(maskitems[i][1]));
+                if (item.praster && item.praster.bgcolor) {
+                    mitem.fillColor = bgcolor;
                 } else {
-                    item.fillColor = 'white';
+                    mitem.fillColor = 'white';
                 }
-                item.scale(scale, new paper.Point(0,0));
+                mitem.scale(scale, new paper.Point(0,0));
             }
         }
         masklayer.insertAbove(slide.lowermask);
@@ -188,8 +189,8 @@ function loadSlide(slide) {
         var inkitems = slide.inklayer[1].children;
         if (inkitems) {
             for (var i = 0; i < inkitems.length; i ++) {
-                var item = inklayer.addChild(new paper.Path(inkitems[i][1]));
-                item.scale(scale, new paper.Point(0,0));
+                var iitem = inklayer.addChild(new paper.Path(inkitems[i][1]));
+                iitem.scale(scale, new paper.Point(0,0));
 
             }
         }
@@ -244,13 +245,13 @@ function loadItem(item) {
     item.praster.onLoad = function() {
         var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
         var c = getBackgroundColor(imgdata.data)
-        this.bgcolor = new paper.Color(c.red, c.green, c.blue);
-        bgcolor = this.bgcolor;
+        var pc = pColorFromDataRGB(c);
+        this.bgcolor = new paper.Color(pc[0], pc[1], pc[2]);
         if (curslide.masklayer) {
             var maskitems = curslide.masklayer.getItems();
             for (var i = 0; i < maskitems.length; i ++) {
                 var item = maskitems[i];
-                item.fillColor = bgcolor;
+                item.fillColor = this.bgcolor;
             }
         }
     };
