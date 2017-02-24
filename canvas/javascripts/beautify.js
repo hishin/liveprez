@@ -51,10 +51,11 @@ function chaikinSmooth(path) {
 
 function resample(path) {
     var points = [];
-    for (var i = 0; i <= path.length; i++) {
+    var inc = Math.max(path.length/100.0, 1)
+    for (var i = 0; i <= path.length; i+=inc) {
         points.push(path.getPointAt(i));
     }
-    points = simplify(points, 1);
+    // points = simplify(points, 1);
     return points;
 };
 
@@ -179,25 +180,31 @@ function trace(path, sobel, r) {
 };
 
 function traceColor(praster, path) {
-    var r = 10.0;
+    var r = 3.0;
     var points = resample(path);
     var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
+    // only sample colors that are not background
+    // colors.push(praster.bgcolor);
 
-    colors.push(praster.bgcolor);
-
-    var c, h;
+    var c, idx;
     for (var i = 0; i < points.length; i++) {
+        // var temp = new paper.Path.Circle(points[i], 1.0);
+        // temp.fillColor = 'red';
         //pick salient colors
         var pcolors = [];
-        px = Math.round(points[i].x*scale);
-        py = Math.round(points[i].y*scale);
+        px = Math.round(points[i].x*praster.scale);
+        py = Math.round(points[i].y*praster.scale);
         minx = Math.max(0, px-r);
         maxx = Math.min(praster.width, px + r+1);
         miny = Math.max(0, py-r);
         maxy = Math.min(praster.height, py + r+1);
         for (var x = minx; x < maxx; x++) {
             for (var y = miny; y < maxy; y++) {
+                idx = y * praster.width + x;
+                if (praster.fg[idx] == 0) {
+                    continue;
+                }
                 c = praster.getPixel(x,y);
                 c = colorToAlpha(c, praster.bgcolor);
                 pcolors.push(c);
@@ -212,25 +219,32 @@ function traceColor(praster, path) {
                 // }
             }
         }
-        var pclusters = clusterColors(pcolors, 0.3);
+        var pclusters = clusterColors(pcolors, 1.0);
+
         for (var p = 0; p < pclusters.length; p++) {
             colors.push(pclusters[p].maxcolor);
         }
     }
-    var cclusters = clusterColors(colors, 0.3);
-    // console.log(cclusters);
+    var cclusters = clusterColors(colors, 1.0);
     // written on background
     // var newstroke = new paper.Path(path.pathData);
-    if (cclusters.length == 1) {
+    if (cclusters.length == 0) {
         path.strokeColor = praster.annocolor;
         path.data.free = true;
+        document.getElementById('color1').style.backgroundColor = '';
+        document.getElementById('color2').style.backgroundColor = '';
+        document.getElementById('color3').style.backgroundColor = '';
+
     } else {
-        cclusters.splice(0,1); // remove background cluster
         cclusters.sort(compareClusters);
-        path.strokeColor = cclusters[0].maxcolor;
+        path.strokeColor = cclusters[0].avgcolor;
         // console.log(newstroke.strokeColor);
         // console.log(cclusters[0].maxcolor.alpha);
         path.data.colors = cclusters.slice(0,3);
+        for (var i = 0; i < Math.min(cclusters.length, 3); i++) {
+            var id = 'color' + (i+1);
+            document.getElementById(id).style.backgroundColor = cclusters[i].avgcolor.toCSS(true);
+        }
         path.data.cn = 0;
         path.data.free = false;
 
@@ -249,8 +263,8 @@ function maskColor(praster, newstroke) {
     var px, py, minx, miny, maxx, maxy;
     var c, dr, dg, db, colordiff;
     for (var i = 0; i <= newstroke.length; i++) {
-        px = Math.round(newstroke.getPointAt(i).x*scale);
-        py = Math.round(newstroke.getPointAt(i).y*scale);
+        px = Math.round(newstroke.getPointAt(i).x*praster.scale);
+        py = Math.round(newstroke.getPointAt(i).y*praster.scale);
         minx = Math.max(0, px-r);
         maxx = Math.min(praster.width, px + r+1);
         miny = Math.max(0, py-r);
@@ -273,10 +287,7 @@ function maskColor(praster, newstroke) {
     }
     // return maskstroke;
 };
-//
-// function getBackgroundColor(praster) {
-//     return getColorMode(praster, praster.bounds, 10);
-// };
+
 
 function getColorMode(praster, bounds, r) {
     var hexes = [];
@@ -368,8 +379,6 @@ function compareClusters(a,b) {
 }
 
 function colorToAlpha(p, bgcolor) {
-    // console.log(' ' + p);
-
     var r1 = bgcolor.red;
     var r2 = bgcolor.green;
     var r3 = bgcolor.blue;
@@ -402,7 +411,7 @@ function colorToAlpha(p, bgcolor) {
         p1 = (p1 - r1) / aA + r1;
         p2 = (p2 - r2) / aA + r2;
         p3 = (p3 - r3) / aA + r3;
-        return new paper.Color(p1,p2,p3, aA);
+        return p;//new paper.Color(p1,p2,p3, aA);
     } else {
         return bgcolor;
     }
@@ -438,3 +447,19 @@ function isClosed(path) {
     var dist = p.getDistance(q);
     return (dist < path.length*0.05 && dist < 15);
 };
+
+function traceWidth(width, m, n, path, scale) {
+    var point, px, py, idx;
+    var widths = [];
+    var maxwidth = 0;
+    for (var i = 0; i < path.length; i++) {
+        point = path.getPointAt(i);
+        px = Math.floor(point.x * scale);
+        py = Math.floor(point.y * scale);
+        idx = py*m + px;
+        widths.push(width[idx]);
+        maxwidth = Math.max(maxwidth, width[idx]);
+    }
+    return maxwidth;
+};
+

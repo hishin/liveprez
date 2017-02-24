@@ -45,7 +45,7 @@ function preloadImages(srcs) {
                     SLIDE_H = $(window).height() * 0.75;
                     SLIDE_W = SLIDE_H/aspectratio;
                 }
-                scale = img_w/SLIDE_W;
+                // scale = img_w/SLIDE_W;
             }
         };
 
@@ -251,7 +251,7 @@ function resizeCanvas(width, height) {
     scanvas.height = height;
     spaper.view.viewSize.width = width;
     spaper.view.viewSize.height = height;
-    scale = img_w/width;
+    // scale = img_w/width;
     // console.log("scale: " + scale);
     post(resizeMessage());
 };
@@ -360,27 +360,28 @@ function loadItem(item) {
     var ext = item.src.split('.').pop();
     // if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp' || ext == 'PNG') {
     item.setRaster(new paper.Raster(item.src));
-    item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
+    // item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
     // item.pborder.pivot = item.pborder.bounds.topLeft;
     // item.praster.pivot = item.pborder.bounds.topLeft;
     // item.pborder.scale(wscale, hscale, item.pborder.pivot);
-    item.pborder.item = item;
+    // item.pborder.item = item;
     // item.pborder.strokeColor = 'black';
     // item.pborder.strokeWidth = 3;
     // item.pborder.dashArray = [3, 2];
     // item.pborder.opacity = 0.5;
 
-    item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
+    // item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
     // item.pbbox.pivot = item.pbbox.bounds.topLeft;
     // item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
-    item.pbbox.item = item;
-    item.pbbox.fillColor = 'red';
-    item.pbbox.opacity = 0;
+    // item.pbbox.item = item;
+    // item.pbbox.fillColor = 'red';
+    // item.pbbox.opacity = 0;
 
     // var delta = new paper.Point(item.left * wscale, item.top * hscale);
-    item.pborder.fitBounds(paper.view.bounds, true);
-    item.pbbox.fitBounds(paper.view.bounds, true);
+    // item.pborder.fitBounds(paper.view.bounds, true);
+    // item.pbbox.fitBounds(paper.view.bounds, true);
     item.praster.fitBounds(paper.view.bounds, true);
+    item.praster.scale = item.praster.width/paper.view.bounds.width;
     item.praster.opacity = 1.0;
     // item.activateMouseEvents();
 
@@ -609,9 +610,9 @@ function inkEnd(event) {
 
         // get stroke color
         traceColor(curitem.praster, curstroke);
+        console.log(curstroke.strokeColor);
         // get stroke fillcolor
         if (isClosed(curstroke)) {
-            console.log("closed");
             closePath(curstroke);
             curstroke.fillColor = curitem.praster.getAverageColor(curstroke);
             curstroke.data.fillalpha = curstroke.fillColor.alpha;
@@ -619,9 +620,9 @@ function inkEnd(event) {
         }
 
         // get stroke width
-        curstroke.strokeWidth = 2.0;
+        var width = traceWidth(curitem.praster.swidth, curitem.praster.width, curitem.praster.height, curstroke, curitem.praster.scale);
+        curstroke.strokeWidth = width*2.0;
         post(inkMessage(curstroke, true));
-        curstroke = null;
 
     }
 };

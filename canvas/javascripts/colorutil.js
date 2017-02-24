@@ -26,12 +26,15 @@ function getBackgroundColor(data, b = 4) {
     var r = rmeans[idx] / hist[idx];
     var g = gmeans[idx] / hist[idx];
     var b = bmeans[idx] / hist[idx];
-    r = Math.round( r/255.0 * 10) / 10;
-    g = Math.round( g/255.0 * 10) / 10;
-    b = Math.round( b/255.0 * 10) / 10;
-
-    var colormode = {red: r, green: g, blue: b};
+    var colormode = [r,g,b];
     return colormode;
+};
+
+function pColorFromDataRGB(datargb) {
+    var r = Math.round( datargb[0]/255.0 * 10) / 10;
+    var g = Math.round( datargb[1]/255.0 * 10) / 10;
+    var b = Math.round( datargb[2]/255.0 * 10) / 10;
+    return [r, g, b];
 };
 
 function lab2rgb(lab){
@@ -57,7 +60,6 @@ function lab2rgb(lab){
         Math.max(0, Math.min(1, g)) * 255,
         Math.max(0, Math.min(1, b)) * 255]
 };
-
 
 function rgb2lab(rgb){
     var r = rgb[0] / 255,
