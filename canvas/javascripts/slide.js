@@ -100,6 +100,22 @@ function Item(url, slide) {
     };
 };
 
+function medianFilter(praster) {
+    var imgdata = praster.getImageData(new paper.Rectangle(0, 0, praster.width, praster.height));
+
+    console.log("filter start");
+    var mfilter = new MedianFilter();
+    var imdata = mfilter.convertImage(imgdata);
+    console.log("filter end");
+    for (var x = 0; x < praster.width; x++ ) {
+        for (var y = 0; y < praster.height; y++) {
+            var offset = (y*praster.width + x) * 4;
+            var c = new paper.Color(imdata.data[offset]/255, imdata.data[offset+1]/255, imdata.data[offset+2]/255);
+            praster.setPixel(x, y, c);
+        }
+    }
+};
+
 function shiftColors(praster) {
     var colors = [];
     for (var x = 0; x < praster.width; x++) {

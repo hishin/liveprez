@@ -220,13 +220,13 @@ function traceColor(praster, path) {
                 // }
             }
         }
-        var pclusters = clusterColors(pcolors, 0.5);
+        // var pclusters = clusterColors(pcolors, 10);
 
-        for (var p = 0; p < pclusters.length; p++) {
-            colors.push(pclusters[p].maxcolor);
+        for (var p = 0; p < pcolors.length; p++) {
+            colors.push(pcolors[p]);
         }
     }
-    var cclusters = clusterColors(colors, 0.5);
+    var cclusters = clusterColors(colors, 10);
     // written on background
     // var newstroke = new paper.Path(path.pathData);
     if (cclusters.length == 0) {
@@ -239,13 +239,21 @@ function traceColor(praster, path) {
     } else {
         cclusters.sort(compareClusters);
         path.strokeColor = cclusters[0].maxcolor;
+        path.strokeColor.alpha = 1.0;
         // console.log(newstroke.strokeColor);
         // console.log(cclusters[0].maxcolor.alpha);
         path.data.colors = cclusters.slice(0,3);
-        for (var i = 0; i < Math.min(cclusters.length, 3); i++) {
+        for (var i = 0; i < Math.min(cclusters.length, 8); i++) {
             var id = 'color' + (i+1);
             document.getElementById(id).style.backgroundColor = cclusters[i].maxcolor.toCSS(true);
+            console.log(' ' + cclusters[i].maxcolor);
+            console.log(id + ' ' + cclusters[i].ncolors);
         }
+        for (var i = cclusters.length; i < 8; i++) {
+            var id = 'color' + (i+1);
+            document.getElementById(id).style.backgroundColor = null;
+        }
+
         path.data.cn = 0;
         path.data.free = false;
 
@@ -328,10 +336,12 @@ function clusterColors(colors, thres) {
         mindiff = thres;
         for (var c = 0; c < clusters.length; c++) {
             clusteravg = clusters[c].colors[0];
-            dr = clusteravg.red - color.red;
-            dg = clusteravg.green - color.green;
-            db = clusteravg.blue - color.blue;
-            colordiff = Math.sqrt(2*dr*dr + 4*dg*dg + 3*db*db);
+            var l1 = rgb2lab([clusteravg.red*255, clusteravg.green*255, clusteravg.blue*255]);
+            var l2 = rgb2lab([color.red*255, color.green*255, color.blue*255]);
+            // dr = clusteravg.red - color.red;
+            // dg = clusteravg.green - color.green;
+            // db = clusteravg.blue - color.blue;
+            colordiff = deltaE(l1, l2);//Math.sqrt(2*dr*dr + 4*dg*dg + 3*db*db);
             if (colordiff < mindiff) { // find the closest cluster with distance < 1
                 mindiff = colordiff;
                 bestc = c;
@@ -358,16 +368,15 @@ var ColorCluster = function() {
     this.sumcolor = new paper.Color(0,0,0);
     this.avgcolor = new paper.Color(0,0,0);
     this.maxcolor = new paper.Color(0,0,0,0);
-    this.ncolors = 0;
+    this.ncolors = 0.0;
     this.addColor = function(color) {
         this.colors.push(color);
         this.sumcolor = this.sumcolor.add(color);
         this.avgcolor = this.sumcolor.divide(this.colors.length);
         if (this.ncolors == 0 || color.alpha > this.maxcolor.alpha) {
-            // console.log(' ' + this.maxcolor);
             this.maxcolor = color;
         }
-        this.ncolors++;
+        this.ncolors += color.alpha;
     };
 };
 
@@ -412,7 +421,7 @@ function colorToAlpha(p, bgcolor) {
         // p1 = (p1 - r1) / aA + r1;
         // p2 = (p2 - r2) / aA + r2;
         // p3 = (p3 - r3) / aA + r3;
-        return p;//new paper.Color(p1,p2,p3, aA);
+        return new paper.Color(p1, p2, p3, aA);
     } else {
         return null;
     }
