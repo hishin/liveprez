@@ -204,9 +204,23 @@ function loadSlide(slide) {
             slides[curslidenum].lowermask.visible = false;
             slides[curslidenum].masklayer.visible = false;
             slides[curslidenum].inklayer.visible = false;
-            }
+        }
         slides[slide.num].itemlayer.visible = true;
         slides[slide.num].lowermask.visible = true;
+        var maskitems = slide.masklayer[1].children;
+        console.log("maskitmes: " + maskitems);
+        if (maskitems) {
+            for (var i = 0; i < maskitems.length; i ++) {
+                var mitem = slides[slide.num].addChild(new paper.Path(maskitems[i][1]));
+                var item = slide.items[0];
+                if (item.praster && item.praster.bgcolor) {
+                    mitem.fillColor = bgcolor;
+                } else {
+                    mitem.fillColor = 'white';
+                }
+                mitem.scale(scale, new paper.Point(0,0));
+            }
+        }
         slides[slide.num].masklayer.visible = true;
         slides[slide.num].inklayer.visible = true;
     }
