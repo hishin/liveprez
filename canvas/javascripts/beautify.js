@@ -180,7 +180,7 @@ function trace(path, sobel, r) {
 };
 
 function traceColor(praster, path) {
-    var r = 3.0;
+    var r = 3.0
     var points = resample(path);
     var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
@@ -207,7 +207,8 @@ function traceColor(praster, path) {
                 }
                 c = praster.getPixel(x,y);
                 c = colorToAlpha(c, praster.bgcolor);
-                pcolors.push(c);
+                if (c)
+                    pcolors.push(c);
                 // h = c.toCSS(true);
                 // var id = hexes.indexOf(h);
                 // if (id < 0) {
@@ -219,13 +220,13 @@ function traceColor(praster, path) {
                 // }
             }
         }
-        var pclusters = clusterColors(pcolors, 1.0);
+        var pclusters = clusterColors(pcolors, 0.5);
 
         for (var p = 0; p < pclusters.length; p++) {
             colors.push(pclusters[p].maxcolor);
         }
     }
-    var cclusters = clusterColors(colors, 1.0);
+    var cclusters = clusterColors(colors, 0.5);
     // written on background
     // var newstroke = new paper.Path(path.pathData);
     if (cclusters.length == 0) {
@@ -237,13 +238,13 @@ function traceColor(praster, path) {
 
     } else {
         cclusters.sort(compareClusters);
-        path.strokeColor = cclusters[0].avgcolor;
+        path.strokeColor = cclusters[0].maxcolor;
         // console.log(newstroke.strokeColor);
         // console.log(cclusters[0].maxcolor.alpha);
         path.data.colors = cclusters.slice(0,3);
         for (var i = 0; i < Math.min(cclusters.length, 3); i++) {
             var id = 'color' + (i+1);
-            document.getElementById(id).style.backgroundColor = cclusters[i].avgcolor.toCSS(true);
+            document.getElementById(id).style.backgroundColor = cclusters[i].maxcolor.toCSS(true);
         }
         path.data.cn = 0;
         path.data.free = false;
@@ -407,13 +408,13 @@ function colorToAlpha(p, bgcolor) {
     if (a3 > aA) aA = a3;
     // apply to pixel
     // console.log(aA);
-    if (aA > 0.10) {
-        p1 = (p1 - r1) / aA + r1;
-        p2 = (p2 - r2) / aA + r2;
-        p3 = (p3 - r3) / aA + r3;
+    if (aA >= 0.10) {
+        // p1 = (p1 - r1) / aA + r1;
+        // p2 = (p2 - r2) / aA + r2;
+        // p3 = (p3 - r3) / aA + r3;
         return p;//new paper.Color(p1,p2,p3, aA);
     } else {
-        return bgcolor;
+        return null;
     }
 };
 
@@ -460,6 +461,6 @@ function traceWidth(width, m, n, path, scale) {
         widths.push(width[idx]);
         maxwidth = Math.max(maxwidth, width[idx]);
     }
-    return maxwidth;
+    return maxwidth/scale;
 };
 

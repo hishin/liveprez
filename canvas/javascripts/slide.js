@@ -86,7 +86,6 @@ function Item(url, slide) {
             var pc = pColorFromDataRGB(c);
             this.bgcolor = new paper.Color(pc[0], pc[1], pc[2]);
             this.annocolor = invertColor(this.bgcolor);
-            console.log("Compute Foreground/Background separation");
             this.fg = booleanImageFromForeground(imgdata, c, 20);
             console.log("Compute Edge Information");
             this.sobel = computeSobel(this);
@@ -96,8 +95,32 @@ function Item(url, slide) {
             console.log("Generate Stroke Width Image");
             this.swidth = strokeWidthImage(this.dt, this.fg, 1, 15);
             console.log("done");
+
         }
     };
+};
+
+function shiftColors(praster) {
+    var colors = [];
+    for (var x = 0; x < praster.width; x++) {
+        for (var y = 0; y < praster.height; y++) {
+            var p = praster.getPixel(x,y);
+            colors.push([p.red, p.green, p.blue]);
+        }
+    }
+    var meanshift = new MeanShift();
+    console.log("shift colors");
+    var newcolors = meanshift.cluster(colors, 1.0);
+    var idx = 0;
+    for (var x = 0; x < praster.width; x++) {
+        for (var y = 0; y < praster.height; y++) {
+            var c = newcolors[idx];
+            praster.setPixel(x,y, new paper.Color(c[0], c[1], c[2]));
+            idx++;
+        }
+    }
+    console.log("done");
+
 };
 
 function strokeWidthImage(dt, fg, min, max) {

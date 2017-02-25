@@ -612,9 +612,13 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
+        // get stroke width
+        var width = traceWidth(curitem.praster.swidth, curitem.praster.width, curitem.praster.height, curstroke, curitem.praster.scale);
+        curstroke.strokeWidth = width*2.0;
 
         // get stroke color
         traceColor(curitem.praster, curstroke);
+
         // get stroke fillcolor
         if (isClosed(curstroke)) {
             closePath(curstroke);
@@ -623,9 +627,6 @@ function inkEnd(event) {
             curstroke.fillColor.alpha = 0.5;
         }
 
-        // get stroke width
-        var width = traceWidth(curitem.praster.swidth, curitem.praster.width, curitem.praster.height, curstroke, curitem.praster.scale);
-        curstroke.strokeWidth = width*2.0;
         post(inkMessage(curstroke, true));
 
     }
