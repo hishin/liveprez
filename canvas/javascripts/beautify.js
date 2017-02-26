@@ -333,7 +333,7 @@ function traceFill(praster, path) {
         closePath(path);
 
         var pixels = praster.getPixelsInside(path);
-        var c = getBackgroundColor(pixels, 8);
+        var c = getBackgroundColor(pixels, 4);
         var pc = pColorFromDataRGB(c);
         path.fillColor = pc;
         path.data.fillalpha = curstroke.fillColor.alpha;
