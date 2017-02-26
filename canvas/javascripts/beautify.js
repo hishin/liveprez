@@ -236,9 +236,9 @@ function traceColor(praster, path) {
     if (cclusters.length == 0) {
         path.strokeColor = praster.annocolor;
         path.data.free = true;
-        document.getElementById('color1').style.backgroundColor = '';
-        document.getElementById('color2').style.backgroundColor = '';
-        document.getElementById('color3').style.backgroundColor = '';
+        // document.getElementById('color1').style.backgroundColor = '';
+        // document.getElementById('color2').style.backgroundColor = '';
+        // document.getElementById('color3').style.backgroundColor = '';
 
     } else {
         cclusters.sort(compareClusters);
@@ -247,16 +247,16 @@ function traceColor(praster, path) {
         // console.log(newstroke.strokeColor);
         // console.log(cclusters[0].maxcolor.alpha);
         path.data.colors = cclusters.slice(0,3);
-        for (var i = 0; i < Math.min(cclusters.length, 8); i++) {
-            var id = 'color' + (i+1);
-            document.getElementById(id).style.backgroundColor = cclusters[i].maxcolor.toCSS(true);
-            // console.log(' ' + cclusters[i].maxcolor);
-            // console.log(id + ' ' + cclusters[i].ncolors);
-        }
-        for (var i = cclusters.length; i < 8; i++) {
-            var id = 'color' + (i+1);
-            document.getElementById(id).style.backgroundColor = null;
-        }
+        // for (var i = 0; i < Math.min(cclusters.length, 8); i++) {
+        //     var id = 'color' + (i+1);
+        //     document.getElementById(id).style.backgroundColor = cclusters[i].maxcolor.toCSS(true);
+        //     // console.log(' ' + cclusters[i].maxcolor);
+        //     // console.log(id + ' ' + cclusters[i].ncolors);
+        // }
+        // for (var i = cclusters.length; i < 8; i++) {
+        //     var id = 'color' + (i+1);
+        //     document.getElementById(id).style.backgroundColor = null;
+        // }
 
         path.data.cn = 0;
         path.data.free = false;
