@@ -47,6 +47,8 @@ window.addEventListener('message', function(event) {
             handleLowerMaskMessage(data);
         } else if (data.type === 'mask') {
             handleMaskMessage(data);
+        } else if (data.type === 'propagate-mask') {
+            handleMaskPropagateMessage(data);
         } else if (data.type === 'release-target') {
             handleReleaseTargetMessage(data);
         } else if (data.type === 'slide-resize') {
@@ -109,8 +111,45 @@ function handleConnectMessage(data) {
 };
 
 function handleSlideSetupMessage(data) {
-    var numslide = JSON.parse(data.num);
-    slides = new Array(numslide);
+    // var numslide = JSON.parse(data.num);
+    var deck = JSON.parse(data.deck).slides;
+    var slide, item;
+    for (var i = 0; i < deck.length; i++) {
+        slide = deck[i];
+        slide.itemlayer = new paper.Layer();
+        for (var j = 0; j < slide.nitems; j++) {
+            item = slide.items[j];
+            loadItem(slide, item);
+        }
+        var lowermask = new paper.Layer();
+        lowermask.insertAbove(slide.itemlayer);
+        slide.lowermask = lowermask;
+
+        var masklayer = new paper.Layer();
+        masklayer.insertAbove(slide.lowermask);
+        slide.masklayer = masklayer;
+
+        var inklayer = new paper.Layer();
+        inklayer.insertAbove(slide.masklayer);
+        slide.inklayer = inklayer;
+
+        hideSlide(slide);
+    }
+    slides = deck;//new Array(numslide);
+};
+
+function showSlide(slide) {
+    slide.itemlayer.visible = true;
+    slide.lowermask.visible = true;
+    slide.masklayer.visible = true;
+    slide.inklayer.visible = true;
+};
+
+function hideSlide(slide) {
+    slide.itemlayer.visible = false;
+    slide.lowermask.visible = false;
+    slide.masklayer.visible = false;
+    slide.inklayer.visible = false;
 };
 
 function handleSlideChangeMessage(data) {
@@ -149,80 +188,11 @@ function revealSlide() {
 };
 
 function loadSlide(slide) {
-    // apaper.project.clear();
-    if (!slides[slide.num]) {
-        var item;
-        slides[slide.num] = slide;
-        slide.itemlayer = new paper.Layer();
-        for (var i = 0; i < slide.nitems; i++) {
-            item = slide.items[i];
-            loadItem(item);
-        }
-        var lowermask = new paper.Layer();
-        var lowermaskitems = slide.lowermask[1].children;
-        if (lowermaskitems) {
-            for (var i = 0; i < lowermaskitems.length; i ++) {
-                var lmitem = lowermask.addChild(new paper.Path(lowermaskitems[i][1]));
-                lmitem.scale(scale, new paper.Point(0,0));
-            }
-        }
-        lowermask.insertAbove(slide.itemlayer);
-        slide.lowermask = lowermask;
-
-        var masklayer = new paper.Layer();
-        var maskitems = slide.masklayer[1].children;
-        if (maskitems) {
-            for (var i = 0; i < maskitems.length; i ++) {
-                var mitem = masklayer.addChild(new paper.Path(maskitems[i][1]));
-                if (item.praster && item.praster.bgcolor) {
-                    mitem.fillColor = bgcolor;
-                } else {
-                    mitem.fillColor = 'white';
-                }
-                mitem.scale(scale, new paper.Point(0,0));
-            }
-        }
-        masklayer.insertAbove(slide.lowermask);
-        slide.masklayer = masklayer;
-
-        var inklayer = new paper.Layer();
-        var inkitems = slide.inklayer[1].children;
-        if (inkitems) {
-            for (var i = 0; i < inkitems.length; i ++) {
-                var iitem = inklayer.addChild(new paper.Path(inkitems[i][1]));
-                iitem.scale(scale, new paper.Point(0,0));
-
-            }
-        }
-        inklayer.insertAbove(slide.masklayer);
-        slide.inklayer = inklayer;
-
-    } else {
-        // hide current slide
-        if (curslidenum) {
-            slides[curslidenum].itemlayer.visible = false;
-            slides[curslidenum].lowermask.visible = false;
-            slides[curslidenum].masklayer.visible = false;
-            slides[curslidenum].inklayer.visible = false;
-        }
-        slides[slide.num].itemlayer.visible = true;
-        slides[slide.num].lowermask.visible = true;
-        var maskitems = slide.masklayer[1].children;
-        if (maskitems) {
-            for (var i = 0; i < maskitems.length; i ++) {
-                var mitem = slides[slide.num].masklayer.addChild(new paper.Path(maskitems[i][1]));
-                var item = slide.items[0];
-                if (item.praster && item.praster.bgcolor) {
-                    mitem.fillColor = bgcolor;
-                } else {
-                    mitem.fillColor = 'white';
-                }
-                mitem.scale(scale, new paper.Point(0,0));
-            }
-        }
-        slides[slide.num].masklayer.visible = true;
-        slides[slide.num].inklayer.visible = true;
+    // hide current slide
+    if (curslidenum) {
+        hideSlide(slides[curslidenum]);
     }
+    showSlide(slides[slide.num]);
     curslide = slides[slide.num];
     curslidenum = curslide.num;
     curitem = curslide.items[0];
@@ -251,9 +221,9 @@ function resizeCanvas(width, height) {
 
 };
 
-function loadItem(item) {
+function loadItem(slide, item) {
     // if (item.type == 'image' && item.src) {
-    curslide.itemlayer.activate();
+    slide.itemlayer.activate();
     item.praster = new paper.Raster(item.src);
     item.praster.onLoad = function() {
         var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
@@ -269,6 +239,7 @@ function loadItem(item) {
         }
     };
     item.praster.fitBounds(paper.view.bounds, true);
+    item.praster.scale = item.praster.width/paper.view.bounds.width;
 };
 
 function handleToggleRevealMessage(data) {
@@ -384,6 +355,23 @@ function handleLowerMaskMessage(data) {
     var maskstroke = new paper.Path(JSON.parse(data.content)[1]);
     maskstroke.scale(scale, new paper.Point(0,0));
 }
+
+function handleMaskPropagateMessage(data) {
+    var slidenum = data.slidenum;
+    var masklayer = JSON.parse(data.mask)[1];
+    var slide;
+    for (var i = slidenum+1; i < slides.length; i++) {
+        slide = slides[i];
+        slide.masklayer.removeChildren();
+        var mitems = masklayer.children;
+        for (var m = 0; m < mitems.length; m++) {
+            var mitem = slide.masklayer.addChild(new paper.Path(mitems[m][1]));
+            mitem.scale(scale, new paper.Point(0,0));
+            mitem.fillColor = slide.items[0].praster.bgcolor.toCSS(true);
+            mitem.fillColor.alpah = 1.0;
+        }
+    }
+};
 
 function handleMaskMessage(data) {
     if (!curslide.masklayer) {

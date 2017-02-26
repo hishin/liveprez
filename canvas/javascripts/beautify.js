@@ -518,14 +518,13 @@ function traceWidth(praster, path) {
             }
         }
     }
-    console.log(widths);
     var mwidth = findMode(widths);
     if (mwidth == -1 || mwidth == 0) {
         path.strokeWidth = 1.0;
     } else {
         path.strokeWidth = mwidth*2.0
     }
-    console.log('stroke width = ' + mwidth);
+    // console.log('stroke width = ' + mwidth);
 };
 
 function findMode(array) {

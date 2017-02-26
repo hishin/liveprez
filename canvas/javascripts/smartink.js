@@ -332,7 +332,7 @@ function loadSlide(slide) {
 
         for (var i = 0; i < slide.nitems; i++) {
             var item = slide.items[i];
-            loadItem(item);
+            loadItem(slide, item);
             slide.loaded = true;
         }
     } else {
@@ -350,14 +350,14 @@ function setMask() {
     activateMaskTool();
 };
 
-function loadItem(item) {
+function loadItem(slide, item) {
     curitem = item;
     // if (item.type == 'image' && item.src) {
-    if (!curslide.itemlayer) {
+    if (!slide.itemlayer) {
         var layer = new paper.Layer();
-        curslide.itemlayer = layer;
+        slide.itemlayer = layer;
     } else {
-        curslide.itemlayer.activate();
+        slide.itemlayer.activate();
     }
     // var wscale = parseFloat(CANVAS_W) / SLIDE_W;
     // var hscale = parseFloat(CANVAS_H) / SLIDE_H;
@@ -614,14 +614,14 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         // get stroke width
-        // traceWidth(curitem.praster, curstroke);
+        traceWidth(curitem.praster, curstroke);
 
         // get stroke color
-        // traceColor(curitem.praster, curstroke);
+        traceColor(curitem.praster, curstroke);
 
         // get stroke fillcolor
-        // traceFill(curitem.praster, curstroke);
-
+        traceFill(curitem.praster, curstroke);
+        curstroke.simplify();
         post(inkMessage(curstroke, true));
 
     }
@@ -713,8 +713,14 @@ function maskPropagate() {
     for (var i = curslidenum+1; i < slidedeck.n; i++) {
         slide = slidedeck.getSlide(i);
         if (slide.masklayer)
-            slide.masklayer.remove();
-        slide.masklayer = new paper.Layer();
+            slide.masklayer.removeChildren();
+        else {
+            slide.masklayer = new paper.Layer();
+            if (slide.lowermask)
+                slide.masklayer.insertAbove(slide.lowermask);
+            if (slide.inklayer)
+                slide.masklayer.insertBelow(slide.inklayer);
+        }
         slide.masklayer.activate();
         var mitems = curslide.masklayer.getItems();
         for (var j = 0; j < mitems.length; j++) {
@@ -723,11 +729,9 @@ function maskPropagate() {
             maskitem.fillColor.alpha = 0.5;
         }
         slide.masklayer.visible = false;
-        if (slide.lowermask)
-            slide.masklayer.insertAbove(slide.lowermask);
-        if (slide.inklayer)
-            slide.masklayer.insertBelow(slide.inklayer);
+
     }
+    post(propagateMaskMessage(curslide.masklayer, curslidenum));
 };
 
 function activateRevealPen() {
@@ -874,6 +878,17 @@ function addMaskMessage(pathitem, add) {
     return msg;
 };
 
+function propagateMaskMessage(masklayer, slidenum) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'propagate-mask',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        mask: JSON.stringify(masklayer),
+        slidenum: slidenum
+    } );
+    return msg;
+};
+
 function revealSlideMessage() {
     var msg = JSON.stringify( {
         namespace: 'liveprez',
@@ -899,7 +914,8 @@ function setupSlidesMessage() {
         namespace: 'liveprez',
         type: 'slide-setup',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
-        num: slidedeck.slides.length
+        num: slidedeck.slides.length,
+        deck: JSON.stringify(slidedeck)
     } );
     return msg;
 };
