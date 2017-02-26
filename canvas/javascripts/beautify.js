@@ -52,9 +52,9 @@ function chaikinSmooth(path) {
     return newpath;
 };
 
-function resample(path) {
+function resample(path, maxpoints=100) {
     var points = [];
-    var inc = Math.max(path.length/100.0, 1)
+    var inc = Math.max(path.length/maxpoints, 1)
     for (var i = 0; i <= path.length; i+=inc) {
         points.push(path.getPointAt(i));
     }
@@ -185,7 +185,7 @@ function trace(path, sobel, r) {
 function traceColor(praster, path) {
     var r = MAX_ERROR_DIST * praster.scale;
     // console.log("sample radius = " + r + "px");
-    var points = resample(path);
+    var points = resample(path, 50);
     var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
     // only sample colors that are not background
