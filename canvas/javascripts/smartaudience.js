@@ -208,10 +208,9 @@ function loadSlide(slide) {
         slides[slide.num].itemlayer.visible = true;
         slides[slide.num].lowermask.visible = true;
         var maskitems = slide.masklayer[1].children;
-        console.log("maskitmes: " + maskitems);
         if (maskitems) {
             for (var i = 0; i < maskitems.length; i ++) {
-                var mitem = slides[slide.num].addChild(new paper.Path(maskitems[i][1]));
+                var mitem = slides[slide.num].masklayer.addChild(new paper.Path(maskitems[i][1]));
                 var item = slide.items[0];
                 if (item.praster && item.praster.bgcolor) {
                     mitem.fillColor = bgcolor;

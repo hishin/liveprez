@@ -4,25 +4,30 @@
 // the following functions are based off of the pseudocode
 // found on www.easyrgb.com
 function getBackgroundColor(data, b = 4) {
-    var hist = new Uint32Array(b*b*b).fill(0);
+    var hist = new Array(b*b*b).fill(0.0);
     var ri, bi, gi;
     var rmeans = new Array(b*b*b).fill(0.0);
     var gmeans = new Array(b*b*b).fill(0.0);
     var bmeans = new Array(b*b*b).fill(0.0);
     var mod = 256/b;
-
+    var alpha;
     for (var i = 0; i < data.length; i+=4) {
+        if (data[i+3])
         ri = Math.trunc(data[i]/mod);
         gi = Math.trunc(data[i+1]/mod);
         bi = Math.trunc(data[i+2]/mod);
         // Flat[x + WIDTH * (y + DEPTH * z)] = Original[x, y, z]
         var id = (b*b*ri)+(b*gi)+bi;
-        hist[id]++;
-        rmeans[id] += data[i];
-        gmeans[id] += data[i+1];
-        bmeans[id] += data[i+2];
+        alpha = data[i+3];
+        hist[id] += alpha;
+        rmeans[id] += data[i]*alpha;
+        gmeans[id] += data[i+1]*alpha;
+        bmeans[id] += data[i+2]*alpha;
+
     }
     var idx = hist.indexOf(Math.max.apply(null, hist));
+    // console.log(hist[idx]);
+    // console.log(rmeans[idx]);
     var r = rmeans[idx] / hist[idx];
     var g = gmeans[idx] / hist[idx];
     var b = bmeans[idx] / hist[idx];

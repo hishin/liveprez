@@ -93,7 +93,7 @@ function Item(url, slide) {
             console.log("Compute Distance Transformation");
             this.dt = distanceTransform(this.sobelbool, this.width, this.height, "EDT");
             console.log("Generate Stroke Width Image");
-            this.swidth = strokeWidthImage(this.dt, this.fg, 1, 15);
+            this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
             console.log("done");
 
         }
@@ -143,11 +143,12 @@ function strokeWidthImage(dt, fg, min, max) {
     var widthImage = new Array(dt.length);
     for (var i = 0; i < dt.length; i++) {
         if (fg[i] == 0) {
-            widthImage[i] = min;
+            widthImage[i] = -1;
         }
-        else if (dt[i] > max) {
-            widthImage[i] = max;
-        } else if (dt[i] < min) {
+        // else if (dt[i] > max) {
+        //     widthImage[i] = max;
+        // }
+        else if (dt[i] < min) {
             widthImage[i] = min;
         } else {
             widthImage[i] = dt[i];

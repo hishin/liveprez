@@ -523,14 +523,15 @@ function closeTools(item) {
 function prevSlide() {
     if (curslidenum > 0) {
         curslidenum--;
+        loadSlide(slidedeck.getSlide(curslidenum));
     }
-    loadSlide(slidedeck.getSlide(curslidenum));
 };
 
 function nextSlide() {
-    if (curslidenum < numslides -1)
-        curslidenum ++;
-    loadSlide(slidedeck.getSlide(curslidenum));
+    if (curslidenum < numslides -1) {
+        curslidenum++;
+        loadSlide(slidedeck.getSlide(curslidenum));
+    }
 };
 
 function revealSlide() {
@@ -613,19 +614,13 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         // get stroke width
-        var width = traceWidth(curitem.praster.swidth, curitem.praster.width, curitem.praster.height, curstroke, curitem.praster.scale);
-        curstroke.strokeWidth = width*2.0;
+        traceWidth(curitem.praster, curstroke);
 
         // get stroke color
         traceColor(curitem.praster, curstroke);
 
         // get stroke fillcolor
-        if (isClosed(curstroke)) {
-            closePath(curstroke);
-            curstroke.fillColor = curitem.praster.getAverageColor(curstroke);
-            curstroke.data.fillalpha = curstroke.fillColor.alpha;
-            curstroke.fillColor.alpha = 0.5;
-        }
+        traceFill(curitem.praster, curstroke);
 
         post(inkMessage(curstroke, true));
 

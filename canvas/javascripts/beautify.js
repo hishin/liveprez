@@ -2,6 +2,9 @@
  * Created by Valentina on 1/25/2017.
  */
 
+var MAX_SWIDTH_PX = 20;
+var MAX_ERROR_DIST = 5;
+
 function makeLine(path) {
     var from = path.firstSegment.point;//points[0];
     var to = path.lastSegment.point;//points[points.length-1];
@@ -180,7 +183,8 @@ function trace(path, sobel, r) {
 };
 
 function traceColor(praster, path) {
-    var r = 3.0
+    var r = MAX_ERROR_DIST * praster.scale;
+    // console.log("sample radius = " + r + "px");
     var points = resample(path);
     var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
@@ -246,8 +250,8 @@ function traceColor(praster, path) {
         for (var i = 0; i < Math.min(cclusters.length, 8); i++) {
             var id = 'color' + (i+1);
             document.getElementById(id).style.backgroundColor = cclusters[i].maxcolor.toCSS(true);
-            console.log(' ' + cclusters[i].maxcolor);
-            console.log(id + ' ' + cclusters[i].ncolors);
+            // console.log(' ' + cclusters[i].maxcolor);
+            // console.log(id + ' ' + cclusters[i].ncolors);
         }
         for (var i = cclusters.length; i < 8; i++) {
             var id = 'color' + (i+1);
@@ -321,6 +325,20 @@ function getColorMode(praster, bounds, r) {
     var maxid = counts.indexOf(Math.max.apply(null, counts));
     var colormode = colors[maxid];
     return colormode;
+
+};
+
+function traceFill(praster, path) {
+    if (isClosed(path)) {
+        closePath(path);
+
+        var pixels = praster.getPixelsInside(path);
+        var c = getBackgroundColor(pixels, 8);
+        var pc = pColorFromDataRGB(c);
+        path.fillColor = pc;
+        path.data.fillalpha = curstroke.fillColor.alpha;
+        path.fillColor.alpha = 0.5;
+    }
 
 };
 
@@ -458,7 +476,135 @@ function isClosed(path) {
     return (dist < path.length*0.05 && dist < 15);
 };
 
-function traceWidth(width, m, n, path, scale) {
+function traceWidth(praster, path) {
+    var inc = Math.max(path.length/100, 1);
+    var point, normal, p, p1, p2, coords1, coords2, vals1, vals2, id1, id2, id;
+    var maxd = MAX_SWIDTH_PX/2.0 + MAX_ERROR_DIST*praster.scale;
+    var widths = [];
+    for (var i = 0; i <= path.length; i += inc) {
+        point = path.getPointAt(i);
+        normal = path.getNormalAt(i);
+        p1 = point.add(normal.multiply(maxd));
+        p2 = point.subtract(normal.multiply(maxd));
+        p1 = p1.multiply(praster.scale);
+        p2 = p2.multiply(praster.scale);
+        p = point.multiply(praster.scale);
+        coords1 = bresenhamCoordinates(p, p1);
+        coords2 = bresenhamCoordinates(p, p2);
+
+        // praster.setPixel(p1.x, p1.y, new paper.Color(1,0,0));
+        // praster.setPixel(p2.x, p2.y, new paper.Color(0,1,0));
+
+        // get the distance transform on those coordinates
+        vals1 = getDataValues(praster.swidth, praster.width, praster.height, coords1);
+        vals2 = getDataValues(praster.swidth, praster.width, praster.height, coords2);
+        // check if point is local maxima
+        if (vals1.length > 1 && vals2.length > 1 && vals1[0] > vals1[1] && vals1[0] > vals2[1]) {
+            if (vals1[0] > MAX_SWIDTH_PX/2.0) widths.push(-1);
+            else widths.push(vals1[0]);
+        } else {
+            // find id of closest local maximum
+            id1 = findFirstLocalMaxima(vals1);
+            id2 = findFirstLocalMaxima(vals2);
+
+            if (id1 < id2 && id1 > 0) {
+                if (vals1[id1] > MAX_SWIDTH_PX/2.0) widths.push(-1);
+                else widths.push(vals1[id1]);
+            } else if (id2 < id1 && id2 > 0) {
+                if (vals2[id2] > MAX_SWIDTH_PX/2.0) widths.push(-1);
+                else widths.push(vals2[id2]);
+            } else {
+                widths.push(-1);
+            }
+        }
+    }
+    console.log(widths);
+    var mwidth = findMode(widths);
+    if (mwidth == -1 || mwidth == 0) {
+        path.strokeWidth = 1.0;
+    } else {
+        path.strokeWidth = mwidth*2.0
+    }
+    console.log('stroke width = ' + mwidth);
+};
+
+function findMode(array) {
+    if(array.length == 0)
+        return -1;
+    var modeMap = {};
+    var maxEl = array[0], maxCount = 1;
+    for(var i = 0; i < array.length; i++)
+    {
+        var el = array[i];
+        if(modeMap[el] == null)
+            modeMap[el] = 1;
+        else
+            modeMap[el]++;
+        if(modeMap[el] > maxCount)
+        {
+            maxEl = el;
+            maxCount = modeMap[el];
+        }
+    }
+    return maxEl;
+};
+
+function findFirstLocalMaxima(vals) {
+    for (var i = 1; i < vals.length - 1; i++) {
+        if (vals[i] > vals[i-1] && vals[i] >= vals[i+1])
+            return i;
+    }
+    return Infinity;
+};
+
+function getDataValues(data, m, n, coords) {
+    var vals = [];
+    var x, y, off;
+    var preval;
+    for (var i = 0; i < coords.length; i++) {
+        x = coords[i].x;
+        y = coords[i].y;
+        if (x < 0 || x >= m || y < 0 || y >= n) continue;
+        off = y*m + x;
+        if (preval && preval == data[off])
+            continue;
+        vals.push(data[off]);
+        preval = data[off];
+    }
+    return vals;
+};
+
+function bresenhamCoordinates(p1, p2) {
+    var x1 = Math.round(p1.x);
+    var x2 = Math.round(p2.x);
+    var y1 = Math.round(p1.y);
+    var y2 = Math.round(p2.y);
+
+    var dx = Math.abs(x2 - x1);
+    var dy = Math.abs(y2 - y1);
+    var sx = (x1 < x2) ? 1: -1;
+    var sy = (y1 < y2) ? 1: -1;
+    var err = dx - dy;
+
+    var coords = [];
+    coords.push({x:x1, y:y1});
+
+    while(!((x1 == x2) && (y1 == y2))) {
+        var e2 = err * 2;
+        if (e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
+        coords.push({x:x1, y:y1});
+    }
+    return coords;
+};
+
+function traceWidthOld(width, m, n, path, scale) {
     var point, px, py, idx;
     var widths = [];
     var maxwidth = 0;
@@ -470,6 +616,6 @@ function traceWidth(width, m, n, path, scale) {
         widths.push(width[idx]);
         maxwidth = Math.max(maxwidth, width[idx]);
     }
+    console.log("maxwidth: " + maxwidth);
     return maxwidth/scale;
 };
-
