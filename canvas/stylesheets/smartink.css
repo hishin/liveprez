@@ -5,7 +5,6 @@ html, body {
     padding: 0px;
     overflow: hidden;
     -ms-content-zooming: none;
-    
     touch-action: none;
 }
 .container {
@@ -13,6 +12,7 @@ html, body {
     width: 100%;
     height: 100%;
     padding: 0;
+    touch-action: none;
 }
 
 .view {
