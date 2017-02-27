@@ -258,7 +258,10 @@ function setupSlideCanvas(slidedeck) {
         });
         canvashammer.on('pinchin', function(ev){
             ev.preventDefault();
-            console.log(ev.scale);
+            var zoomresult = stableZoom(oldzoom, pinchcenter, spaper.view.center, prevpinchscale, ev.scale);
+            spaper.view.zoom = zoomresult[0];
+            spaper.view.center = spaper.view.center.subtract(zoomresult[1]);
+            prevpinchscale = ev.scale;
         });
 
 
