@@ -27,6 +27,7 @@ var viewhammer;
 var canvashammer;
 var pinchcenter;
 var oldzoom;
+var oldcenter;
 var prevpinchscale;
 
 function preloadImages(srcs) {
@@ -232,14 +233,16 @@ function setupSlideCanvas(slidedeck) {
 
 
         viewhammer = new Hammer(document.getElementById('speaker-view'));
+        viewhammer.get('swipe').set({velocity: 0.5});
         viewhammer.on('swipeleft', function(ev) {
-            console.log(ev.pointerType);
+            ev.preventDefault();
             if (ev.pointerType == 'touch') {
                 nextSlide();
             }
             return;
         });
         viewhammer.on('swiperight', function(ev) {
+            ev.preventDefault();
            if (ev.pointerType == 'touch') {
                prevSlide();
            }
@@ -270,6 +273,18 @@ function setupSlideCanvas(slidedeck) {
             spaper.view.center = spaper.view.center.subtract(zoomresult[1]);
             prevpinchscale = ev.scale;
         });
+        canvashammer.on('panstart', function (ev) {
+            ev.preventDefault();
+            if (ev.pointerType != 'touch' || Math.abs(ev.overallVelocity) > 0.5) return;
+            oldcenter = spaper.view.center;
+        });
+        canvashammer.on('panmove', function(ev){
+            ev.preventDefault();
+            if (ev.pointerType != 'touch' || Math.abs(ev.overallVelocity) > 0.5) return;
+            var newcenter = new paper.Point(oldcenter.x - ev.deltaX, oldcenter.y - ev.deltaY);
+            spaper.view.center = newcenter;
+            console.log(ev);
+        });
 
 
     }
@@ -278,6 +293,10 @@ function setupSlideCanvas(slidedeck) {
     }
     post(setupSlidesMessage());
     loadSlide(slidedeck.getSlide(curslidenum));
+};
+
+function stablePan() {
+
 };
 
 function stableZoom(prevzoom, p, c, prevs, sfactor) {
