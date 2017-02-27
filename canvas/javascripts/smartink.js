@@ -25,6 +25,10 @@ var prevcolor = new paper.Color(0.5,0,1);
 var slide_files;
 var viewhammer;
 var canvashammer;
+var pinchcenter;
+var oldzoom;
+var prevpinchscale;
+var zoomtwice = 0;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -235,9 +239,29 @@ function setupSlideCanvas(slidedeck) {
            }
         });
 
-        canvashammer = new Hammer(document.getElementById('speaker-canvas'));
-        canvashammer.on('pinch', function(ev) {
-            console.log(ev);
+        canvashammer = new Hammer(document.getElementById('speaker-slide'));
+        canvashammer.get('pinch').set({enable:true});
+
+        canvashammer.on('pinchstart', function(ev){
+            oldzoom = spaper.view.zoom;
+            // console.log($(scanvas).offset().length);
+            pinchcenter = new paper.Point(ev.center.x - $(scanvas).offset().left, ev.center.y - $(scanvas).offset().top);
+            // console.log("pinchcenter = " + pinchcenter);
+            prevpinchscale = 1.0;
+        });
+        canvashammer.on('pinchout', function(ev) {
+            if (zoomtwice  > 1) return;
+            // console.log("oldzoom: " + oldzoom);
+            // console.log("oldcenter: " + spaper.view.center);
+            // console.log("scale: " + ev.scale);
+            // console.log("prevscale: " + prevpinchscale);
+            var zoomresult = stableZoom(oldzoom, pinchcenter, spaper.view.center, prevpinchscale, ev.scale);
+            // console.log("zoom: " + zoomresult[0]);
+            // console.log("delta: " + zoomresult[1]);
+            spaper.view.zoom = zoomresult[0];
+            spaper.view.center = spaper.view.center.subtract(zoomresult[1]);
+            prevpinchscale = ev.scale;
+            // zoomtwice++;
         });
 
 
@@ -247,6 +271,18 @@ function setupSlideCanvas(slidedeck) {
     }
     post(setupSlidesMessage());
     loadSlide(slidedeck.getSlide(curslidenum));
+};
+
+function stableZoom(prevzoom, p, c, prevs, sfactor) {
+    var newzoom = prevzoom * sfactor;
+    // a=p−Z(p)=p−β⋅(p−c)−c
+    var pc = p.subtract(c);
+    var beta = sfactor/prevs;
+    var delta = p.subtract(pc.multiply(beta)).subtract(c);
+
+    return [newzoom, delta];
+    // var trans = fixedp.subtract(pc.multiply(newzoom)).subtract(spaper.view.center);
+    // spaper.view.translate(trans);
 };
 
 function resizeCanvas(width, height) {
@@ -297,7 +333,7 @@ function setupPaperTools() {
     revealtool.onMouseUp = revealEnd;
     spaper.revealtool = revealtool;
 
-    console.log($('#pen-tool'));
+    // console.log($('#pen-tool'));
     if (!document.getElementById('pen-tool').checked) {
         activateMaskTool();
     } else {

@@ -80,21 +80,21 @@ function Item(url, slide) {
     this.setRaster = function(raster){
         this.praster = raster;
         this.praster.onLoad = function() {
-            console.log("Compute Background Color");
+            // console.log("Compute Background Color");
             var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
             var c = getBackgroundColor(imgdata.data)
             var pc = pColorFromDataRGB(c);
             this.bgcolor = new paper.Color(pc[0], pc[1], pc[2]);
             this.annocolor = invertColor(this.bgcolor);
             this.fg = booleanImageFromForeground(imgdata, c, 20);
-            console.log("Compute Edge Information");
+            // console.log("Compute Edge Information");
             this.sobel = computeSobel(this);
             this.sobelbool = booleanImageFromSobel(this.sobel, 10);
-            console.log("Compute Distance Transformation");
+            // console.log("Compute Distance Transformation");
             this.dt = distanceTransform(this.sobelbool, this.width, this.height, "EDT");
-            console.log("Generate Stroke Width Image");
+            // console.log("Generate Stroke Width Image");
             this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
-            console.log("done");
+            // console.log("done");
 
         }
     };
