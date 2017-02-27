@@ -28,7 +28,6 @@ var canvashammer;
 var pinchcenter;
 var oldzoom;
 var prevpinchscale;
-var zoomtwice = 0;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -243,6 +242,7 @@ function setupSlideCanvas(slidedeck) {
         canvashammer.get('pinch').set({enable:true});
 
         canvashammer.on('pinchstart', function(ev){
+            ev.preventDefault();
             oldzoom = spaper.view.zoom;
             // console.log($(scanvas).offset().length);
             pinchcenter = new paper.Point(ev.center.x - $(scanvas).offset().left, ev.center.y - $(scanvas).offset().top);
@@ -250,18 +250,15 @@ function setupSlideCanvas(slidedeck) {
             prevpinchscale = 1.0;
         });
         canvashammer.on('pinchout', function(ev) {
-            if (zoomtwice  > 1) return;
-            // console.log("oldzoom: " + oldzoom);
-            // console.log("oldcenter: " + spaper.view.center);
-            // console.log("scale: " + ev.scale);
-            // console.log("prevscale: " + prevpinchscale);
+            ev.preventDefault();
             var zoomresult = stableZoom(oldzoom, pinchcenter, spaper.view.center, prevpinchscale, ev.scale);
-            // console.log("zoom: " + zoomresult[0]);
-            // console.log("delta: " + zoomresult[1]);
             spaper.view.zoom = zoomresult[0];
             spaper.view.center = spaper.view.center.subtract(zoomresult[1]);
             prevpinchscale = ev.scale;
-            // zoomtwice++;
+        });
+        canvashammer.on('pinchin', function(ev){
+            ev.preventDefault();
+            console.log(ev.scale);
         });
 
 
