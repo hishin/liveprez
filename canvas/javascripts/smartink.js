@@ -58,6 +58,11 @@ function preloadImages(srcs) {
 };
 
 window.onload = function () {
+    document.getElementById('speaker-view').addEventListener('touchstart', function(event){
+        if (event.target.tagName == 'DIV') {
+            event.preventDefault();
+        }
+    }, {passive:false});
     $('#pen-tool').change(function(event) {
         if (!spaper) return;
         if (event.target.checked) {
@@ -72,6 +77,7 @@ window.onload = function () {
     };
     var parser = new DOMParser();
     popupAudienceView();
+
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
@@ -227,6 +233,7 @@ function setupSlideCanvas(slidedeck) {
 
         viewhammer = new Hammer(document.getElementById('speaker-view'));
         viewhammer.on('swipeleft', function(ev) {
+            console.log(ev.pointerType);
             if (ev.pointerType == 'touch') {
                 nextSlide();
             }
