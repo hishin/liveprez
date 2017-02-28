@@ -746,8 +746,8 @@ function maskEnd(event) {
         var maskbox = new paper.Path.Rectangle(curstroke.strokeBounds);
         maskbox.fillColor = curitem.praster.bgcolor;
         maskbox.fillColor.alpha = 0.5;
-        maskbox.strokeColor = 'red';
-        maskbox.dashArray = [5,3];
+        // maskbox.strokeColor = 'red';
+        // maskbox.dashArray = [5,3];
         post(addMaskMessage(maskbox, true));
         if (curslide.masklayer.getItems().length > 0) {
             var maskitem = curslide.masklayer.getItems()[0];
