@@ -647,15 +647,9 @@ function inkStart(event){
 
     selectItem(event.point);
     curstroke = new paper.Path();
-    if (!inkstyle) {
-        curstroke.strokeWidth = 1;
-        curstroke.fillStroke = null;
-        curstroke.strokeColor = curitem.praster.annocolor;
-    } else {
-        curstroke.strokeWidth = inkstyle.strokeWidth;
-        curstroke.fillColor = inkstyle.fillColor;
-        curstroke.strokeColor = inkstyle.strokeColor;
-    }
+    curstroke.strokeWidth = 1;
+    curstroke.fillStroke = null;
+    curstroke.strokeColor = curitem.praster.annocolor;
     curstroke.add(event.point);
     // curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
     post(inkMessage(curstroke, false));
@@ -666,11 +660,11 @@ function selectItem(point) {
 };
 
 function inkContinue(event) {
-    if (curstroke) {
+    // if (curstroke) {
         curstroke.add(event.point);
         // curstroke.smooth();
         post(inkMessage(curstroke, false));
-    }
+    // }
 };
 
 function inkEnd(event) {
@@ -684,7 +678,7 @@ function inkEnd(event) {
 
         // get stroke fillcolor
         traceFill(curitem.praster, curstroke);
-        // curstroke.simplify();
+        curstroke.simplify();
         post(inkMessage(curstroke, true));
 
     }
