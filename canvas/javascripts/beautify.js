@@ -513,10 +513,11 @@ function traceWidth(praster, path) {
     }
     var mwidth = findMode(widths);
     if (mwidth == -1 || mwidth == 0) {
-        path.strokeWidth = 1.0;
+        path.strokeWidth = 1.0 / praster.scale;
     } else {
-        path.strokeWidth = mwidth*2.0
+        path.strokeWidth = mwidth*2.0 / praster.scale;
     }
+    strokewidth
     // console.log('stroke width = ' + mwidth);
 };
 
