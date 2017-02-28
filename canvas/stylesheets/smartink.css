@@ -89,3 +89,8 @@ h1 {
     width: 34px;
     height: 34px;
 }
+
+#strokewSlider .slider-selection {
+    background: #BABABA;
+    height: 5px;
+}

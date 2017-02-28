@@ -64,6 +64,7 @@ window.onload = function () {
             event.preventDefault();
         }
     }, {passive:false});
+
     $('#pen-tool').change(function(event) {
         if (!spaper) return;
         if (event.target.checked) {
@@ -76,25 +77,17 @@ window.onload = function () {
     document.oncontextmenu = function(event) {
         event.preventDefault();
     };
-    var parser = new DOMParser();
     popupAudienceView();
 
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-
     document.addEventListener("pointerdown", function(event) {
         handlePointerEvents(event);
     });
 
-    // // toolbox = document.getElementById("item-toolbox");
-    // var buttons = document.getElementsByClassName('btn-tool');
-    // for (var i = 0; i < buttons.length; i++) {
-    //     buttons[i].addEventListener("click", function(event) {
-    //         selectButton(event);
-    //     });
-    // }
+    $('.slider').slider();
 };
 
 function handleFileSelect(evt) {
@@ -293,10 +286,6 @@ function setupSlideCanvas(slidedeck) {
     }
     post(setupSlidesMessage());
     loadSlide(slidedeck.getSlide(curslidenum));
-};
-
-function stablePan() {
-
 };
 
 function stableZoom(prevzoom, p, c, prevs, sfactor) {
@@ -676,14 +665,14 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         // get stroke width
-        // traceWidth(curitem.praster, curstroke);
+        traceWidth(curitem.praster, curstroke);
 
         // get stroke color
-        // traceColor(curitem.praster, curstroke);
+        traceColor(curitem.praster, curstroke);
 
         // get stroke fillcolor
-        // traceFill(curitem.praster, curstroke);
-        curstroke.simplify();
+        traceFill(curitem.praster, curstroke);
+        // curstroke.simplify();
         post(inkMessage(curstroke, true));
 
     }
@@ -755,8 +744,10 @@ function maskEnd(event) {
     if (curstroke) {
         curslide.masklayer.activate();
         var maskbox = new paper.Path.Rectangle(curstroke.strokeBounds);
-        maskbox.fillColor = 'grey';
-        maskbox.fillColor.alpha = 0.3;
+        maskbox.fillColor = curitem.praster.bgcolor;
+        maskbox.fillColor.alpha = 0.5;
+        maskbox.strokeColor = 'red';
+        maskbox.dashArray = [5,3];
         post(addMaskMessage(maskbox, true));
         if (curslide.masklayer.getItems().length > 0) {
             var maskitem = curslide.masklayer.getItems()[0];

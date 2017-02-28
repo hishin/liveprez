@@ -184,17 +184,11 @@ function trace(path, sobel, r) {
 
 function traceColor(praster, path) {
     var r = MAX_ERROR_DIST * praster.scale;
-    // console.log("sample radius = " + r + "px");
     var points = resample(path, 50);
     var px, py, offset, minx, miny, maxx, maxy;
     var colors = [];
-    // only sample colors that are not background
-    // colors.push(praster.bgcolor);
-
     var c, idx;
     for (var i = 0; i < points.length; i++) {
-        // var temp = new paper.Path.Circle(points[i], 1.0);
-        // temp.fillColor = 'red';
         //pick salient colors
         var pcolors = [];
         px = Math.round(points[i].x*praster.scale);
@@ -225,7 +219,6 @@ function traceColor(praster, path) {
             }
         }
         // var pclusters = clusterColors(pcolors, 10);
-
         for (var p = 0; p < pcolors.length; p++) {
             colors.push(pcolors[p]);
         }

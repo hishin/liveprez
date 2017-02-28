@@ -8,7 +8,7 @@
           type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
     <link href="stylesheets/bootstrap-toggle.min.css" rel="stylesheet">
     <link href="stylesheets/smartink.css" rel="stylesheet" type="text/css">
-
+    <link href="stylesheets/slider.css" rel="stylesheet" type="text/css">
     <script src="javascripts/paper-full.js"></script>
     <script src="javascripts/jquery-3.1.1.min.js"></script>
     <script src="javascripts/colorutil.js"></script>
@@ -23,7 +23,8 @@
     <script src="javascripts/hammer.min.js"></script>
     <script src="javascripts/bootstrap-toggle.min.js"></script>
     <script src="javascripts/distancetransform.js"></script>
-
+    <script src="javascripts/jscolor.min.js"></script>
+    <script src="javascripts/bootstrap-slider.js"></script>
 </head>
 <body>
 <div class="container col-md-12 ">
@@ -40,7 +41,9 @@
             <button type="button" title="Previous" class="btn btn-default" onclick="nextSlide()">
                 <i class="glyphicon glyphicon-arrow-right"></i></button>
         </div>
-        <input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning" checked>
+        <input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning" checked />
+        <input id='strokec' class="jscolor {valueElement:null,value:'000000'}"  style="width:50px;"/>
+        <input type="text" class="slider" value="" data-slider-min="1" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" >
     </div>
 
 
