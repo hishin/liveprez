@@ -10,6 +10,7 @@ var SLIDE_H = 720;
 // var CANVAS_W = 960;
 // var CANVAS_H = 720;
 var aspectratio; // matches the slide aspect ratio
+
 var scale;
 var img_w;
 var numslides;
@@ -35,6 +36,7 @@ function preloadImages(srcs) {
         preloadImages.cache = [];
     }
     var img;
+    var MENU_H = 32;
     for (var i = 0; i < srcs.length; i++) {
         img = new Image();
         img.src = srcs[i];
@@ -42,13 +44,13 @@ function preloadImages(srcs) {
         img.onload = function(){
             if (!aspectratio) {
                 aspectratio = this.height/this.width;
-                // console.log(aspectratio);
                 img_w = this.width;
-                SLIDE_W = $(window).width() * 0.75;
-                SLIDE_H = SLIDE_W * aspectratio;
-                if (SLIDE_H > $(window).height()) {
-                    SLIDE_H = $(window).height() * 0.75;
-                    SLIDE_W = SLIDE_H/aspectratio;
+                console.log('wh = ' + $(window).height);
+                SLIDE_H = $(window).height() - MENU_H;
+                SLIDE_W = SLIDE_H/apsectratio;
+                if (SLIDE_W > $(window).width()) {
+                    SLIDE_W = $(window).width();
+                    SLIDE_H = SLIDE_W*aspectratio;
                 }
                 // scale = img_w/SLIDE_W;
             }
@@ -57,6 +59,8 @@ function preloadImages(srcs) {
         preloadImages.cache.push(img);
     }
 };
+
+
 
 window.onload = function () {
     document.getElementById('speaker-view').addEventListener('touchstart', function(event){
@@ -421,8 +425,8 @@ function loadItem(slide, item) {
     // item.praster.pivot = item.pborder.bounds.topLeft;
     // item.pborder.scale(wscale, hscale, item.pborder.pivot);
     // item.pborder.item = item;
-    // item.pborder.strokeColor = 'black';
-    // item.pborder.strokeWidth = 3;
+    // item.pborder.strokeColor = 'red';
+    // item.pborder.strokeWidth = 1;
     // item.pborder.dashArray = [3, 2];
     // item.pborder.opacity = 0.5;
 
@@ -434,10 +438,18 @@ function loadItem(slide, item) {
     // item.pbbox.opacity = 0;
 
     // var delta = new paper.Point(item.left * wscale, item.top * hscale);
-    // item.pborder.fitBounds(paper.view.bounds, true);
+    // item.pborder.fitBounds(paper.view.bounds);
     // item.pbbox.fitBounds(paper.view.bounds, true);
-    item.praster.fitBounds(paper.view.bounds, true);
-    item.praster.scale = item.praster.width/paper.view.bounds.width;
+    item.praster.fitBounds(paper.view.bounds);
+    // console.log(item.praster.width);
+    // console.log(item.praster.height);
+    item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
+    item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
+    item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
+    // console.log(item.praster.width);
+    // console.log(item.praster.height);
+    // console.log('wslack = ' + item.praster.wslack);
+    // console.log('hslack = ' + item.praster.hslack);
     item.praster.opacity = 1.0;
     // item.activateMouseEvents();
 
@@ -968,7 +980,8 @@ function setupSlidesMessage() {
         type: 'slide-setup',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         num: slidedeck.slides.length,
-        deck: JSON.stringify(slidedeck)
+        deck: JSON.stringify(slidedeck),
+        aspectratio: SLIDE_H/SLIDE_W
     } );
     return msg;
 };

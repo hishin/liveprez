@@ -17,7 +17,7 @@ var curstroke = null;
 var prevstroke = null;
 var slidelayer;
 var reveal = false;
-var aspectratio = 0.75;
+var aspectratio;
 var scale = 1.0;
 var speakerwidth;
 var slides;
@@ -69,18 +69,13 @@ window.onload = function() {
     apaper = new paper.PaperScope();
     apaper.setup(acanvas);
 
-    SLIDE_W = $(window).width() * 0.95;
-    SLIDE_H = SLIDE_W * aspectratio;
-    if (SLIDE_H > $(window).height()) {
-        SLIDE_H = $(window).height() *0.95;
-        SLIDE_W = SLIDE_H/aspectratio;
-    }
-    resizeCanvas(SLIDE_W, SLIDE_H);
-    // resizeCanvas(screen.width, screen.height);
-    // apaper.view.viewSize.width = CANVAS_W;
-    // apaper.view.viewSize.height = CANVAS_H;
-    // acanvas.width = CANVAS_W;
-    // acanvas.height = CANVAS_H;
+    // SLIDE_W = $(window).width() - 5;// * 0.95;
+    // SLIDE_H = SLIDE_W * aspectratio;
+    // if (SLIDE_H > $(window).height()) {
+    //     SLIDE_H = $(window).height() *0.95;
+    //     SLIDE_W = SLIDE_H/aspectratio;
+    // }
+    // resizeCanvas(SLIDE_W, SLIDE_H);
 
     aslide.paper = apaper;
     aslide.canvas = acanvas;
@@ -92,10 +87,10 @@ window.onload = function() {
 
 window.onresize = function(event) {
     event.preventDefault();
-    SLIDE_W = $(window).width() * 0.95;
+    SLIDE_W = $(window).width() - 5 ;
     SLIDE_H = SLIDE_W * aspectratio;
-    if (SLIDE_H > $(window).height()) {
-        SLIDE_H = $(window).height() * 0.95;
+    if (SLIDE_H > $(window).height() - 5) {
+        SLIDE_H = $(window).height() -5;
         SLIDE_W = SLIDE_H/aspectratio;
     }
 
@@ -112,6 +107,16 @@ function handleConnectMessage(data) {
 
 function handleSlideSetupMessage(data) {
     // var numslide = JSON.parse(data.num);
+    aspectratio = data.aspectratio;
+    console.log(aspectratio);
+    SLIDE_W = $(window).width() - 5;// * 0.95;
+    SLIDE_H = SLIDE_W * aspectratio;
+    if (SLIDE_H > $(window).height() - 5) {
+        SLIDE_H = $(window).height() - 5;
+        SLIDE_W = SLIDE_H/aspectratio;
+    }
+    resizeCanvas(SLIDE_W, SLIDE_H);
+
     var deck = JSON.parse(data.deck).slides;
     var slide, item;
     for (var i = 0; i < deck.length; i++) {
@@ -238,8 +243,8 @@ function loadItem(slide, item) {
             }
         }
     };
-    item.praster.fitBounds(paper.view.bounds, true);
-    item.praster.scale = item.praster.width/paper.view.bounds.width;
+    item.praster.fitBounds(paper.view.bounds);
+    item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
 };
 
 function handleToggleRevealMessage(data) {

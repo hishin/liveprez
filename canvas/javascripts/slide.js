@@ -33,6 +33,7 @@ var Slide = function(sfile, p) {
     var reader = new FileReader();
     reader.onload = function(theFile) {
         return function (e) {
+            var MENU_H = 50;
             // document.getElementById('thumb-'+slide.pagenum).src = e.target.result;
             var item = new Item(e.target.result, slide);
             var img = new Image();
@@ -41,16 +42,17 @@ var Slide = function(sfile, p) {
                 item.width = this.width;
                 item.height = this.height;
                 if (!aspectratio) {
-                    aspectratio = this.height/this.width;
-                    img_w = this.width;
-                    SLIDE_H = $(window).height() * 0.85;
-                    SLIDE_W = SLIDE_H / aspectratio;
-                    if (SLIDE_W > $(window).width()) {
-                        SLIDE_W = $(window).width() * 0.90;
-                        SLIDE_H = SLIDE_W*aspectratio;
-                    }
-                    // scale = img_w/SLIDE_W;
+                    aspectratio = this.height / this.width;
                 }
+                    img_w = this.width;
+                    SLIDE_H = $(window).height() - MENU_H;
+                    SLIDE_W = $(window).width() - 5;//SLIDE_H / aspectratio;
+                    // if (SLIDE_W > $(window).width()) {
+                    //     SLIDE_W = $(window).width();
+                    //     SLIDE_H = SLIDE_W*aspectratio;
+                    // }
+                    // scale = img_w/SLIDE_W;
+                // }
             }
             slide.items.push(item);
         }
@@ -95,7 +97,8 @@ function Item(url, slide) {
             // console.log("Generate Stroke Width Image");
             this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
             // console.log("done");
-
+            // this.border.strokeWidth = 1;
+            // this.border.strokeColor = 'red';
         }
     };
 };
