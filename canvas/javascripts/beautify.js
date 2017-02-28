@@ -517,7 +517,6 @@ function traceWidth(praster, path) {
     } else {
         path.strokeWidth = mwidth*2.0 / praster.scale;
     }
-    strokewidth
     // console.log('stroke width = ' + mwidth);
 };
 
