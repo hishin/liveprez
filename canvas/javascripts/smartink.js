@@ -280,7 +280,7 @@ function setupSlideCanvas(slidedeck) {
             if (ev.pointerType != 'touch' || Math.abs(ev.overallVelocity) > 0.5) return;
             var newcenter = new paper.Point(oldcenter.x - ev.deltaX, oldcenter.y - ev.deltaY);
             spaper.view.center = newcenter;
-            console.log(ev);
+            // console.log(ev);
         });
 
 
