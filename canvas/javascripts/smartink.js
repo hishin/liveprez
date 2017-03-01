@@ -171,6 +171,7 @@ function handlePointerEvents(event) {
     if(spaper && spaper.tool && spaper.tool.name == 'mask') {
         return;
     }
+    console.log(event.pointerType);
     if (event.pointerType == 'pen' || event.pointerType == 'mouse') {
         if (event.buttons == 2) {
             activateRevealPen();
