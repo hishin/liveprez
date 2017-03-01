@@ -670,7 +670,7 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         // get stroke width
-        traceWidth(curitem.praster, curstroke);
+        // traceWidth(curitem.praster, curstroke);
 
         // get stroke color
         traceColor(curitem.praster, curstroke);
