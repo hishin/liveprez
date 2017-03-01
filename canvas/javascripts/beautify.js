@@ -522,7 +522,6 @@ function traceWidth(praster, path) {
     } else {
         path.strokeWidth = mwidth*2.0 / praster.scale;
     }
-    // console.log('stroke width = ' + mwidth);
 };
 
 function findMode(array) {
