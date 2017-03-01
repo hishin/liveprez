@@ -191,8 +191,8 @@ function traceColor(praster, path) {
     for (var i = 0; i < points.length; i++) {
         //pick salient colors
         var pcolors = [];
-        px = Math.round(points[i].x*praster.scale);
-        py = Math.round(points[i].y*praster.scale);
+        px = Math.round((points[i].x - praster.wslack)*praster.scale);
+        py = Math.round((points[i].y - praster.hslack)*praster.scale);
         minx = Math.max(0, px-r);
         maxx = Math.min(praster.width, px + r+1);
         miny = Math.max(0, py-r);
@@ -479,9 +479,14 @@ function traceWidth(praster, path) {
         normal = path.getNormalAt(i);
         p1 = point.add(normal.multiply(maxd));
         p2 = point.subtract(normal.multiply(maxd));
-        p1 = p1.multiply(praster.scale);
-        p2 = p2.multiply(praster.scale);
-        p = point.multiply(praster.scale);
+
+        // px = Math.round((points[i].x - praster.wslack)*praster.scale);
+        // py = Math.round((points[i].y - praster.hslack)*praster.scale);
+
+
+        p1 = new paper.Point((p1.x - praster.wslack)*praster.scale, (p1.y - praster.hslack)*praster.scale);//p1.multiply(praster.scale);
+        p2 = new paper.Point((p2.x - praster.wslack)*praster.scale, (p2.y - praster.hslack)*praster.scale);//p2.multiply(praster.scale);
+        p = new paper.Point((point.x - praster.wslack)*praster.scale, (point.y - praster.hslack)*praster.scale);//point.multiply(praster.scale);
         coords1 = bresenhamCoordinates(p, p1);
         coords2 = bresenhamCoordinates(p, p2);
 

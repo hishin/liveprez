@@ -32,18 +32,19 @@
 
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
-        <input id="files" type="file" webkitdirectory directory multiple/>
-
-        <div id="speaker-slide" class="slide"></div><br>
-        <div id="page-btns" class="btn-group">
-            <button type="button" title="Next" class="btn btn-default" onclick="prevSlide()">
-                <i class="glyphicon glyphicon-arrow-left"></i></button>
-            <button type="button" title="Previous" class="btn btn-default" onclick="nextSlide()">
-                <i class="glyphicon glyphicon-arrow-right"></i></button>
+        <div class="col-md-12 menu">
+            <input id="files" type="file" webkitdirectory directory multiple/>
+            <input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning" checked />
+            <input id='strokec' class="jscolor {valueElement:null,value:'000000'}"  style="width:50px;"/>
+            <input type="text" class="slider" value="" data-slider-min="1" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" >
         </div>
-        <input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning" checked />
-        <input id='strokec' class="jscolor {valueElement:null,value:'000000'}"  style="width:50px;"/>
-        <input type="text" class="slider" value="" data-slider-min="1" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" >
+        <div id="speaker-slide" class="slide"></div>
+        <!--<div id="page-btns" class="btn-group">-->
+            <!--<button type="button" title="Next" class="btn btn-default" onclick="prevSlide()">-->
+                <!--<i class="glyphicon glyphicon-arrow-left"></i></button>-->
+            <!--<button type="button" title="Previous" class="btn btn-default" onclick="nextSlide()">-->
+                <!--<i class="glyphicon glyphicon-arrow-right"></i></button>-->
+        <!--</div>        -->
     </div>
 
 

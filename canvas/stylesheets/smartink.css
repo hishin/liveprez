@@ -29,7 +29,7 @@ html, body {
     display: inline-block;
     float: left;
     height: 100%;
-    background: #a0afb4;
+    background: #ffffff;
     color: white;
     padding: 0;
 }
@@ -41,17 +41,13 @@ html, body {
     height: 100%;
     background: #ffffff;
     color: black;
+    padding: 0;
     /*padding-top: 25px;*/
 }
 
 h1 {
     text-align: center;
     margin: auto;
-}
-
-#slide-menu {
-    text-align: center;
-    margin: 10px 0 10px 0;
 }
 
 .slide {
@@ -62,20 +58,20 @@ h1 {
     /*margin-bottom: 10px;*/
 }
 
+canvas {
+    border: 1px rgba(60, 63, 65, 0.75) solid;
+}
+
+#audience-canvas {
+    border: 0;
+}
+
 #audience-slide {
     /*margin-top: 55px;*/
 }
 
 #slide-deck {
     display: none;
-}
-
-#item-toolbox {
-    padding: 10px;
-    /*width: 600px;*/
-    display: inline-block;
-    /*background-color: white;*/
-    /*color: black;*/
 }
 
 .thumb {
@@ -94,3 +90,24 @@ h1 {
     background: #BABABA;
     height: 5px;
 }
+
+.menu {
+    margin-top: 2px;
+    margin-bottom: 5px;
+    height: 30px;
+}
+
+.menu input {
+    display: inline-block;
+    color: black;
+}
+
+.menu .btn{
+    max-height: 28px;
+    vertical-align: middle;
+    /*border-radius: 14px;*/
+    /*border: 0px;*/
+
+}
+
+
