@@ -676,8 +676,8 @@ function inkEnd(event) {
         traceColor(curitem.praster, curstroke);
 
         // get stroke fillcolor
-        traceFill(curitem.praster, curstroke);
-        curstroke.simplify();
+        // traceFill(curitem.praster, curstroke);
+        // curstroke.simplify();
         post(inkMessage(curstroke, true));
 
     }
