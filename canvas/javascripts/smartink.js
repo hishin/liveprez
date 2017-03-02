@@ -667,7 +667,7 @@ function selectItem(point) {
 function inkContinue(event) {
     // if (curstroke) {
         curstroke.add(event.point);
-        // post(inkMessage(curstroke, false));
+        post(inkMessage(curstroke, false));
     // }
 };
 
