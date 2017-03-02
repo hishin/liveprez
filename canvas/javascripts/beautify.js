@@ -477,6 +477,9 @@ function traceWidth(praster, path) {
     for (var i = 0; i <= path.length; i += inc) {
         point = path.getPointAt(i);
         normal = path.getNormalAt(i);
+        if (path.length == 0) {
+            normal = new paper.Point(1, 0);
+        }
         p1 = point.add(normal.multiply(maxd));
         p2 = point.subtract(normal.multiply(maxd));
 

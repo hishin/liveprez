@@ -64,6 +64,8 @@ window.onload = function() {
     aslide = document.getElementById('audience-slide');
     acanvas = document.createElement('canvas');
     acanvas.setAttribute('id', aslide.id.replace('slide', 'canvas'));
+    acanvas.setAttribute('keepalive', true);
+    acanvas.setAttribute('data-paper-keepalive', true);
     aslide.appendChild(acanvas);
 
     apaper = new paper.PaperScope();
@@ -388,11 +390,12 @@ function handleMaskMessage(data) {
     if (!data.add && curslide.masklayer.getItems().length == 0) {
         return;
     }
+
     var maskbox = new paper.Path(JSON.parse(data.content)[1]);
     maskbox.fillColor = data.bgcolor;
     maskbox.fillColor.alpha = 1.0;
     maskbox.strokeWidth = 0;
-    maskbox.scale(scale, new paper.Point(0,0));
+    maskbox.scale(scale, new paper.Point(0, 0));
 
     if (curslide.masklayer.getItems().length > 0) {
         var maskitem = curslide.masklayer.getItems()[0];
@@ -401,13 +404,8 @@ function handleMaskMessage(data) {
             maskbox.remove();
         }
         else if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
+            console.log("subtract");
             maskitem.subtract(maskbox);
-            maskbox.onFrame = function () {
-                if (this.fillColor.alpha <= 0) {
-                    this.remove();
-                }
-                this.fillColor.alpha -= 0.01;
-            };
         }
         maskitem.remove();
 
@@ -422,10 +420,18 @@ function handleMaskMessage(data) {
                     }
             }
         }
+    }
 
+    if (!data.add) {
+        maskbox.onFrame = function () {
+            if (this.fillColor.alpha <= 0) {
+                this.remove();
+            }
+            this.fillColor.alpha -= 0.02;
+        };
     }
 };
 
 function handleReleaseTargetMessage(data) {
     curtargetitem = null;
-}
+};

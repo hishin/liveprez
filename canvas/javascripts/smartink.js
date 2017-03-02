@@ -70,6 +70,7 @@ window.onload = function () {
     }, {passive:false});
 
     $('#pen-tool').change(function(event) {
+        hideMenu(document.getElementById('mask-context-menu'));
         if (!spaper) return;
         if (event.target.checked) {
             spaper.tool = null;
@@ -174,7 +175,6 @@ function handlePointerEvents(event) {
     if(spaper && spaper.tool && spaper.tool.name == 'mask') {
         return;
     }
-    console.log(event);
     if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
         if (event.buttons == 2) {
             activateRevealPen();
@@ -219,6 +219,8 @@ function setupSlideCanvas(slidedeck) {
         sslide = document.getElementById('speaker-slide');
         scanvas = document.createElement('canvas');
         scanvas.setAttribute('id', sslide.id.replace('slide', 'canvas'));
+        scanvas.setAttribute('keepalive', true);
+        scanvas.setAttribute('data-paper-keepalive', true);
         sslide.appendChild(scanvas);
         spaper = new paper.PaperScope();
         spaper.setup(scanvas);
@@ -641,7 +643,6 @@ function activateInkTool() {
 var curstroke;
 var curbound;
 function inkStart(event){
-
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
         curslide.inklayer = layer;
@@ -655,7 +656,7 @@ function inkStart(event){
     curstroke.fillStroke = null;
     curstroke.strokeColor = curitem.praster.annocolor;
     curstroke.add(event.point);
-    // curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
+    curstroke.strokeCap = 'round';
     post(inkMessage(curstroke, false));
 };
 
@@ -681,7 +682,9 @@ function inkEnd(event) {
 
         // get stroke fillcolor
         traceFill(curitem.praster, curstroke);
-        curstroke.simplify();
+        if (curstroke.length > 0) {
+            curstroke.simplify();
+        }
         post(inkMessage(curstroke, true));
 
     }
@@ -708,14 +711,15 @@ function activateMaskTool() {
 };
 
 function maskStart(event) {
-    // Right mouse click: show context menu
     if (event.event.type.includes('touch')) {
+        hideMenu(document.getElementById('mask-context-menu'));
         return;
     }
     if (event.event.button == 2) {
         revealMenu(document.getElementById('mask-context-menu'), event);
         return;
     }
+    hideMenu(document.getElementById('mask-context-menu'));
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
         curslide.inklayer = layer;
@@ -727,36 +731,29 @@ function maskStart(event) {
     curstroke = new paper.Path();
     curstroke.add(event.point);
     // curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
-    curstroke.strokeWidth = 5;
+    curstroke.strokeWidth = 2;
     curstroke.strokeColor = 'black';
 
-    curbound = new paper.Path.Rectangle(curstroke.strokeBounds);
-    curbound.strokeWidth = 1;
-    curbound.dashArray = [5,5];
-    curbound.strokeColor = 'black';
+    // curbound = new paper.Path.Rectangle(curstroke.strokeBounds);
+    // curbound.strokeWidth = 1;
+    // curbound.dashArray = [5,5];
+    // curbound.strokeColor = 'black';
 };
 
 function maskContinue(event) {
-    if (curstroke) {
-        curstroke.add(event.point);
-    }
-    if (curbound) {
-        curbound.remove();
-        curbound = new paper.Path.Rectangle(curstroke.strokeBounds);
-        curbound.strokeWidth = 1;
-        curbound.dashArray = [5,5];
-        curbound.strokeColor = 'black';
-    }
+    revealContinue(event);
+
 };
 
 function maskEnd(event) {
     if (curstroke) {
+        curstroke.closePath();
+        curbound.remove();
         curslide.masklayer.activate();
-        var maskbox = new paper.Path.Rectangle(curstroke.strokeBounds);
+
+        var maskbox = new paper.Path(curstroke.pathData);
         maskbox.fillColor = curitem.praster.bgcolor;
         maskbox.fillColor.alpha = 0.5;
-        // maskbox.strokeColor = 'red';
-        // maskbox.dashArray = [5,3];
         post(addMaskMessage(maskbox, true));
         if (curslide.masklayer.getItems().length > 0) {
             var maskitem = curslide.masklayer.getItems()[0];
@@ -765,7 +762,6 @@ function maskEnd(event) {
             maskbox.remove();
         }
         curstroke.remove();
-        curbound.remove();
     }
 };
 
@@ -813,7 +809,8 @@ function revealStart(event) {
 
     curstroke = new paper.Path();
     curstroke.add(event.point);
-    curstroke.strokeColor = 'yellow';
+    curstroke.strokeWidth = 2;
+    curstroke.strokeColor = '#00ffff';
     curstroke.strokeColor.alpha = 0.8;
 };
 
@@ -834,11 +831,11 @@ function revealContinue(event) {
 function revealEnd(event) {
     if (curstroke) {
         curstroke.closePath();
-        curstroke.fillColor = 'white';
-        curstroke.fillColor.alpha = 1.0;
-        curbound.remove();
+        if (curbound)
+            curbound.remove();
 
         post(addMaskMessage(curstroke, false));
+
         if (curslide.masklayer.getItems().length > 0) {
             var maskitem = curslide.masklayer.getItems()[0];
             if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
@@ -850,22 +847,26 @@ function revealEnd(event) {
             var inkitems = curslide.inklayer.getItems({inside: curstroke.bounds});
             for (var i = 0; i < inkitems.length; i++) {
                 if (!inkitems[i].data.free && isInside(curstroke, inkitems[i])) {
-                    inkitems[i].onFrame = function() {
+                    inkitems[i].onFrame = function () {
                         if (this.strokeColor.alpha <= 0) this.remove();
-                        this.strokeColor.alpha -= 0.02;
+                        this.strokeColor.alpha -= 0.05;
                     };
 
                 }
             }
 
         }
-        var maskstroke = curstroke;
-        maskstroke.onFrame = function() {
+
+        curstroke.fillColor = 'white';
+        curstroke.fillColor.alpha = 1.0;
+        curstroke.onFrame = function() {
             if (this.fillColor.alpha <= 0) this.remove();
             this.fillColor.alpha -= 0.05;
         };
-        // curstroke.remove();
+
     }
+
+
 };
 
 
