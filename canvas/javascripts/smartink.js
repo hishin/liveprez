@@ -87,8 +87,11 @@ window.onload = function () {
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-    document.addEventListener("pointerdown", function(event) {
+    document.addEventListener("touchstart", function(event) {
         handlePointerEvents(event);
+    });
+    document.addEventListener("pointerdown", function(event) {
+       handlePointerEvents(event);
     });
 
     $('.slider').slider();
@@ -171,8 +174,8 @@ function handlePointerEvents(event) {
     if(spaper && spaper.tool && spaper.tool.name == 'mask') {
         return;
     }
-    console.log(event.pointerType);
-    if (event.pointerType == 'pen' || event.pointerType == 'mouse') {
+    console.log(event);
+    if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
         if (event.buttons == 2) {
             activateRevealPen();
         } else {

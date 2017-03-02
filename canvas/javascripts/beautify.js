@@ -2,7 +2,7 @@
  * Created by Valentina on 1/25/2017.
  */
 
-var MAX_SWIDTH_PX = 20;
+var MAX_SWIDTH_PX = 35;
 var MAX_ERROR_DIST = 5;
 
 function makeLine(path) {
