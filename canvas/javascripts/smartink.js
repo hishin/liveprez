@@ -88,9 +88,9 @@ window.onload = function () {
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-    document.addEventListener("touchstart", function(event) {
-        handlePointerEvents(event);
-    });
+    // document.addEventListener("touchstart", function(event) {
+    //     handlePointerEvents(event);
+    // });
     document.addEventListener("pointerdown", function(event) {
        handlePointerEvents(event);
     });
@@ -172,6 +172,7 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
+    console.log("pointer down");
     if(spaper && spaper.tool && spaper.tool.name == 'mask') {
         return;
     }
