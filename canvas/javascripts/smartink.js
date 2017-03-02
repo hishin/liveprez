@@ -178,8 +178,10 @@ function handlePointerEvents(event) {
     }
     if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
         if (event.buttons == 2) {
+            console.log("activate reveal");
             activateRevealPen();
         } else {
+            console.log("activate ink");
             activateInkTool();
         }
     } else if (spaper) {
@@ -830,6 +832,7 @@ function revealContinue(event) {
 };
 
 function revealEnd(event) {
+    console.log("revealend");
     if (curstroke) {
         curstroke.closePath();
         if (curbound)
