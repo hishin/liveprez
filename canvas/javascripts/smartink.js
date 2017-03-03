@@ -94,20 +94,21 @@ window.onload = function () {
     document.addEventListener("pointerdown", function(event) {
        handlePointerEvents(event);
     });
+    $('#strokec').on('change.spectrum', function (e, color) {
+        $('#strokec2').spectrum("set", '');
+    });
+
     $('#strokec').on('move.spectrum', function (e, color) {
         if (curstroke) {
             curstroke.strokeColor = color.toHexString();
         }
         $('#strokec2').spectrum("set", '');
-
-        // change selected colors
     });
     $('#strokec2').on('move.spectrum', function (e, color) {
         if (curstroke) {
             curstroke.strokeColor = color.toHexString();
         }
         $('#strokec').spectrum("set", '');
-        // change selected colors
     });
     setColorPalette(['black']);
     $('#strokec2').spectrum({
