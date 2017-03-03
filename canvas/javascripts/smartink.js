@@ -95,6 +95,8 @@ window.onload = function () {
        handlePointerEvents(event);
     });
 
+    setColorPalette(null);
+
     $('.slider').slider();
 };
 
@@ -682,6 +684,7 @@ function inkEnd(event) {
 
         // get stroke color
         traceColor(curitem.praster, curstroke);
+        // setColorPalette(curstroke.strokeColor);
 
         // get stroke fillcolor
         traceFill(curitem.praster, curstroke);
@@ -691,6 +694,26 @@ function inkEnd(event) {
         post(inkMessage(curstroke, true));
 
     }
+};
+
+function setColorPalette(colors) {
+    $('#strokec').spectrum({
+        showPaletteOnly: true,
+        showPalette:true,
+        hideAfterPaletteSelect: true,
+        // color: 'black',
+        flat: true,
+        showAlpha: true,
+        maxSelectionSize: 5,
+        palette: [
+            ['black', 'red', 'green', 'blue']
+        ]
+
+    });
+};
+
+function setStrokeWidth(w) {
+
 };
 
 

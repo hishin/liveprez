@@ -102,6 +102,10 @@ canvas {
     color: black;
 }
 
+.menu input[type=checkbox] {
+    margin-left: 15px;
+}
+
 .menu .btn{
     max-height: 28px;
     vertical-align: middle;

@@ -9,6 +9,7 @@
     <link href="stylesheets/bootstrap-toggle.min.css" rel="stylesheet">
     <link href="stylesheets/smartink.css" rel="stylesheet" type="text/css">
     <link href="stylesheets/slider.css" rel="stylesheet" type="text/css">
+    <link href="spectrum/spectrum.css" rel="stylesheet" type="text/css">
     <script src="javascripts/paper-full.js"></script>
     <script src="javascripts/jquery-3.1.1.min.js"></script>
     <script src="javascripts/colorutil.js"></script>
@@ -19,11 +20,12 @@
     <script src="javascripts/simplify.js"></script>
     <script src="javascripts/filters.js"></script>
     <script src="javascripts/etf.js"></script>
-    <script src="javascripts/kmeans.js"></script>
+    <!--<script src="javascripts/kmeans.js"></script>-->
     <script src="javascripts/hammer.min.js"></script>
     <script src="javascripts/bootstrap-toggle.min.js"></script>
     <script src="javascripts/distancetransform.js"></script>
-    <script src="javascripts/jscolor.min.js"></script>
+    <!--<script src="javascripts/jscolor.min.js"></script>-->
+    <script src="spectrum/spectrum.js"></script>
     <script src="javascripts/bootstrap-slider.js"></script>
 </head>
 <body>
@@ -33,8 +35,10 @@
         <div class="col-md-12 menu">
             <input id="files" type="file" webkitdirectory directory multiple/>
             <input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning" checked />
-            <input id='strokec' class="jscolor {valueElement:null,value:'000000'}"  style="width:50px;"/>
-            <input type="text" class="slider" value="" data-slider-min="1" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" >
+            <input type = "text" id='strokec' />
+            <input type="text" class="slider" value="" data-slider-min="1" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" />
+            <!--<input id='fix-color' type="checkbox"/>-->
+            <!--<input id='fix-stroke' type="checkbox"/>-->
         </div>
         <div id="speaker-slide" class="slide"></div>
         <!--<div id="page-btns" class="btn-group">-->
@@ -48,6 +52,7 @@
 
 </div>
 
+<!--<input id="strokecValue" value="000000"/>-->
 <!-- Context Menu for Masking -->
 <ul id="mask-context-menu" class="dropdown-menu" role="menu" style="display:none" >
     <li><a tabindex="-1" href="#" onclick="maskPropagate()">Propagate Mask Region</a></li>
