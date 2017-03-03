@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
 
     <title>Smart Ink Demo</title>
-    <link rel="stylesheet"
-          type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.min.css">
-    <link href="stylesheets/bootstrap-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="bootstrap-3.3.7-dist/css/bootstrap.css">
     <link href="stylesheets/smartink.css" rel="stylesheet" type="text/css">
     <link href="stylesheets/slider.css" rel="stylesheet" type="text/css">
     <link href="spectrum/spectrum.css" rel="stylesheet" type="text/css">
+    <link href="stylesheets/bootstrap-toggle.min.css" rel="stylesheet">
+
     <script src="javascripts/paper-full.js"></script>
     <script src="javascripts/jquery-3.1.1.min.js"></script>
     <script src="javascripts/colorutil.js"></script>
@@ -36,7 +36,8 @@
             <input id="files" type="file" webkitdirectory directory multiple/>
             <input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning" checked />
             <input type = "text" id='strokec' />
-            <input type="text" class="slider" value="" data-slider-min="1" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" />
+            <input type = "text" id='strokec2' />
+            <input type="text" class="slider" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" value="0" />
             <!--<input id='fix-color' type="checkbox"/>-->
             <!--<input id='fix-stroke' type="checkbox"/>-->
         </div>

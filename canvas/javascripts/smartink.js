@@ -94,10 +94,40 @@ window.onload = function () {
     document.addEventListener("pointerdown", function(event) {
        handlePointerEvents(event);
     });
+    $('#strokec').on('move.spectrum', function (e, color) {
+        if (curstroke) {
+            curstroke.strokeColor = color.toHexString();
+        }
+        $('#strokec2').spectrum("set", '');
 
-    setColorPalette(null);
-
-    $('.slider').slider();
+        // change selected colors
+    });
+    $('#strokec2').on('move.spectrum', function (e, color) {
+        if (curstroke) {
+            curstroke.strokeColor = color.toHexString();
+        }
+        $('#strokec').spectrum("set", '');
+        // change selected colors
+    });
+    setColorPalette(['black']);
+    $('#strokec2').spectrum({
+        allowEmpty: true,
+        showPaletteOnly: true,
+        showPalette:true,
+        hideAfterPaletteSelect: true,
+        flat: true,
+        palette: [
+            ['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'black']
+        ]
+    });
+    $('.slider').slider(
+        {
+            tooltip_position:'bottom',
+            formatter: function(value) {
+                return 'Current value: ' + value;
+            }
+        }
+    );
 };
 
 function handleFileSelect(evt) {
@@ -174,16 +204,13 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
-    console.log("pointer down");
     if(spaper && spaper.tool && spaper.tool.name == 'mask') {
         return;
     }
     if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
         if (event.buttons == 2) {
-            console.log("activate reveal");
             activateRevealPen();
         } else {
-            console.log("activate ink");
             activateInkTool();
         }
     } else if (spaper) {
@@ -684,7 +711,7 @@ function inkEnd(event) {
 
         // get stroke color
         traceColor(curitem.praster, curstroke);
-        // setColorPalette(curstroke.strokeColor);
+        setColorPalette(curstroke.data.colors);
 
         // get stroke fillcolor
         traceFill(curitem.praster, curstroke);
@@ -698,24 +725,17 @@ function inkEnd(event) {
 
 function setColorPalette(colors) {
     $('#strokec').spectrum({
+        allowEmpty: true,
         showPaletteOnly: true,
         showPalette:true,
         hideAfterPaletteSelect: true,
-        // color: 'black',
+        color: colors[0],
         flat: true,
-        showAlpha: true,
-        maxSelectionSize: 5,
         palette: [
-            ['black', 'red', 'green', 'blue']
+            colors
         ]
-
     });
 };
-
-function setStrokeWidth(w) {
-
-};
-
 
 function rotateStrokeColor(path) {
     if (!path) return;

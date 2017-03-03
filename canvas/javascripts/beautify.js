@@ -55,9 +55,10 @@ function chaikinSmooth(path) {
 function resample(path, maxpoints=100) {
     var points = [];
     var inc = Math.max(path.length/maxpoints, 1)
-    for (var i = 0; i <= path.length; i+=inc) {
+    for (var i = 0; i < path.length; i+=inc) {
         points.push(path.getPointAt(i));
     }
+    points.push(path.getPointAt(path.length));
     // points = simplify(points, 1);
     return points;
 };
@@ -224,38 +225,23 @@ function traceColor(praster, path) {
         }
     }
     var cclusters = clusterColors(colors, 10);
-    // written on background
-    // var newstroke = new paper.Path(path.pathData);
+
     if (cclusters.length == 0) {
         path.strokeColor = praster.annocolor;
         path.data.free = true;
-        // document.getElementById('color1').style.backgroundColor = '';
-        // document.getElementById('color2').style.backgroundColor = '';
-        // document.getElementById('color3').style.backgroundColor = '';
-
+        path.data.colors = [path.strokeColor.toCSS()];
     } else {
         cclusters.sort(compareClusters);
         path.strokeColor = cclusters[0].maxcolor;
         path.strokeColor.alpha = 1.0;
-        // console.log(newstroke.strokeColor);
-        // console.log(cclusters[0].maxcolor.alpha);
-        path.data.colors = cclusters.slice(0,3);
-        // for (var i = 0; i < Math.min(cclusters.length, 8); i++) {
-        //     var id = 'color' + (i+1);
-        //     document.getElementById(id).style.backgroundColor = cclusters[i].maxcolor.toCSS(true);
-        //     // console.log(' ' + cclusters[i].maxcolor);
-        //     // console.log(id + ' ' + cclusters[i].ncolors);
-        // }
-        // for (var i = cclusters.length; i < 8; i++) {
-        //     var id = 'color' + (i+1);
-        //     document.getElementById(id).style.backgroundColor = null;
-        // }
-
-        path.data.cn = 0;
+        path.data.colors = [];
+        for (var i = 0; i < Math.min(cclusters.length, 3); i++) {
+                cclusters[i].maxcolor.alpha = 1.0;
+                path.data.colors.push(cclusters[i].maxcolor.toCSS());
+        }
         path.data.free = false;
-
     }
-    // newstroke.strokeColor.alpha = 1.0;
+
     return path;
 };
 
