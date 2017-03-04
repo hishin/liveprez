@@ -88,10 +88,7 @@ window.onload = function () {
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-
-    document.addEventListener("pointerenter", function(event) {
-        console.log(event);
-    });
+    
     document.addEventListener("pointerdown", function(event) {
        handlePointerEvents(event);
     });
