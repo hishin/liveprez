@@ -110,7 +110,6 @@ function handleConnectMessage(data) {
 function handleSlideSetupMessage(data) {
     // var numslide = JSON.parse(data.num);
     aspectratio = data.aspectratio;
-    console.log(aspectratio);
     SLIDE_W = $(window).width() - 5;// * 0.95;
     SLIDE_H = SLIDE_W * aspectratio;
     if (SLIDE_H > $(window).height() - 5) {
@@ -387,47 +386,39 @@ function handleMaskMessage(data) {
     else
         curslide.masklayer.activate();
 
-    if (!data.add && curslide.masklayer.getItems().length == 0) {
-        return;
-    }
-
     var maskbox = new paper.Path(JSON.parse(data.content)[1]);
     maskbox.fillColor = data.bgcolor;
     maskbox.fillColor.alpha = 1.0;
     maskbox.strokeWidth = 0;
     maskbox.scale(scale, new paper.Point(0, 0));
-
-    if (curslide.masklayer.getItems().length > 0) {
+    if (curslide.masklayer.getItems().length > 1) {
         var maskitem = curslide.masklayer.getItems()[0];
         if (data.add) {
             maskitem.unite(maskbox);
             maskbox.remove();
         }
         else if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
-            console.log("subtract");
             maskitem.subtract(maskbox);
         }
         maskitem.remove();
-
-        // get ink inside this region
-        if (!data.add) {
-            var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
-            for (var i = 0; i < inkitems.length; i++) {
-                if (!inkitems[i].data.free)
-                    inkitems[i].onFrame = function (event) {
-                        if (this.strokeColor.alpha <= 0) this.remove();
-                        this.strokeColor.alpha -= 0.02;
-                    }
-            }
-        }
     }
 
     if (!data.add) {
+        // get ink inside this region
+        var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
+        for (var i = 0; i < inkitems.length; i++) {
+            if (!inkitems[i].data.free)
+                inkitems[i].onFrame = function (event) {
+                    if (this.strokeColor.alpha <= 0) this.remove();
+                    this.strokeColor.alpha -= 0.05;
+                }
+        }
+
         maskbox.onFrame = function () {
             if (this.fillColor.alpha <= 0) {
                 this.remove();
             }
-            this.fillColor.alpha -= 0.02;
+            this.fillColor.alpha -= 0.05;
         };
     }
 };

@@ -88,9 +88,10 @@ window.onload = function () {
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-    // document.addEventListener("touchstart", function(event) {
-    //     handlePointerEvents(event);
-    // });
+
+    document.addEventListener("pointerenter", function(event) {
+        console.log(event);
+    });
     document.addEventListener("pointerdown", function(event) {
        handlePointerEvents(event);
     });
@@ -107,6 +108,7 @@ window.onload = function () {
     $('#strokec2').on('move.spectrum', function (e, color) {
         if (curstroke) {
             curstroke.strokeColor = color.toHexString();
+            curstroke.data.free = true;
         }
         $('#strokec').spectrum("set", '');
     });
@@ -876,7 +878,6 @@ function revealContinue(event) {
 };
 
 function revealEnd(event) {
-    console.log("revealend");
     if (curstroke) {
         curstroke.closePath();
         if (curbound)
@@ -891,26 +892,27 @@ function revealEnd(event) {
             }
             maskitem.remove();
 
-            // get inkstrokes inside this region
-            var inkitems = curslide.inklayer.getItems({inside: curstroke.bounds});
-            for (var i = 0; i < inkitems.length; i++) {
-                if (!inkitems[i].data.free && isInside(curstroke, inkitems[i])) {
-                    inkitems[i].onFrame = function () {
-                        if (this.strokeColor.alpha <= 0) this.remove();
-                        this.strokeColor.alpha -= 0.05;
-                    };
-
-                }
-            }
-
+            curstroke.fillColor = 'white';
+            curstroke.fillColor.alpha = 1.0;
+            curstroke.onFrame = function() {
+                if (this.fillColor.alpha <= 0) this.remove();
+                this.fillColor.alpha -= 0.05;
+            };
         }
 
-        curstroke.fillColor = 'white';
-        curstroke.fillColor.alpha = 1.0;
-        curstroke.onFrame = function() {
-            if (this.fillColor.alpha <= 0) this.remove();
-            this.fillColor.alpha -= 0.05;
-        };
+        // get inkstrokes inside this region
+        var inkitems = curslide.inklayer.getItems({inside: curstroke.bounds});
+        for (var i = 0; i < inkitems.length; i++) {
+            if (!inkitems[i].data.free && isInside(curstroke, inkitems[i])) {
+                inkitems[i].onFrame = function () {
+                    if (this.strokeColor.alpha <= 0) this.remove();
+                    this.strokeColor.alpha -= 0.05;
+                };
+
+            }
+        }
+
+
 
     }
 
