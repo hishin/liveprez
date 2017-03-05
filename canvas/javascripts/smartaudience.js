@@ -195,10 +195,11 @@ function revealSlide() {
 
 function loadSlide(slide) {
     // hide current slide
-    if (curslidenum) {
+    if (curslidenum != undefined) {
         hideSlide(slides[curslidenum]);
     }
     showSlide(slides[slide.num]);
+
     curslide = slides[slide.num];
     curslidenum = curslide.num;
     curitem = curslide.items[0];

@@ -30,6 +30,7 @@ var pinchcenter;
 var oldzoom;
 var oldcenter;
 var prevpinchscale;
+var autostyle = true;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -79,6 +80,10 @@ window.onload = function () {
         }
     });
 
+    $('#auto-style').change(function(event) {
+        autostyle = event.target.checked;
+    });
+
     document.oncontextmenu = function(event) {
         event.preventDefault();
     };
@@ -97,29 +102,32 @@ window.onload = function () {
     });
 
     $('#strokec').on('move.spectrum', function (e, color) {
-        if (curstroke) {
+        if (autostyle && curstroke) {
             curstroke.strokeColor = color.toHexString();
+            post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
         }
         $('#strokec2').spectrum("set", '');
     });
     $('#strokec2').on('move.spectrum', function (e, color) {
-        if (curstroke) {
+        if (autostyle && curstroke) {
             curstroke.strokeColor = color.toHexString();
             curstroke.data.free = true;
+            post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
         }
         $('#strokec').spectrum("set", '');
     });
-    setColorPalette(['black']);
     $('#strokec2').spectrum({
         allowEmpty: true,
         showPaletteOnly: true,
         showPalette:true,
-        hideAfterPaletteSelect: true,
+        clickoutFiresChange: false,
         flat: true,
         palette: [
             ['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'black']
         ]
     });
+    setColorPalette(['black', 'white']);
+
     $('.slider').slider(
         {
             tooltip_position:'bottom',
@@ -198,6 +206,9 @@ function handleKeyboardEvents(event) {
             break;
         case "c":
             rotateStrokeColor(curstroke);
+            break;
+        case "s":
+            printStrokeStyles();
             break;
         default:
     }
@@ -706,15 +717,28 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        // get stroke width
-        traceWidth(curitem.praster, curstroke);
+        if (autostyle) {
+            // get stroke width
+            traceWidth(curitem.praster, curstroke);
 
-        // get stroke color
-        traceColor(curitem.praster, curstroke);
-        setColorPalette(curstroke.data.colors);
-
-        // get stroke fillcolor
-        traceFill(curitem.praster, curstroke);
+            // get stroke color
+            traceColor(curitem.praster, curstroke);
+            setColorPalette(curstroke.data.colors);
+            // get stroke fillcolor
+            traceFill(curitem.praster, curstroke);
+        } else {
+            var c1 = $('#strokec').spectrum("get");
+            var c2 = $('#strokec2').spectrum("get");
+            if (c1) {
+                curstroke.strokeColor = c1.toHexString();
+                $('#strokec').spectrum("set", c1.toHex());
+            } else if (c2){
+                curstroke.strokeColor = c2.toHexString();
+                $('#strokec2').spectrum("set", c2.toHex());
+                // console.log("set to zero");
+                // $('#strokec').spectrum("set", '');
+            }
+        }
         if (curstroke.length > 0) {
             curstroke.simplify();
         }
@@ -729,6 +753,7 @@ function setColorPalette(colors) {
         showPaletteOnly: true,
         showPalette:true,
         hideAfterPaletteSelect: true,
+        clickoutFiresChange: false,
         color: colors[0],
         flat: true,
         palette: [
@@ -749,6 +774,29 @@ function rotateStrokeColor(path) {
     post(colorChangeMessage(path.strokeColor, path.data.free));
 
 };
+
+function printStrokeStyles() {
+    if (curslide && curslide.inklayer) {
+        var strokes = curslide.inklayer.getItems();
+        var styles = [];
+        var counts = [];
+        for (var i = 0; i < strokes.length; i++) {
+            var stroke = strokes[i];
+            var string = stroke.strokeColor + " " + stroke.fillColor + " " + stroke.strokeWidth;
+            var id = styles.indexOf(string);
+            if (id < 0) {
+                styles.push(string);
+                counts.push(1);
+            } else {
+                counts[id]++;
+            }
+        }
+        console.log("num styles: " + styles.length);
+        console.log("num strokes: " + strokes.length);
+        console.log(styles);
+        console.log(counts);
+    }
+}
 
 function activateMaskTool() {
     if (!spaper) return;
@@ -776,10 +824,8 @@ function maskStart(event) {
 
     curstroke = new paper.Path();
     curstroke.add(event.point);
-    // curstroke.add(new paper.Point(event.point.x+0.1, event.point.y+0.1));
     curstroke.strokeWidth = 2;
-    curstroke.strokeColor = 'black';
-
+    curstroke.strokeColor = 'red';
     // curbound = new paper.Path.Rectangle(curstroke.strokeBounds);
     // curbound.strokeWidth = 1;
     // curbound.dashArray = [5,5];
@@ -798,12 +844,18 @@ function maskEnd(event) {
         curslide.masklayer.activate();
 
         var maskbox = new paper.Path(curstroke.pathData);
+        maskbox.strokeColor = 'red';
+        maskbox.strokeWidth = 1;
+        maskbox.dashArray = [5,5];
         maskbox.fillColor = curitem.praster.bgcolor;
         maskbox.fillColor.alpha = 0.5;
         post(addMaskMessage(maskbox, true));
         if (curslide.masklayer.getItems().length > 0) {
             var maskitem = curslide.masklayer.getItems()[0];
-            maskitem.unite(maskbox);
+            var result = maskitem.unite(maskbox);
+            result.strokeColor = 'red';
+            result.strokeWidth = 1;
+            result.dashArray = [5,5];
             maskitem.remove();
             maskbox.remove();
         }

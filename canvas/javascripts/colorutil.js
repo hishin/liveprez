@@ -9,6 +9,7 @@ function getBackgroundColor(data, b = 4) {
     var rmeans = new Array(b*b*b).fill(0.0);
     var gmeans = new Array(b*b*b).fill(0.0);
     var bmeans = new Array(b*b*b).fill(0.0);
+    var counts = new Array(b*b*b).fill(0);
     var mod = 256/b;
     var alpha;
     for (var i = 0; i < data.length; i+=4) {
@@ -23,6 +24,7 @@ function getBackgroundColor(data, b = 4) {
         rmeans[id] += data[i]*alpha;
         gmeans[id] += data[i+1]*alpha;
         bmeans[id] += data[i+2]*alpha;
+        // counts[id]++;
 
     }
     var idx = hist.indexOf(Math.max.apply(null, hist));
@@ -31,6 +33,7 @@ function getBackgroundColor(data, b = 4) {
     var r = rmeans[idx] / hist[idx];
     var g = gmeans[idx] / hist[idx];
     var b = bmeans[idx] / hist[idx];
+    // var a = hist[idx] / counts[idx];
     var colormode = [r,g,b];
     return colormode;
 };
@@ -39,7 +42,13 @@ function pColorFromDataRGB(datargb) {
     var r = Math.round( datargb[0]/255.0 * 10) / 10;
     var g = Math.round( datargb[1]/255.0 * 10) / 10;
     var b = Math.round( datargb[2]/255.0 * 10) / 10;
-    return [r, g, b];
+    var a;
+    if (datargb[3]) {
+        a = Math.round(datargb[3]/255.0 * 10) / 10;
+    } else {
+        a = 1.0
+    }
+    return [r, g, b, a];
 };
 
 function lab2rgb(lab){
