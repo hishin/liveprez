@@ -80,9 +80,9 @@ window.onload = function () {
         }
     });
 
-    $('#auto-style').change(function(event) {
-        autostyle = event.target.checked;
-    });
+    // $('#auto-style').change(function(event) {
+    //     autostyle = event.target.checked;
+    // });
 
     document.oncontextmenu = function(event) {
         event.preventDefault();
@@ -128,14 +128,14 @@ window.onload = function () {
     });
     setColorPalette(['black', 'white']);
 
-    $('.slider').slider(
-        {
-            tooltip_position:'bottom',
-            formatter: function(value) {
-                return 'Current value: ' + value;
-            }
-        }
-    );
+    // $('.slider').slider(
+    //     {
+    //         tooltip_position:'bottom',
+    //         formatter: function(value) {
+    //             return 'Current value: ' + value;
+    //         }
+    //     }
+    // );
 };
 
 function handleFileSelect(evt) {
@@ -717,7 +717,7 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        if (autostyle) {
+        // if (autostyle) {
             // get stroke width
             traceWidth(curitem.praster, curstroke);
 
@@ -726,19 +726,19 @@ function inkEnd(event) {
             setColorPalette(curstroke.data.colors);
             // get stroke fillcolor
             traceFill(curitem.praster, curstroke);
-        } else {
-            var c1 = $('#strokec').spectrum("get");
-            var c2 = $('#strokec2').spectrum("get");
-            if (c1) {
-                curstroke.strokeColor = c1.toHexString();
-                $('#strokec').spectrum("set", c1.toHex());
-            } else if (c2){
-                curstroke.strokeColor = c2.toHexString();
-                $('#strokec2').spectrum("set", c2.toHex());
-                // console.log("set to zero");
-                // $('#strokec').spectrum("set", '');
-            }
-        }
+        // } else {
+        //     var c1 = $('#strokec').spectrum("get");
+        //     var c2 = $('#strokec2').spectrum("get");
+        //     if (c1) {
+        //         curstroke.strokeColor = c1.toHexString();
+        //         $('#strokec').spectrum("set", c1.toHex());
+        //     } else if (c2){
+        //         curstroke.strokeColor = c2.toHexString();
+        //         $('#strokec2').spectrum("set", c2.toHex());
+        //         // console.log("set to zero");
+        //         // $('#strokec').spectrum("set", '');
+        //     }
+        // }
         if (curstroke.length > 0) {
             curstroke.simplify();
         }
