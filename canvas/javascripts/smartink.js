@@ -31,6 +31,7 @@ var oldzoom;
 var oldcenter;
 var prevpinchscale;
 var autostyle = true;
+var default_palette = ['rgb(0,0,0)', 'rgb(255,255,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'];
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -80,25 +81,19 @@ window.onload = function () {
         }
     });
 
-    // $('#auto-style').change(function(event) {
-    //     autostyle = event.target.checked;
-    // });
-
     document.oncontextmenu = function(event) {
         event.preventDefault();
     };
     popupAudienceView();
 
+    document.getElementById('download_link').addEventListener('click', saveCanvasImage, false);
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
     document.addEventListener("keyup", function(event) {
         handleKeyboardEvents(event);
     });
-    
+
     document.addEventListener("pointerdown", function(event) {
        handlePointerEvents(event);
-    });
-    $('#strokec').on('change.spectrum', function (e, color) {
-        $('#strokec2').spectrum("set", '');
     });
 
     $('#strokec').on('move.spectrum', function (e, color) {
@@ -106,27 +101,33 @@ window.onload = function () {
             curstroke.strokeColor = color.toHexString();
             post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
         }
-        $('#strokec2').spectrum("set", '');
     });
-    $('#strokec2').on('move.spectrum', function (e, color) {
-        if (autostyle && curstroke) {
-            curstroke.strokeColor = color.toHexString();
-            curstroke.data.free = true;
-            post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
+
+    $('#auto-style').change(function(event) {
+        autostyle = event.target.checked;
+        if (autostyle) {
+            $('#strokec').spectrum("set", '');
         }
-        $('#strokec').spectrum("set", '');
     });
-    $('#strokec2').spectrum({
-        allowEmpty: true,
-        showPaletteOnly: true,
-        showPalette:true,
-        clickoutFiresChange: false,
-        flat: true,
-        palette: [
-            ['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'black']
-        ]
-    });
-    setColorPalette(['black', 'white']);
+    // $('#strokec2').on('move.spectrum', function (e, color) {
+    //     if (autostyle && curstroke) {
+    //         curstroke.strokeColor = color.toHexString();
+    //         curstroke.data.free = true;
+    //         post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
+    //     }
+    //     $('#strokec').spectrum("set", '');
+    // });
+    // $('#strokec2').spectrum({
+    //     allowEmpty: true,
+    //     showPaletteOnly: true,
+    //     showPalette:true,
+    //     clickoutFiresChange: false,
+    //     flat: true,
+    //     palette: [
+    //         ['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'black']
+    //     ]
+    // });
+    setColorPalette([]);
 
     // $('.slider').slider(
     //     {
@@ -204,11 +205,9 @@ function handleKeyboardEvents(event) {
         case "ArrowRight":
             nextSlide();
             break;
-        case "c":
-            rotateStrokeColor(curstroke);
-            break;
         case "s":
             printStrokeStyles();
+            showMenu(document.getElementById('download_link'));
             break;
         default:
     }
@@ -692,7 +691,6 @@ function inkStart(event){
     } else {
         curslide.inklayer.activate();
     }
-
     selectItem(event.point);
     curstroke = new paper.Path();
     curstroke.strokeWidth = 1;
@@ -717,7 +715,7 @@ function inkContinue(event) {
 function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
-        // if (autostyle) {
+        if (autostyle) {
             // get stroke width
             traceWidth(curitem.praster, curstroke);
 
@@ -726,19 +724,12 @@ function inkEnd(event) {
             setColorPalette(curstroke.data.colors);
             // get stroke fillcolor
             traceFill(curitem.praster, curstroke);
-        // } else {
-        //     var c1 = $('#strokec').spectrum("get");
-        //     var c2 = $('#strokec2').spectrum("get");
-        //     if (c1) {
-        //         curstroke.strokeColor = c1.toHexString();
-        //         $('#strokec').spectrum("set", c1.toHex());
-        //     } else if (c2){
-        //         curstroke.strokeColor = c2.toHexString();
-        //         $('#strokec2').spectrum("set", c2.toHex());
-        //         // console.log("set to zero");
-        //         // $('#strokec').spectrum("set", '');
-        //     }
-        // }
+        } else {
+            var c1 = $('#strokec').spectrum("get");
+            if (c1) {
+                curstroke.strokeColor = c1.toHexString();
+            }
+        }
         if (curstroke.length > 0) {
             curstroke.simplify();
         }
@@ -748,13 +739,15 @@ function inkEnd(event) {
 };
 
 function setColorPalette(colors) {
+    for (var i = 0; i < default_palette.length; i++) {
+        if (colors.indexOf(default_palette[i]) < 0)
+            colors.push(default_palette[i]);
+    }
     $('#strokec').spectrum({
         allowEmpty: true,
         showPaletteOnly: true,
         showPalette:true,
         hideAfterPaletteSelect: true,
-        clickoutFiresChange: false,
-        color: colors[0],
         flat: true,
         palette: [
             colors
@@ -796,7 +789,9 @@ function printStrokeStyles() {
         console.log(styles);
         console.log(counts);
     }
-}
+};
+
+
 
 function activateMaskTool() {
     if (!spaper) return;
@@ -1172,4 +1167,14 @@ function revealMenu(elem, event) {
 
 function hideMenu(elem) {
     elem.style.display = 'none';
+};
+
+function showMenu(elem) {
+    elem.style.display = 'block';
+}
+
+function saveCanvasImage() {
+    var dataURL = scanvas.toDataURL("image/png");
+    var href = dataURL.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
+    $('#download_link').attr('href', href);
 };

@@ -85,6 +85,7 @@ window.onload = function() {
     acanvas.slide = aslide;
     apaper.slide = aslide;
     apaper.canvas = acanvas;
+
 };
 
 window.onresize = function(event) {
@@ -427,3 +428,4 @@ function handleMaskMessage(data) {
 function handleReleaseTargetMessage(data) {
     curtargetitem = null;
 };
+
