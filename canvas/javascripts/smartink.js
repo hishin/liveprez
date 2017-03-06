@@ -62,8 +62,6 @@ function preloadImages(srcs) {
     }
 };
 
-
-
 window.onload = function () {
     document.getElementById('speaker-view').addEventListener('touchstart', function(event){
         if (event.target.tagName == 'DIV') {
@@ -109,24 +107,7 @@ window.onload = function () {
             $('#strokec').spectrum("set", '');
         }
     });
-    // $('#strokec2').on('move.spectrum', function (e, color) {
-    //     if (autostyle && curstroke) {
-    //         curstroke.strokeColor = color.toHexString();
-    //         curstroke.data.free = true;
-    //         post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
-    //     }
-    //     $('#strokec').spectrum("set", '');
-    // });
-    // $('#strokec2').spectrum({
-    //     allowEmpty: true,
-    //     showPaletteOnly: true,
-    //     showPalette:true,
-    //     clickoutFiresChange: false,
-    //     flat: true,
-    //     palette: [
-    //         ['red', 'yellow', 'orange', 'green', 'blue', 'purple', 'black']
-    //     ]
-    // });
+
     setColorPalette([]);
 
     // $('.slider').slider(
@@ -146,12 +127,7 @@ function handleFileSelect(evt) {
 
     // var thumbdiv = document.getElementById('slide-thumbnails');
     for (var i = 0, f; f = files[i]; i++) {
-        // var div = document.createElement('div');
-        // var img = document.createElement('img');
-        // img.setAttribute('id', 'thumb-'+i);
-        // img.className += 'thumb';
-        // div.appendChild(img);
-        // thumbdiv.appendChild(div);
+
         if (!f.type.match('image.*')) {
             continue;
         }
@@ -177,8 +153,8 @@ function handleFileSelect(evt) {
 };
 
 function compareFileName(a,b) {
-    var anum = parseInt(a.name.match(/\d+/)[0]);
-    var bnum = parseInt(b.name.match(/\d+/)[0]);
+    var anum = parseFloat(a.name.match(/\d+(\.\d+)?/)[0]);
+    var bnum = parseFloat(b.name.match(/\d+(\.\d+)?/)[0]);
 
     if (anum < bnum)
         return -1;
@@ -328,7 +304,6 @@ function setupSlideCanvas(slidedeck) {
             if (ev.pointerType != 'touch' || Math.abs(ev.overallVelocity) > 0.5) return;
             var newcenter = new paper.Point(oldcenter.x - ev.deltaX, oldcenter.y - ev.deltaY);
             spaper.view.center = newcenter;
-            // console.log(ev);
         });
 
 
@@ -348,8 +323,6 @@ function stableZoom(prevzoom, p, c, prevs, sfactor) {
     var delta = p.subtract(pc.multiply(beta)).subtract(c);
 
     return [newzoom, delta];
-    // var trans = fixedp.subtract(pc.multiply(newzoom)).subtract(spaper.view.center);
-    // spaper.view.translate(trans);
 };
 
 function resizeCanvas(width, height) {
@@ -359,8 +332,6 @@ function resizeCanvas(width, height) {
     scanvas.height = height;
     spaper.view.viewSize.width = width;
     spaper.view.viewSize.height = height;
-    // scale = img_w/width;
-    // console.log("scale: " + scale);
     post(resizeMessage());
 };
 
@@ -400,7 +371,6 @@ function setupPaperTools() {
     revealtool.onMouseUp = revealEnd;
     spaper.revealtool = revealtool;
 
-    // console.log($('#pen-tool'));
     if (!document.getElementById('pen-tool').checked) {
         activateMaskTool();
     } else {
@@ -433,6 +403,7 @@ function loadSlide(slide) {
         }
         slide.inklayer.insertAbove(slide.masklayer);
 
+        console.log("slide # items: " + slide.nitems);
         for (var i = 0; i < slide.nitems; i++) {
             var item = slide.items[i];
             loadItem(slide, item);
@@ -462,10 +433,8 @@ function loadItem(slide, item) {
     } else {
         slide.itemlayer.activate();
     }
-    // var wscale = parseFloat(CANVAS_W) / SLIDE_W;
-    // var hscale = parseFloat(CANVAS_H) / SLIDE_H;
 
-    var ext = item.src.split('.').pop();
+    // var ext = item.src.split('.').pop();
     // if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp' || ext == 'PNG') {
     item.setRaster(new paper.Raster(item.src));
     // item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
@@ -477,30 +446,20 @@ function loadItem(slide, item) {
     // item.pborder.strokeWidth = 1;
     // item.pborder.dashArray = [3, 2];
     // item.pborder.opacity = 0.5;
-
     // item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
     // item.pbbox.pivot = item.pbbox.bounds.topLeft;
     // item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
     // item.pbbox.item = item;
     // item.pbbox.fillColor = 'red';
     // item.pbbox.opacity = 0;
-
     // var delta = new paper.Point(item.left * wscale, item.top * hscale);
     // item.pborder.fitBounds(paper.view.bounds);
     // item.pbbox.fitBounds(paper.view.bounds, true);
     item.praster.fitBounds(paper.view.bounds);
-    // console.log(item.praster.width);
-    // console.log(item.praster.height);
     item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
     item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
     item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
-    // console.log(item.praster.width);
-    // console.log(item.praster.height);
-    // console.log('wslack = ' + item.praster.wslack);
-    // console.log('hslack = ' + item.praster.hslack);
     item.praster.opacity = 1.0;
-    // item.activateMouseEvents();
-
     // } else if (ext == 'svg') {
     //     layer.importSVG(item.src, {
     //         expandShapes: true,
