@@ -111,6 +111,7 @@ function handleSlideSetupMessage(data) {
     }
     resizeCanvas(SLIDE_W, SLIDE_H);
 
+    apaper.project.clear();
     var deck = JSON.parse(data.deck).slides;
     var slide, item;
     for (var i = 0; i < deck.length; i++) {
