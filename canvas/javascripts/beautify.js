@@ -205,8 +205,8 @@ function traceColor(praster, path) {
                     continue;
                 }
                 c = praster.getPixel(x,y);
-                c = colorToAlpha(c, praster.bgcolor);
-                if (c)
+                // c = colorToAlpha(c, praster.bgcolor);
+                if (c.alpha > 0.01)
                     pcolors.push(c);
                 // h = c.toCSS(true);
                 // var id = hexes.indexOf(h);
@@ -269,7 +269,6 @@ function maskColor(praster, newstroke) {
                 dg = c.green - color.green;
                 db = c.blue - color.blue;
                 colordiff = Math.sqrt(2*dr*dr + 4*dg*dg + 3*db*db);
-                // console.log(colordiff);
                 if (colordiff < 0.5) {
                     praster.setPixel(x,y, new paper.Color(1,0,1));
                     // maskstroke.add(new paper.Point(x/scale, y/scale));

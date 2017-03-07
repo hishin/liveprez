@@ -5,12 +5,9 @@
 var sslide;
 var scanvas;
 var spaper;
-var SLIDE_W = 960;
-var SLIDE_H = 720;
-// var CANVAS_W = 960;
-// var CANVAS_H = 720;
+var SLIDE_W;
+var SLIDE_H;
 var aspectratio; // matches the slide aspect ratio
-
 var scale;
 var img_w;
 var numslides;
@@ -386,12 +383,15 @@ function loadSlide(slide) {
     curslide = slide;
     // load or show new slide
     if (!slide.loaded) {
-        if (!slide.itemlayer)
-            slide.itemlayer = new paper.Layer();
+        slide.itemlayer = [];
+        for (var i = 0; i < slide.nitems; i++) {
+            var item = slide.items[i];
+            loadItem(slide, item, i);
+        }
         if (!slide.lowermask) {
             slide.lowermask = new paper.Layer();
         }
-        slide.lowermask.insertAbove(slide.itemlayer);
+        slide.lowermask.insertAbove(slide.itemlayer[slide.itemlayer.length-1]);
         if (!slide.masklayer) {
             slide.masklayer = new paper.Layer();
         } else {
@@ -403,12 +403,8 @@ function loadSlide(slide) {
         }
         slide.inklayer.insertAbove(slide.masklayer);
 
-        console.log("slide # items: " + slide.nitems);
-        for (var i = 0; i < slide.nitems; i++) {
-            var item = slide.items[i];
-            loadItem(slide, item);
-            slide.loaded = true;
-        }
+        slide.loaded = true;
+
     } else {
         slide.show();
     }
@@ -419,84 +415,59 @@ function loadSlide(slide) {
 function setMask() {
     if (!curslide.masklayer) {
         curslide.masklayer = new paper.Layer();
-        curslide.masklayer.insertAbove(curslide.itemlayer);
+        curslide.masklayer.insertAbove(curslide.itemlayer[curslide.itemlayer.length-1]);
     }
     activateMaskTool();
 };
 
-function loadItem(slide, item) {
-    curitem = item;
-    // if (item.type == 'image' && item.src) {
-    if (!slide.itemlayer) {
-        var layer = new paper.Layer();
-        slide.itemlayer = layer;
+function loadItem(slide, item, i) {
+    if (i == 0) {
+        loadBackgroundItem(slide, item);
     } else {
-        slide.itemlayer.activate();
+        loadForegroundItem(slide, item);
     }
+};
 
-    // var ext = item.src.split('.').pop();
-    // if (ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'bmp' || ext == 'PNG') {
-    item.setRaster(new paper.Raster(item.src));
-    // item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
-    // item.pborder.pivot = item.pborder.bounds.topLeft;
-    // item.praster.pivot = item.pborder.bounds.topLeft;
-    // item.pborder.scale(wscale, hscale, item.pborder.pivot);
-    // item.pborder.item = item;
-    // item.pborder.strokeColor = 'red';
-    // item.pborder.strokeWidth = 1;
-    // item.pborder.dashArray = [3, 2];
-    // item.pborder.opacity = 0.5;
-    // item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
-    // item.pbbox.pivot = item.pbbox.bounds.topLeft;
-    // item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
-    // item.pbbox.item = item;
-    // item.pbbox.fillColor = 'red';
-    // item.pbbox.opacity = 0;
-    // var delta = new paper.Point(item.left * wscale, item.top * hscale);
-    // item.pborder.fitBounds(paper.view.bounds);
-    // item.pbbox.fitBounds(paper.view.bounds, true);
+function loadBackgroundItem(slide, item, i) {
+    var layer = new paper.Layer();
+    slide.itemlayer.push(layer);
+    var raster = new paper.Raster(item.src);
+    item.setRaster(raster, true);
     item.praster.fitBounds(paper.view.bounds);
     item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
     item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
     item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
     item.praster.opacity = 1.0;
-    // } else if (ext == 'svg') {
-    //     layer.importSVG(item.src, {
-    //         expandShapes: true,
-    //         applyMatrix: true,
-    //         onLoad: function(svgitem, data) {
-    //                 item.psvg = svgitem;
-    //                 svgitem.item = item;
-    //
-    //                 item.pborder = new paper.Path.Rectangle(0, 0, item.width, item.height);
-    //                 item.pborder.pivot = item.pborder.bounds.topLeft;
-    //                 svgitem.pivot = item.pborder.bounds.topLeft;
-    //                 item.pborder.scale(wscale, hscale, item.pborder.pivot);
-    //                 item.pborder.item = item;
-    //                 item.pborder.strokeColor = 'black';
-    //                 item.pborder.strokeWidth = 3;
-    //                 item.pborder.dashArray = [3, 2];
-    //                 item.pborder.opacity = 0.5;
-    //
-    //                 item.pbbox = new paper.Shape.Rectangle(0, 0, item.width, item.height);
-    //                 item.pbbox.pivot = item.pbbox.bounds.topLeft;
-    //                 item.pbbox.scale(wscale, hscale, item.pbbox.pivot);
-    //                 item.pbbox.item = item;
-    //                 item.pbbox.fillColor = 'red';
-    //                 item.pbbox.opacity = 0;
-    //
-    //                 var delta = new paper.Point(item.left * wscale, item.top * hscale);
-    //                 item.pborder.translate(delta);
-    //                 item.pbbox.translate(delta);
-    //                 svgitem.scale(item.width / svgitem.bounds.width * wscale, item.height / svgitem.bounds.height * hscale);
-    //                 svgitem.translate(delta);
-    //                 item.inkstyles = getInkStyle(item.psvg);
-    //                 item.activateMouseEvents();
-    //                 hideSpeakerOnlyItems(item.psvg);
-    //         }
-    //     });
-    // }
-    // }
+};
+
+function loadForegroundItem(slide, item) {
+    var layer = new paper.Layer();
+    slide.itemlayer.push(layer);
+    if (slide.itemlayer.length > 1) {
+        layer.insertAbove(slide.itemlayer[slide.itemlayer.length-2]);
+    }
+
+    var fadedraster = new paper.Raster(item.src);
+    item.setRaster(fadedraster, false);
+    item.fadedraster.fitBounds(paper.view.bounds);
+    item.fadedraster.scale = Math.max(item.fadedraster.width/paper.view.bounds.width, item.fadedraster.height/paper.view.bounds.height);
+    item.fadedraster.wslack = (paper.view.bounds.width - item.fadedraster.width/item.fadedraster.scale)/2.0;
+    item.fadedraster.hslack = (paper.view.bounds.height - item.fadedraster.height/item.fadedraster.scale)/2.0;
+    item.fadedraster.opacity = 0.5;
+
+    var raster = new paper.Raster(item.src);
+    item.setRaster(raster, true);
+    item.praster.fitBounds(paper.view.bounds);
+    item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
+    item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
+    item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
+    item.praster.opacity = 1.0;
+    item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
+    item.pclip.fillColor = 'black';
+    item.pgroup = new paper.Group(item.pclip, item.praster);
+    item.pgroup.clipped = true;
+
+    item.pgroup.insertAbove(item.fadedraster);
 };
 
 function hideSpeakerOnlyItems(pitem) {
@@ -661,7 +632,8 @@ function inkStart(event){
 };
 
 function selectItem(point) {
-    curitem = curslide.items[0];
+    // Select the Foreground Item
+    curitem = curslide.items[curslide.items.length-1];
 };
 
 function inkContinue(event) {
@@ -688,9 +660,6 @@ function inkEnd(event) {
             if (c1) {
                 curstroke.strokeColor = c1.toHexString();
             }
-        }
-        if (curstroke.length > 0) {
-            curstroke.simplify();
         }
         post(inkMessage(curstroke, true));
 
@@ -774,46 +743,52 @@ function maskStart(event) {
     } else {
         curslide.inklayer.activate();
     }
+
     selectItem(event.point);
 
     curstroke = new paper.Path();
     curstroke.add(event.point);
     curstroke.strokeWidth = 2;
-    curstroke.strokeColor = 'red';
-    // curbound = new paper.Path.Rectangle(curstroke.strokeBounds);
-    // curbound.strokeWidth = 1;
-    // curbound.dashArray = [5,5];
-    // curbound.strokeColor = 'black';
+    curstroke.strokeColor = '#2F4F4F';
 };
 
 function maskContinue(event) {
     revealContinue(event);
-
 };
 
 function maskEnd(event) {
     if (curstroke) {
         curstroke.closePath();
         curbound.remove();
-        curslide.masklayer.activate();
 
+        curslide.masklayer.activate();
         var maskbox = new paper.Path(curstroke.pathData);
-        maskbox.strokeColor = 'red';
+        maskbox.strokeColor = '#2F4F4F';
         maskbox.strokeWidth = 1;
-        maskbox.dashArray = [5,5];
-        maskbox.fillColor = curitem.praster.bgcolor;
-        maskbox.fillColor.alpha = 0.5;
+        maskbox.fillColor = 'black';
+        maskbox.fillColor.alpha = 1.0;
         post(addMaskMessage(maskbox, true));
         if (curslide.masklayer.getItems().length > 0) {
             var maskitem = curslide.masklayer.getItems()[0];
             var result = maskitem.unite(maskbox);
-            result.strokeColor = 'red';
-            result.strokeWidth = 1;
-            result.dashArray = [5,5];
+            result.strokeColor = '#2F4F4F';
             maskitem.remove();
             maskbox.remove();
         }
+
+        // Activate foreground item layer
+        curslide.itemlayer[curslide.itemlayer.length-1].activate();
+        var mymask;
+        if (result.className == 'Path') {
+            mymask = new paper.Path(result.pathData);
+        }
+        else {
+            mymask = new paper.CompoundPath(result.pathData);
+        }
+        curitem.pgroup.children[0].replaceWith(mymask);
+        curitem.pgroup.clipped = true;
         curstroke.remove();
+        curslide.masklayer.visible =false;
     }
 };
 

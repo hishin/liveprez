@@ -9,10 +9,8 @@ var SlideDeck = function(slide_files) {
         var file = slide_files[i];
         sfiles.push(file);
         var num1 = getSlideNumFromFileName(file.name);
-
         for (var j = i+1; j < slide_files.length; j++) {
             var num2 = getSlideNumFromFileName(slide_files[j].name);
-            console.log("num1: " + num1 + " " + "num2: " + num2);
             if (num1 == num2) {
                 sfiles.push(slide_files[j]);
                 i = j;
@@ -40,17 +38,18 @@ function getSlideNumFromFileName(fname) {
 var Slide = function(sfiles, p) {
     this.pagenum = p;
     this.loaded = false;
-    this.itemlayer = null
+    this.itemlayer = [];//null
     this.lowermask = null;
     this.masklayer = null;;
     this.inklayer = null;
-    this.items = [];
+    this.items = new Array(sfiles.length);
     this.nitems = sfiles.length;
     this.sfiles = sfiles;
     var slide = this;
     for (var i = 0; i < sfiles.length; i++) {
         var reader = new FileReader();
         reader.onload = function(theFile) {
+            var tempi = i;
             return function (e) {
                 var MENU_H = 50;
                 // document.getElementById('thumb-'+slide.pagenum).src = e.target.result;
@@ -67,20 +66,24 @@ var Slide = function(sfiles, p) {
                     SLIDE_H = $(window).height() - MENU_H;
                     SLIDE_W = $(window).width() - 5;//SLIDE_H / aspectratio;
                 }
-                slide.items.push(item);
+                slide.items[tempi] = item;
             }
         }(sfiles[i]);
         reader.readAsDataURL(sfiles[i]);
     }
 
     this.hide = function() {
-        this.itemlayer.visible = false;
+        for (var i = 0; i < this.itemlayer.length; i++) {
+            this.itemlayer[i].visible = false;
+        }
         this.inklayer.visible = false;
         this.masklayer.visible = false;
     };
 
     this.show = function() {
-        this.itemlayer.visible = true;
+        for (var i = 0; i < this.itemlayer.length; i++) {
+            this.itemlayer[i].visible = true;
+        }
         this.inklayer.visible = true;
         this.masklayer.visible = true;
     };
@@ -90,27 +93,33 @@ function Item(url, slide) {
     this.src = url;
     this.psvg = null;
     this.praster = null;
+    this.fadedraster = null;
+    this.pgroup = null;
     this.pborder = null;
     this.pbbox = null;
 
-    this.setRaster = function(raster){
-        this.praster = raster;
-        this.praster.onLoad = function() {
-            // console.log("Compute Background Color");
-            var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
-            var c = getBackgroundColor(imgdata.data)
-            var pc = pColorFromDataRGB(c);
-            this.bgcolor = new paper.Color(pc[0], pc[1], pc[2]);
-            this.annocolor = invertColor(this.bgcolor);
-            this.fg = booleanImageFromForeground(imgdata, c, 20);
-            // console.log("Compute Edge Information");
-            this.sobel = computeSobel(this);
-            this.sobelbool = booleanImageFromSobel(this.sobel, 10);
-            // console.log("Compute Distance Transformation");
-            this.dt = distanceTransform(this.sobelbool, this.width, this.height, "EDT");
-            // console.log("Generate Stroke Width Image");
-            this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
-            // console.log("done");
+    this.setRaster = function(raster, fg){
+        if (fg) {
+            this.praster = raster;
+            this.praster.onLoad = function() {
+                // console.log("Compute Background Color");
+                var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+                var c = getBackgroundColor(imgdata.data)
+                var pc = pColorFromDataRGB(c);
+                this.bgcolor = new paper.Color(pc[0], pc[1], pc[2]);
+                this.annocolor = invertColor(this.bgcolor);
+                this.fg = booleanImageFromForeground(imgdata, c, 20);
+                // console.log("Compute Edge Information");
+                this.sobel = computeSobel(this);
+                this.sobelbool = booleanImageFromSobel(this.sobel, 10);
+                // console.log("Compute Distance Transformation");
+                this.dt = distanceTransform(this.sobelbool, this.width, this.height, "EDT");
+                // console.log("Generate Stroke Width Image");
+                this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
+                // console.log("done");
+            }
+        } else {
+            this.fadedraster = raster;
         }
     };
 };
