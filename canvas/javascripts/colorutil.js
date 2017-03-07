@@ -13,7 +13,7 @@ function getBackgroundColor(data, b = 4) {
     var mod = 256/b;
     var alpha;
     for (var i = 0; i < data.length; i+=4) {
-        if (data[i+3])
+        // if (data[i+3])
         ri = Math.trunc(data[i]/mod);
         gi = Math.trunc(data[i+1]/mod);
         bi = Math.trunc(data[i+2]/mod);
@@ -24,12 +24,11 @@ function getBackgroundColor(data, b = 4) {
         rmeans[id] += data[i]*alpha;
         gmeans[id] += data[i+1]*alpha;
         bmeans[id] += data[i+2]*alpha;
-        // counts[id]++;
-
+        counts[id]++;
     }
-    var idx = hist.indexOf(Math.max.apply(null, hist));
-    // console.log(hist[idx]);
-    // console.log(rmeans[idx]);
+    var idx = counts.indexOf(Math.max.apply(null, counts));
+    if (hist[idx] == 0)
+        return null;
     var r = rmeans[idx] / hist[idx];
     var g = gmeans[idx] / hist[idx];
     var b = bmeans[idx] / hist[idx];

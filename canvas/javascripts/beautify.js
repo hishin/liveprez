@@ -312,10 +312,11 @@ function traceFill(praster, path) {
 
         var pixels = praster.getPixelsInside(path);
         var c = getBackgroundColor(pixels, 4);
+        if (!c) return;
         var pc = pColorFromDataRGB(c);
-        var alphacolor = colorToAlpha(new paper.Color(pc[0], pc[1], pc[2]), praster.bgcolor);
-        if (!alphacolor)
-            return;
+        // var alphacolor = colorToAlpha(new paper.Color(pc[0], pc[1], pc[2]), praster.bgcolor);
+        // if (!alphacolor)
+        //     return;
         path.fillColor = pc;
         path.data.fillalpha = curstroke.fillColor.alpha;
         path.fillColor.alpha = 0.5;

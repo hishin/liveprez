@@ -18,7 +18,7 @@ var SlideDeck = function(slide_files) {
         }
 
         var slide = new Slide(sfiles, i);
-        slide.num = num1;
+        slide.num = this.slides.length;
         this.slides.push(slide);
     }
     this.n = getSlideNumFromFileName(slide_files[slide_files.length-1].name);
@@ -37,6 +37,7 @@ function getSlideNumFromFileName(fname) {
 
 var Slide = function(sfiles, p) {
     this.pagenum = p;
+    this.num = null;
     this.loaded = false;
     this.itemlayer = [];//null
     this.lowermask = null;
@@ -104,11 +105,11 @@ function Item(url, slide) {
             this.praster.onLoad = function() {
                 // console.log("Compute Background Color");
                 var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
-                var c = getBackgroundColor(imgdata.data)
-                var pc = pColorFromDataRGB(c);
-                this.bgcolor = new paper.Color(pc[0], pc[1], pc[2]);
+                // var c = getBackgroundColor(imgdata.data)
+                // var pc = pColorFromDataRGB(c);
+                this.bgcolor = new paper.Color('white');
                 this.annocolor = invertColor(this.bgcolor);
-                this.fg = booleanImageFromForeground(imgdata, c, 20);
+                this.fg = booleanImageFromForeground(imgdata);
                 // console.log("Compute Edge Information");
                 this.sobel = computeSobel(this);
                 this.sobelbool = booleanImageFromSobel(this.sobel, 10);
@@ -203,7 +204,7 @@ function computeSobel(raster) {
     return sobel;
 };
 
-function booleanImageFromForeground(imdata, bgcolor, threshold) {
+function booleanImageFromForeground(imdata) {
     var m = imdata.width;
     var n = imdata.height;
     var idx = 0;
@@ -213,9 +214,9 @@ function booleanImageFromForeground(imdata, bgcolor, threshold) {
     for (var j = 0; j < n; j++) {
         for (var i = 0; i < m; i++) {
             off = (j * m + i) * 4;
-            p = [imdata.data[off], imdata.data[off+1], imdata.data[off+2]];
-            diff = deltaRGB(p, bgcolor);
-            booleanImage[idx] = diff > threshold ? 1:0;
+            // p = [imdata.data[off], imdata.data[off+1], imdata.data[off+2]];
+            // diff = deltaRGB(p, bgcolor);
+            booleanImage[idx] = (imdata.data[off+3] != 0);//diff > threshold ? 1:0;
             idx++;
         }
     }
