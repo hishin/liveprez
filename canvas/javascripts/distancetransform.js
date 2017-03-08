@@ -28,7 +28,7 @@ function distanceTransform(booleanImage, m, n, method) {
             }
             else {
                 g[x+y*m] = 1 + g[x+(y-1)*m];
-                // cj[x+y*m] = cj[x+(y-1)*m];
+                cj[x+y*m] = cj[x+(y-1)*m];
             }
         }
         // Scan 2

@@ -467,9 +467,9 @@ function traceClosestPixels(praster, path) {
         py = Math.round((point.y - praster.hslack)*praster.scale);
         cx = praster.dti[px+py*praster.width];
         cy = praster.dtj[px+py*praster.width];
-        praster.setPixel(px, py, new paper.Color('red'));
-        praster.setPixel(cx,cy, new paper.Color('blue'));
-        // floodFill(praster, praster.fg, cx, cy);
+        // praster.setPixel(px, py, new paper.Color('red'));
+        // praster.setPixel(cx,cy, new paper.Color('blue'));
+        floodFill(praster, praster.fg, cx, cy);
     }
 };
 
@@ -479,7 +479,7 @@ function floodFill(praster, boolarray, x, y) {
     var origy = y;
     var threshold = MAX_SWIDTH_PX/2.0 + MAX_ERROR_DIST*praster.scale;
     var pixelStack = [[x, y]];
-    while(pixelStack.length && pointDist({x:origx, y:origy}, {x:x, y:y}) < threshold && !praster.revealed[x+y*praster.width])
+    while(pixelStack.length && !praster.revealed[x+y*praster.width])
     {
         var newPos, x, y, reachLeft, reachRight;
         newPos = pixelStack.pop();
@@ -488,14 +488,14 @@ function floodFill(praster, boolarray, x, y) {
 
         var px = x;
         var py = y;
-        while(y-- >= 0 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width] && pointDist({x:origx, y:origy}, {x:x, y:y}) < threshold){
+        while(y-- >= 0 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width]){
             py -= 1;
         }
         py += 1;
         y++;
         reachLeft = false;
         reachRight = false;
-        while(y++ < praster.height-1 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width] && pointDist({x:origx, y:origy}, {x:x, y:y}) < threshold)
+        while(y++ < praster.height-1 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width])
         {
             praster.setPixel(px,py,c);
             praster.revealed[px+py*praster.width] = 1.0;

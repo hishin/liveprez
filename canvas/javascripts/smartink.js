@@ -656,6 +656,7 @@ function inkEnd(event) {
             traceFill(curitem.praster, curstroke);
         } else {
             traceClosestPixels(curitem.praster, curstroke);
+            curstroke.remove();
             // var c1 = $('#strokec').spectrum("get");
             // if (c1) {
             //     curstroke.strokeColor = c1.toHexString();
