@@ -103,7 +103,7 @@ function distanceTransform(booleanImage, m, n, method) {
             if (method == 'EDT')
                 d = Math.floor(Math.sqrt(d));
             ci[u+y*m] = s[q];
-            cj[u+y*m] = y; // this is wrong
+            cj[u+y*m] = cj[s[q]+y*m]; // this is wrong
             dt[u+y*m] = d;
             if (u == t[q])
                 q--;
