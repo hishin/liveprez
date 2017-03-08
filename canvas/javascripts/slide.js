@@ -99,6 +99,8 @@ function Item(url, slide) {
     this.pborder = null;
     this.pbbox = null;
 
+    var white = new paper.Color('white');
+    var black = new paper.Color('black');
     this.setRaster = function(raster, fg){
         if (fg) {
             this.praster = raster;
@@ -121,7 +123,7 @@ function Item(url, slide) {
                 this.dtj = this.dtresult2[2];
                 // console.log("Generate Stroke Width Image");
                 this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
-                // console.log("done");
+                this.revealed = new Array(this.width * this.height).fill(0);
             }
         } else {
             this.fadedraster = raster;
@@ -217,7 +219,7 @@ function booleanImageFromForeground(imdata) {
     var booleanImage = new Array(m*n);
     for (var j = 0; j < n; j++) {
         for (var i = 0; i < m; i++) {
-            off = (j * m + i) * 4;
+            off = (j * m + i) * 4; // pixel i,j
             // p = [imdata.data[off], imdata.data[off+1], imdata.data[off+2]];
             // diff = deltaRGB(p, bgcolor);
             booleanImage[idx] = (imdata.data[off+3] != 0);//diff > threshold ? 1:0;
@@ -225,6 +227,30 @@ function booleanImageFromForeground(imdata) {
         }
     }
     return booleanImage;
+};
+
+function setRasterToBool(praster, bool) {
+    var w = new paper.Color('white');
+    var b = new paper.Color('black');
+    for (var x = 0; x < praster.width; x++) {
+        for (var y = 0; y < praster.height; y++) {
+            if (bool[x + y * praster.width])
+                praster.setPixel(x, y, w)
+            else
+                praster.setPixel(x, y, b);
+
+        }
+    }
+};
+
+function makeTransparent(raster) {
+    for (var x = 0; x < raster.width; x++) {
+        for(var y = 0; y < raster.height; y++) {
+            var c = raster.getPixel(x,y);
+            c.alpha = 0.0;
+            raster.setPixel(x,y, c);
+        }
+    }
 };
 
 function computeGaussian(raster, diameter) {

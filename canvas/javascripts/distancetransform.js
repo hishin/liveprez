@@ -28,7 +28,7 @@ function distanceTransform(booleanImage, m, n, method) {
             }
             else {
                 g[x+y*m] = 1 + g[x+(y-1)*m];
-                cj[x+y*m] = cj[x+(y-1)*m];
+                // cj[x+y*m] = cj[x+(y-1)*m];
             }
         }
         // Scan 2
@@ -103,6 +103,7 @@ function distanceTransform(booleanImage, m, n, method) {
             if (method == 'EDT')
                 d = Math.floor(Math.sqrt(d));
             ci[u+y*m] = s[q];
+            cj[u+y*m] = y; // this is wrong
             dt[u+y*m] = d;
             if (u == t[q])
                 q--;

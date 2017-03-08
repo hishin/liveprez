@@ -467,34 +467,42 @@ function traceClosestPixels(praster, path) {
         py = Math.round((point.y - praster.hslack)*praster.scale);
         cx = praster.dti[px+py*praster.width];
         cy = praster.dtj[px+py*praster.width];
-        floodFill(praster, praster.fg, cx, cy, 0, new paper.Color('green'));
+        praster.setPixel(px, py, new paper.Color('red'));
+        praster.setPixel(cx,cy, new paper.Color('blue'));
+        // floodFill(praster, praster.fg, cx, cy);
     }
 };
 
-function floodFill(praster, boolarray, x, y, depth, color) {
+function floodFill(praster, boolarray, x, y) {
+    var c = new paper.Color('green');
+    var origx = x;
+    var origy = y;
+    var threshold = MAX_SWIDTH_PX/2.0 + MAX_ERROR_DIST*praster.scale;
     var pixelStack = [[x, y]];
-    while(pixelStack.length)
+    while(pixelStack.length && pointDist({x:origx, y:origy}, {x:x, y:y}) < threshold && !praster.revealed[x+y*praster.width])
     {
-        console.log(pixelStack);
-        var newPos, x, y, posx, posy, reachLeft, reachRight;
+        var newPos, x, y, reachLeft, reachRight;
         newPos = pixelStack.pop();
         x = newPos[0];
         y = newPos[1];
 
-        while(y-- >= 0 && boolarray[x+y*praster.width]){
-
+        var px = x;
+        var py = y;
+        while(y-- >= 0 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width] && pointDist({x:origx, y:origy}, {x:x, y:y}) < threshold){
+            py -= 1;
         }
+        py += 1;
         y++;
-
         reachLeft = false;
         reachRight = false;
-        while(y++ < praster.height-1 && boolarray[x+y*praster.width])
+        while(y++ < praster.height-1 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width] && pointDist({x:origx, y:origy}, {x:x, y:y}) < threshold)
         {
-            console.log(y);
-            praster.setPixel(x,y,color);
+            praster.setPixel(px,py,c);
+            praster.revealed[px+py*praster.width] = 1.0;
+
             if(x > 0)
             {
-                if(boolarray[(x-1)+y*praster.width])
+                if(boolarray[(x-1)+y*praster.width] && !praster.revealed[(x-1)+y*praster.width] && pointDist({x:origx, y:origy}, {x:x-1, y:y}) < threshold)
                 {
                     if(!reachLeft){
                         pixelStack.push([x - 1, y]);
@@ -509,11 +517,12 @@ function floodFill(praster, boolarray, x, y, depth, color) {
 
             if(x < praster.width-1)
             {
-                if(boolarray[(x+1)+y*praster.width])
+                if(boolarray[(x+1)+y*praster.width] &  !praster.revealed[(x+1)+y*praster.width] && pointDist({x:origx, y:origy}, {x:x+1, y:y}) < threshold)
                 {
                     if(!reachRight)
                     {
                         pixelStack.push([x + 1, y]);
+
                         reachRight = true;
                     }
                 }
@@ -522,6 +531,8 @@ function floodFill(praster, boolarray, x, y, depth, color) {
                     reachRight = false;
                 }
             }
+
+            py += 1;
         }
     }
 };
