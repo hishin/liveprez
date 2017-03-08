@@ -10,22 +10,33 @@ function distanceTransform(booleanImage, m, n, method) {
     var infinity = m+n;
     var b = booleanImage;
     var g = new Array(m*n);
-    for (var x=0; x<m; x++)	{
-        if (b[x+0*m])
+    var cj = new Array(m*n); // to store the closest pixel
+    for (var x=0; x<m; x++)	{ // for each column
+        if (b[x+0*m]) {
             g[x+0*m] = 0;
-        else
+            cj[x+0*m] = 0;
+        }
+        else {
             g[x+0*m] = infinity;
+            cj[x+0*m] = -1;
+        }
         // Scan 1
         for (var y=1; y<n; y++)	{
-            if (b[x+y*m])
+            if (b[x+y*m]) {
                 g[x+y*m] = 0;
-            else
-                g[x+y*m] = 1 + g[x+(y-1)*m]
+                cj[x+y*m] = y;
+            }
+            else {
+                g[x+y*m] = 1 + g[x+(y-1)*m];
+                cj[x+y*m] = cj[x+(y-1)*m];
+            }
         }
         // Scan 2
         for (var y=n-1; y>= 0; y--)	{
-            if (g[x+(y+1)*m] < g[x+y*m])
-                g[x+y*m] = 1 + g[x+(y+1)*m]
+            if (g[x+(y+1)*m] < g[x+y*m]) {
+                g[x+y*m] = 1 + g[x+(y+1)*m];
+                cj[x+y*m] = cj[x+(y+1)*m];
+            }
         }
     }
     // Euclidean
@@ -57,6 +68,7 @@ function distanceTransform(booleanImage, m, n, method) {
             return Math.min(u-g_i, Math.floor((i+u)/2));
     }
     // Second phase
+    var ci = new Array(m*n); // to store closest pixel
     var f	= eval(method + '_f');
     var Sep	= eval(method + '_Sep');
     var dt	= new Array(m*n);
@@ -90,10 +102,11 @@ function distanceTransform(booleanImage, m, n, method) {
             var d = f(u, s[q], g[s[q]+y*m]);
             if (method == 'EDT')
                 d = Math.floor(Math.sqrt(d));
+            ci[u+y*m] = s[q];
             dt[u+y*m] = d;
             if (u == t[q])
                 q--;
         }
     }
-    return dt;
+    return [dt, ci, cj];
 };

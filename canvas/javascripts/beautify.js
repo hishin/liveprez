@@ -458,6 +458,74 @@ function isClosed(path) {
     return (dist < path.length*0.05 && dist < 15);
 };
 
+function traceClosestPixels(praster, path) {
+    var point, px, py, cx, cy;
+    for (var i = 0; i < path.length; i++) {
+        point = path.getPointAt(i);
+        //pixel coordinates
+        px = Math.round((point.x - praster.wslack)*praster.scale);
+        py = Math.round((point.y - praster.hslack)*praster.scale);
+        cx = praster.dti[px+py*praster.width];
+        cy = praster.dtj[px+py*praster.width];
+        floodFill(praster, praster.fg, cx, cy, 0, new paper.Color('green'));
+    }
+};
+
+function floodFill(praster, boolarray, x, y, depth, color) {
+    var pixelStack = [[x, y]];
+    while(pixelStack.length)
+    {
+        console.log(pixelStack);
+        var newPos, x, y, posx, posy, reachLeft, reachRight;
+        newPos = pixelStack.pop();
+        x = newPos[0];
+        y = newPos[1];
+
+        while(y-- >= 0 && boolarray[x+y*praster.width]){
+
+        }
+        y++;
+
+        reachLeft = false;
+        reachRight = false;
+        while(y++ < praster.height-1 && boolarray[x+y*praster.width])
+        {
+            console.log(y);
+            praster.setPixel(x,y,color);
+            if(x > 0)
+            {
+                if(boolarray[(x-1)+y*praster.width])
+                {
+                    if(!reachLeft){
+                        pixelStack.push([x - 1, y]);
+                        reachLeft = true;
+                    }
+                }
+                else if(reachLeft)
+                {
+                    reachLeft = false;
+                }
+            }
+
+            if(x < praster.width-1)
+            {
+                if(boolarray[(x+1)+y*praster.width])
+                {
+                    if(!reachRight)
+                    {
+                        pixelStack.push([x + 1, y]);
+                        reachRight = true;
+                    }
+                }
+                else if(reachRight)
+                {
+                    reachRight = false;
+                }
+            }
+        }
+    }
+};
+
 function traceWidth(praster, path) {
     var inc = Math.max(path.length/100, 1);
     var point, normal, p, p1, p2, coords1, coords2, vals1, vals2, id1, id2, id;
@@ -474,8 +542,6 @@ function traceWidth(praster, path) {
 
         // px = Math.round((points[i].x - praster.wslack)*praster.scale);
         // py = Math.round((points[i].y - praster.hslack)*praster.scale);
-
-
         p1 = new paper.Point((p1.x - praster.wslack)*praster.scale, (p1.y - praster.hslack)*praster.scale);//p1.multiply(praster.scale);
         p2 = new paper.Point((p2.x - praster.wslack)*praster.scale, (p2.y - praster.hslack)*praster.scale);//p2.multiply(praster.scale);
         p = new paper.Point((point.x - praster.wslack)*praster.scale, (point.y - praster.hslack)*praster.scale);//point.multiply(praster.scale);

@@ -114,7 +114,11 @@ function Item(url, slide) {
                 this.sobel = computeSobel(this);
                 this.sobelbool = booleanImageFromSobel(this.sobel, 10);
                 // console.log("Compute Distance Transformation");
-                this.dt = distanceTransform(this.sobelbool, this.width, this.height, "EDT");
+                this.dtresult1 = distanceTransform(this.sobelbool, this.width, this.height, "EDT");
+                this.dt = this.dtresult1[0];
+                this.dtresult2 = distanceTransform(this.fg, this.width, this.height, "EDT");
+                this.dti = this.dtresult2[1];
+                this.dtj = this.dtresult2[2];
                 // console.log("Generate Stroke Width Image");
                 this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
                 // console.log("done");

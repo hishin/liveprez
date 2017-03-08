@@ -417,9 +417,6 @@ function handleMaskMessage(data) {
     curitem.pgroup.clipped = true;
     curslide.masklayer.visible = false;
 
-    // else if (maskitem.className === 'Path' || maskitem.className === 'CompoundPath') {
-    //
-    // }
     // if (!data.add) {
     //     // get ink inside this region
     //     var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});

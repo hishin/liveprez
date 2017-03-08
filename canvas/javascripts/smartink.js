@@ -649,17 +649,17 @@ function inkEnd(event) {
         if (autostyle) {
             // get stroke width
             traceWidth(curitem.praster, curstroke);
-
             // get stroke color
             traceColor(curitem.praster, curstroke);
             setColorPalette(curstroke.data.colors);
             // get stroke fillcolor
             traceFill(curitem.praster, curstroke);
         } else {
-            var c1 = $('#strokec').spectrum("get");
-            if (c1) {
-                curstroke.strokeColor = c1.toHexString();
-            }
+            traceClosestPixels(curitem.praster, curstroke);
+            // var c1 = $('#strokec').spectrum("get");
+            // if (c1) {
+            //     curstroke.strokeColor = c1.toHexString();
+            // }
         }
         post(inkMessage(curstroke, true));
 
