@@ -654,13 +654,14 @@ function inkEnd(event) {
             setColorPalette(curstroke.data.colors);
             // get stroke fillcolor
             traceFill(curitem.praster, curstroke);
-        } else {
             traceClosestPixels(curitem.praster, curstroke);
-            curstroke.remove();
-            // var c1 = $('#strokec').spectrum("get");
-            // if (c1) {
-            //     curstroke.strokeColor = c1.toHexString();
-            // }
+
+        } else {
+            // curstroke.remove();
+            var c1 = $('#strokec').spectrum("get");
+            if (c1) {
+                curstroke.strokeColor = c1.toHexString();
+            }
         }
         post(inkMessage(curstroke, true));
 

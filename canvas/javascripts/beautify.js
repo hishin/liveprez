@@ -71,28 +71,28 @@ function pathFromPoints(points) {
     return path;
 };
 
-function discreteFrechetDist(p, q) {
-    var df = new Array(p.length * q.length);
+// function discreteFrechetDist(p, q) {
+//     var df = new Array(p.length * q.length);
+//
+//     df[0] = pointDist(p[0], q[0]);
+//
+//     for (var j = 1; j < q.length; j++) {
+//         df[j] = Math.max(df[j-1], pointDist(p[0], q[j]));
+//     }
+//     for (var i = 1; i < p.length; i++) {
+//         df[i] = Math.max(df[(i-1)*q.length], pointDist(p[i], q[0]));
+//     }
+//     for (var i = 1; i < p.length; i++) {
+//         for (var j = 1; j < q.length; j++) {
+//             df[i*q.length + j] = Math.max(Math.min(df[(i-1)*q.length + j], df[(i-1)*q.length + j-1], df[i*q.length + j-1]), pointDist(p[i], q[j]));
+//         }
+//     }
+//
+//     return df[df.length-1];
+// };
 
-    df[0] = pointDist(p[0], q[0]);
-
-    for (var j = 1; j < q.length; j++) {
-        df[j] = Math.max(df[j-1], pointDist(p[0], q[j]));
-    }
-    for (var i = 1; i < p.length; i++) {
-        df[i] = Math.max(df[(i-1)*q.length], pointDist(p[i], q[0]));
-    }
-    for (var i = 1; i < p.length; i++) {
-        for (var j = 1; j < q.length; j++) {
-            df[i*q.length + j] = Math.max(Math.min(df[(i-1)*q.length + j], df[(i-1)*q.length + j-1], df[i*q.length + j-1]), pointDist(p[i], q[j]));
-        }
-    }
-
-    return df[df.length-1];
-};
-
-function pointDist(p0, p1) {
-    return Math.sqrt(Math.pow(p0.x-p1.x, 2) + Math.pow(p0.y-p1.y, 2));
+function pointDist(x1,y1,x2,y2) {
+    return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
 };
 
 function distToPath(points, pathq) {
@@ -460,81 +460,51 @@ function isClosed(path) {
 
 function traceClosestPixels(praster, path) {
     var point, px, py, cx, cy;
+    var cl = null;
+    var color = path.strokeColor;
+    var labc = rgb2lab([color.red*255, color.green*255, color.blue*255]);
+
     for (var i = 0; i < path.length; i++) {
         point = path.getPointAt(i);
-        //pixel coordinates
+
+        // get pixel coordinates
         px = Math.round((point.x - praster.wslack)*praster.scale);
         py = Math.round((point.y - praster.hslack)*praster.scale);
+
+        // get closest foreground pixel
         cx = praster.dti[px+py*praster.width];
         cy = praster.dtj[px+py*praster.width];
-        // praster.setPixel(px, py, new paper.Color('red'));
-        // praster.setPixel(cx,cy, new paper.Color('blue'));
-        floodFill(praster, praster.fg, cx, cy);
+
+        if (pointDist(px,py,cx,cy) < MAX_SWIDTH_PX) {
+            if (!cl) {
+                cl = praster.cclabel[cx + cy * praster.width];
+            }
+            floodFill(praster, cx, cy, cx, cy, cl, labc)
+        }
     }
 };
 
-function floodFill(praster, boolarray, x, y) {
+function floodFill(praster, x, y, origx, origy, cl, labc) {
     var c = new paper.Color('green');
-    var origx = x;
-    var origy = y;
-    var threshold = MAX_SWIDTH_PX/2.0 + MAX_ERROR_DIST*praster.scale;
-    var pixelStack = [[x, y]];
-    while(pixelStack.length && !praster.revealed[x+y*praster.width])
-    {
-        var newPos, x, y, reachLeft, reachRight;
-        newPos = pixelStack.pop();
-        x = newPos[0];
-        y = newPos[1];
-
-        var px = x;
-        var py = y;
-        while(y-- >= 0 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width]){
-            py -= 1;
-        }
-        py += 1;
-        y++;
-        reachLeft = false;
-        reachRight = false;
-        while(y++ < praster.height-1 && boolarray[x+y*praster.width] && !praster.revealed[x+y*praster.width])
-        {
-            praster.setPixel(px,py,c);
-            praster.revealed[px+py*praster.width] = 1.0;
-
-            if(x > 0)
-            {
-                if(boolarray[(x-1)+y*praster.width] && !praster.revealed[(x-1)+y*praster.width] && pointDist({x:origx, y:origy}, {x:x-1, y:y}) < threshold)
-                {
-                    if(!reachLeft){
-                        pixelStack.push([x - 1, y]);
-                        reachLeft = true;
-                    }
-                }
-                else if(reachLeft)
-                {
-                    reachLeft = false;
-                }
-            }
-
-            if(x < praster.width-1)
-            {
-                if(boolarray[(x+1)+y*praster.width] &  !praster.revealed[(x+1)+y*praster.width] && pointDist({x:origx, y:origy}, {x:x+1, y:y}) < threshold)
-                {
-                    if(!reachRight)
-                    {
-                        pixelStack.push([x + 1, y]);
-
-                        reachRight = true;
-                    }
-                }
-                else if(reachRight)
-                {
-                    reachRight = false;
-                }
-            }
-
-            py += 1;
-        }
-    }
+    var w = praster.width;
+    if (x < 0 || x >= w || y < 0 || y >= praster.height) return;
+    if (praster.revealed[x+y*w]) return;
+    if (!praster.fg[x+y*w]) return;
+    if (praster.cclabel[x+y*w] != cl) return;
+    if (pointDist(x,y,origx,origy) > MAX_SWIDTH_PX) return;
+    var pc = praster.getPixel(x,y);
+    var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
+    // dr = clusteravg.red - color.red;
+    // dg = clusteravg.green - color.green;
+    // db = clusteravg.blue - color.blue;
+    var colordiff = deltaE(labc, labpc);
+    if (colordiff > 10) return;
+    praster.setPixel(x,y, c);
+    praster.revealed[x+y*w] = 1;
+    floodFill(praster, x-1, y, origx, origy, cl, labc);
+    floodFill(praster, x+1, y, origx, origy, cl, labc);
+    floodFill(praster, x, y-1, origx, origy, cl, labc);
+    floodFill(praster, x, y+1, origx, origy, cl, labc);
 };
 
 function traceWidth(praster, path) {

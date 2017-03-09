@@ -121,9 +121,10 @@ function Item(url, slide) {
                 this.dtresult2 = distanceTransform(this.fg, this.width, this.height, "EDT");
                 this.dti = this.dtresult2[1];
                 this.dtj = this.dtresult2[2];
+                this.revealed = new Array(this.width * this.height).fill(0);
                 // console.log("Generate Stroke Width Image");
                 this.swidth = strokeWidthImage(this.dt, this.fg, 0, 10);
-                this.revealed = new Array(this.width * this.height).fill(0);
+                this.cclabel = BlobExtraction(this.fg, this.width, this.height);
             }
         } else {
             this.fadedraster = raster;
