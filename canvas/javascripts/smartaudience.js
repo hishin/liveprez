@@ -228,7 +228,8 @@ function resizeCanvas(width, height) {
 function loadItem(slide, item, i) {
     var layer = new paper.Layer();
     slide.itemlayer.push(layer);
-    item.praster = new paper.Raster(item.src);
+    var raster = new paper.Raster(item.src);
+    item.praster = raster;
     item.praster.fitBounds(paper.view.bounds);
     item.praster.scale = Math.max(item.praster.width / paper.view.bounds.width, item.praster.height / paper.view.bounds.height);
     if (i == 0) {
@@ -237,20 +238,20 @@ function loadItem(slide, item, i) {
             // var c = getBackgroundColor(imgdata.data)
             // var pc = pColorFromDataRGB(c);
             this.bgcolor = new paper.Color('white');//new paper.Color(pc[0], pc[1], pc[2]);
-            // if (curslide.masklayer) {
-            //     var maskitems = curslide.masklayer.getItems();
-            //     for (var i = 0; i < maskitems.length; i++) {
-            //         var item = maskitems[i];
-            //         item.fillColor = this.bgcolor;
-            //     }
-            // }
         };
     } else {
-        item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
-        item.pclip.fillColor = 'black';
-        item.pgroup = new paper.Group(item.pclip, item.praster);
-        item.pgroup.clipped = true;
-        layer.insertAbove(slide.itemlayer[slide.itemlayer.length - 2]);
+        item.praster.opacity = 0.0;
+        var traster = new paper.Raster();
+        traster.width = raster.width;
+        traster.height = raster.height;
+        traster.fitBounds(paper.view.bounds);
+        item.traster = traster;
+        item.traster.insertAbove(item.praster);
+        // item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
+        // item.pclip.fillColor = 'black';
+        // item.pgroup = new paper.Group(item.pclip, item.praster);
+        // item.pgroup.clipped = true;
+        // layer.insertAbove(slide.itemlayer[slide.itemlayer.length - 2]);
     }
 };
 
@@ -338,18 +339,26 @@ function handleInkMessage(data) {
     if (curstroke) {
         curstroke.remove();
     }
+
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
     curstroke.scale(scale, new paper.Point(0,0));
+    var tracedpx = JSON.parse(data.tracedpx);
     if (data.end) {
         curstroke.data.free = data.free;
         if (data.fillalpha) {
             console.log(data.fillalpha);
             curstroke.fillColor.alpha = data.fillalpha;
         }
+        if (tracedpx.length > 0) {
+            tracePixels(curitem.traster, curitem.praster, tracedpx);
+            // console.log('made opaque');
+        }
         prevstroke = curstroke;
+        curstroke.remove();
         curstroke = null;
     }
 };
+
 
 function handleColorChangeMessage(data) {
     if (!prevstroke) return;

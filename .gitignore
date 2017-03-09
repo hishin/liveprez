@@ -14,5 +14,6 @@ ExamplePresentations\
 canvas/.idea\
 bib/*\
 *.emf
-samplepresentations/*.pptx\
-samplepresentations/*/*.pptx}
+canvas/samplepresentations/*\
+canvas/samplepresentations/*.pptx\
+canvas/samplepresentations/*/*.pptx}

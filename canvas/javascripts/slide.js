@@ -244,16 +244,6 @@ function setRasterToBool(praster, bool) {
     }
 };
 
-function makeTransparent(raster) {
-    for (var x = 0; x < raster.width; x++) {
-        for(var y = 0; y < raster.height; y++) {
-            var c = raster.getPixel(x,y);
-            c.alpha = 0.0;
-            raster.setPixel(x,y, c);
-        }
-    }
-};
-
 function computeGaussian(raster, diameter) {
     var imagedata = raster.getImageData(raster.bounds);
     var gauss = Filters.gaussianBlur(imagedata, diameter);
@@ -298,6 +288,32 @@ function isLocalMaxima(grad, x, y) {
         }
     }
     return true;
+};
+
+function makeTransparent(raster) {
+    for (var x = 0; x < raster.width; x++) {
+        for(var y = 0; y < raster.height; y++) {
+            var c = raster.getPixel(x,y);
+            c.alpha = 0.0;
+            raster.setPixel(x,y, c);
+        }
+    }
+};
+
+function makeOpaque(raster, pixels) {
+    for (var i = 0 ; i < pixels.length; i++) {
+        var c = raster.getPixel(pixels[i][0], pixels[i][1]);
+        c.alpha = 1.0;
+        raster.setPixel(pixels[i][0], pixels[i][1], c);
+    }
+};
+
+function tracePixels(traster, praster, pixels) {
+    for (var i = 0 ; i < pixels.length; i++) {
+        var c = praster.getPixel(pixels[i][0], pixels[i][1]);
+        c.alpha = 1.0;
+        traster.setPixel(pixels[i][0], pixels[i][1], c);
+    }
 };
 
 

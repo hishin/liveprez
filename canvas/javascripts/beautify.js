@@ -459,6 +459,7 @@ function isClosed(path) {
 };
 
 function traceClosestPixels(praster, path) {
+    var tracedpx = [];
     var point, px, py, cx, cy;
     var cl = null;
     var color = path.strokeColor;
@@ -479,13 +480,14 @@ function traceClosestPixels(praster, path) {
             if (!cl) {
                 cl = praster.cclabel[cx + cy * praster.width];
             }
-            floodFill(praster, cx, cy, cx, cy, cl, labc)
+            floodFill(praster, cx, cy, cx, cy, cl, labc, tracedpx)
         }
     }
+    return tracedpx;
 };
 
-function floodFill(praster, x, y, origx, origy, cl, labc) {
-    var c = new paper.Color('green');
+function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx) {
+    // var c = new paper.Color('green');
     var w = praster.width;
     if (x < 0 || x >= w || y < 0 || y >= praster.height) return;
     if (praster.revealed[x+y*w]) return;
@@ -494,17 +496,15 @@ function floodFill(praster, x, y, origx, origy, cl, labc) {
     if (pointDist(x,y,origx,origy) > MAX_SWIDTH_PX) return;
     var pc = praster.getPixel(x,y);
     var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
-    // dr = clusteravg.red - color.red;
-    // dg = clusteravg.green - color.green;
-    // db = clusteravg.blue - color.blue;
     var colordiff = deltaE(labc, labpc);
     if (colordiff > 10) return;
-    praster.setPixel(x,y, c);
+    // praster.setPixel(x,y, c);
     praster.revealed[x+y*w] = 1;
-    floodFill(praster, x-1, y, origx, origy, cl, labc);
-    floodFill(praster, x+1, y, origx, origy, cl, labc);
-    floodFill(praster, x, y-1, origx, origy, cl, labc);
-    floodFill(praster, x, y+1, origx, origy, cl, labc);
+    tracedpx.push([x,y]);
+    floodFill(praster, x-1, y, origx, origy, cl, labc, tracedpx);
+    floodFill(praster, x+1, y, origx, origy, cl, labc, tracedpx);
+    floodFill(praster, x, y-1, origx, origy, cl, labc, tracedpx);
+    floodFill(praster, x, y+1, origx, origy, cl, labc, tracedpx);
 };
 
 function traceWidth(praster, path) {

@@ -447,13 +447,13 @@ function loadForegroundItem(slide, item) {
         layer.insertAbove(slide.itemlayer[slide.itemlayer.length-2]);
     }
 
-    var fadedraster = new paper.Raster(item.src);
-    item.setRaster(fadedraster, false);
-    item.fadedraster.fitBounds(paper.view.bounds);
-    item.fadedraster.scale = Math.max(item.fadedraster.width/paper.view.bounds.width, item.fadedraster.height/paper.view.bounds.height);
-    item.fadedraster.wslack = (paper.view.bounds.width - item.fadedraster.width/item.fadedraster.scale)/2.0;
-    item.fadedraster.hslack = (paper.view.bounds.height - item.fadedraster.height/item.fadedraster.scale)/2.0;
-    item.fadedraster.opacity = 0.5;
+    // var fadedraster = new paper.Raster(item.src);
+    // item.setRaster(fadedraster, false);
+    // item.fadedraster.fitBounds(paper.view.bounds);
+    // item.fadedraster.scale = Math.max(item.fadedraster.width/paper.view.bounds.width, item.fadedraster.height/paper.view.bounds.height);
+    // item.fadedraster.wslack = (paper.view.bounds.width - item.fadedraster.width/item.fadedraster.scale)/2.0;
+    // item.fadedraster.hslack = (paper.view.bounds.height - item.fadedraster.height/item.fadedraster.scale)/2.0;
+    // item.fadedraster.opacity = 0.5;
 
     var raster = new paper.Raster(item.src);
     item.setRaster(raster, true);
@@ -461,13 +461,19 @@ function loadForegroundItem(slide, item) {
     item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
     item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
     item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
-    item.praster.opacity = 1.0;
-    item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
-    item.pclip.fillColor = 'black';
-    item.pgroup = new paper.Group(item.pclip, item.praster);
-    item.pgroup.clipped = true;
+    item.praster.opacity = 0.5;
+    // item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
+    // item.pclip.fillColor = 'black';
+    // item.pgroup = new paper.Group(item.pclip, item.praster);
+    // item.pgroup.clipped = true;
+    // item.pgroup.insertAbove(item.fadedraster);
 
-    item.pgroup.insertAbove(item.fadedraster);
+    var traster = new paper.Raster();
+    traster.width = raster.width;
+    traster.height = raster.height;
+    traster.fitBounds(paper.view.bounds);
+    item.traster = traster;
+    item.traster.insertAbove(item.praster);
 };
 
 function hideSpeakerOnlyItems(pitem) {
@@ -645,6 +651,7 @@ function inkContinue(event) {
 
 function inkEnd(event) {
     if (curstroke) {
+        var tracedpx = [];
         curstroke.add(event.point);
         if (autostyle) {
             // get stroke width
@@ -654,7 +661,8 @@ function inkEnd(event) {
             setColorPalette(curstroke.data.colors);
             // get stroke fillcolor
             traceFill(curitem.praster, curstroke);
-            traceClosestPixels(curitem.praster, curstroke);
+            tracedpx = traceClosestPixels(curitem.praster, curstroke);
+            tracePixels(curitem.traster, curitem.praster, tracedpx);
 
         } else {
             // curstroke.remove();
@@ -663,7 +671,8 @@ function inkEnd(event) {
                 curstroke.strokeColor = c1.toHexString();
             }
         }
-        post(inkMessage(curstroke, true));
+        post(inkMessage(curstroke, tracedpx, true));
+        curstroke.remove();
 
     }
 };
@@ -896,7 +905,7 @@ function getSlideState() {
     return JSON.stringify(curslide);
 };
 
-function inkMessage(inkstroke, end) {
+function inkMessage(inkstroke, tracedpx, end) {
     var msg = JSON.stringify( {
         namespace: 'liveprez',
         type: 'ink',
@@ -904,6 +913,7 @@ function inkMessage(inkstroke, end) {
         content: JSON.stringify(inkstroke),
         free: inkstroke.data.free,
         fillalpha: inkstroke.data.fillalpha,
+        tracedpx: JSON.stringify(tracedpx),
         end: end
     } );
     return msg;
