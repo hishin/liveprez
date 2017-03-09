@@ -349,12 +349,16 @@ function handleInkMessage(data) {
             console.log(data.fillalpha);
             curstroke.fillColor.alpha = data.fillalpha;
         }
+        prevstroke = curstroke;
         if (tracedpx.length > 0) {
             tracePixels(curitem.traster, curitem.praster, tracedpx);
-            // console.log('made opaque');
+            curstroke.onFrame = function () {
+                if (this.strokeColor.alpha <= 0) {
+                    this.remove();
+                }
+                this.strokeColor.alpha -= 0.05;
+            };
         }
-        prevstroke = curstroke;
-        curstroke.remove();
         curstroke = null;
     }
 };

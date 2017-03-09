@@ -497,7 +497,7 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx) {
     var pc = praster.getPixel(x,y);
     var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
     var colordiff = deltaE(labc, labpc);
-    if (colordiff > 10) return;
+    if (colordiff > 15) return;
     // praster.setPixel(x,y, c);
     praster.revealed[x+y*w] = 1;
     tracedpx.push([x,y]);

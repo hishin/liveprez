@@ -662,8 +662,10 @@ function inkEnd(event) {
             // get stroke fillcolor
             traceFill(curitem.praster, curstroke);
             tracedpx = traceClosestPixels(curitem.praster, curstroke);
-            tracePixels(curitem.traster, curitem.praster, tracedpx);
-
+            if (tracedpx.length > 0) {
+                tracePixels(curitem.traster, curitem.praster, tracedpx);
+                curstroke.remove();
+            }
         } else {
             // curstroke.remove();
             var c1 = $('#strokec').spectrum("get");
@@ -672,7 +674,6 @@ function inkEnd(event) {
             }
         }
         post(inkMessage(curstroke, tracedpx, true));
-        curstroke.remove();
 
     }
 };
