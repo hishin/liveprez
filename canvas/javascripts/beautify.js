@@ -477,9 +477,7 @@ function traceClosestPixels(praster, path) {
         cy = praster.dtj[px+py*praster.width];
 
         if (pointDist(px,py,cx,cy) < MAX_SWIDTH_PX) {
-            if (!cl) {
-                cl = praster.cclabel[cx + cy * praster.width];
-            }
+            cl = praster.cclabel[cx + cy * praster.width];
             floodFill(praster, cx, cy, cx, cy, cl, labc, tracedpx)
         }
     }
