@@ -462,7 +462,6 @@ function traceClosestPixels(praster, path, velocity) {
     var tracedpx = [];
     var point, px, py, cx, cy;
     var clabel, color, labc;
-
     for (var i = 0; i < path.length; i++) {
         point = path.getPointAt(i);
 
@@ -474,36 +473,47 @@ function traceClosestPixels(praster, path, velocity) {
         cx = praster.dti[px+py*praster.width];
         cy = praster.dtj[px+py*praster.width];
 
-        if (pointDist(px,py,cx,cy) < DIST2FG_THRES) {
+        if (pointDist(px,py,cx,cy) <= DIST2FG_THRES_A*velocity+DIST2FG_THRES_B) {
+
             clabel = praster.cclabel[cx + cy * praster.width];
-            color = praster.getPixel(cx, cy);
+color = praster.getPixel(cx, cy);
             labc = rgb2lab([color.red*255, color.green*255, color.blue*255]);
-            floodFill(praster, cx, cy, cx, cy, clabel, labc, tracedpx)
+            floodFill(praster, cx, cy, cx, cy, clabel, labc, tracedpx, velocity)
         }
     }
     return tracedpx;
 };
 
-function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx) {
+function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     // var c = new paper.Color('green');
     var w = praster.width;
     if (x < 0 || x >= w || y < 0 || y >= praster.height) return;
     if (praster.revealed[x+y*w]) return;
     if (!praster.fg[x+y*w]) return;
     if (praster.cclabel[x+y*w] != cl) return;
-    if (pointDist(x,y,origx,origy) > MAX_SWIDTH_PX) return;
+
+    var dist2edge = praster.dtedge[x+y*w];
+
+    if (pointDist(x,y,origx,origy) > Math.min(35, (Math.exp(0.005*velocity)+10))) {
+        if (dist2edge > 10) return;
+        else {
+            praster.revealed[x + y * w] = 1;
+            tracedpx.push([x, y]);
+            return;
+        }
+    }
     var pc = praster.getPixel(x,y);
     var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
     var colordiff = deltaE(labc, labpc);
-    if (colordiff > 10)
-        return;
-    // praster.setPixel(x,y, c);
+    // if (colordiff > velocity*COLOR_THRES_A) {
+    //     return;
+    // }
     praster.revealed[x+y*w] = 1;
     tracedpx.push([x,y]);
-    floodFill(praster, x-1, y, origx, origy, cl, labc, tracedpx);
-    floodFill(praster, x+1, y, origx, origy, cl, labc, tracedpx);
-    floodFill(praster, x, y-1, origx, origy, cl, labc, tracedpx);
-    floodFill(praster, x, y+1, origx, origy, cl, labc, tracedpx);
+    floodFill(praster, x-1, y, origx, origy, cl, labc, tracedpx, velocity);
+    floodFill(praster, x+1, y, origx, origy, cl, labc, tracedpx, velocity);
+    floodFill(praster, x, y-1, origx, origy, cl, labc, tracedpx, velocity);
+    floodFill(praster, x, y+1, origx, origy, cl, labc, tracedpx, velocity);
 };
 
 function traceWidth(praster, path) {

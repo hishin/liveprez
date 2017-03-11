@@ -30,7 +30,9 @@ var oldcenter;
 var prevpinchscale;
 var autostyle = true;
 var default_palette = ['rgb(0,0,0)', 'rgb(255,255,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'];
-var DIST2FG_THRES = 10.0;
+var DIST2FG_THRES_A = 0.01;
+var DIST2FG_THRES_B = 10.0;
+var COLOR_THRES_A = 1/15;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -625,19 +627,27 @@ function inkStart(event){
     selectItem();
     curstroke = new paper.Path();
     curstroke.strokeWidth = 2;
-    curstroke.strokeColor = curitem.praster.annocolor;
     curstroke.add(event.point);
     curstroke.strokeCap = 'round';
     movedist = 0.0;
     prevtime = event.timeStamp;
     var p = getPixelPoint(event.point, curitem.praster);
+
     dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
     pcount = 1;
-    bgpcolors = [0,0,0];
+    bgpcolors = [0,0,0,0];
     var pcolor = bgitem.praster.getPixel(p.x, p.y);
     bgpcolors[0] += pcolor.red;
     bgpcolors[1] += pcolor.green;
     bgpcolors[2] += pcolor.blue;
+    bgpcolors[3] += pcolor.alpha;
+
+    //set stroke color to closest fg color
+    var cx = curitem.praster.dti[p.x+p.y*curitem.praster.width];
+    var cy = curitem.praster.dtj[p.x+p.y*curitem.praster.width];
+    curstroke.strokeColor = curitem.praster.getPixel(cx, cy);
+    curstroke.strokeColor.alpha = 1.0;
+
     post(inkMessage(curstroke, false));
 };
 
@@ -657,6 +667,8 @@ function inkContinue(event) {
     bgpcolors[0] += pcolor.red;
     bgpcolors[1] += pcolor.green;
     bgpcolors[2] += pcolor.blue;
+    bgpcolors[3] += pcolor.alpha;
+
     post(inkMessage(curstroke, false));
 };
 
@@ -665,31 +677,36 @@ function inkEnd(event) {
         curstroke.add(event.point);
         movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
         var p = getPixelPoint(event.point, curitem.praster);
-        dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+        dist2fg += curitem.praster.dtfg[p.x + p.y * curitem.praster.width];
         pcount++;
         var pcolor = bgitem.praster.getPixel(p.x, p.y);
         bgpcolors[0] += pcolor.red;
         bgpcolors[1] += pcolor.green;
         bgpcolors[2] += pcolor.blue;
+        bgpcolors[3] += pcolor.alpha;
 
-        var avg_dist2fg = dist2fg/pcount;
-        if (avg_dist2fg > DIST2FG_THRES) {
+        var tracedpx = [];
+        var avg_dist2fg = dist2fg / pcount;
+        var velocity = movedist / (event.timeStamp - prevtime) * 1000;
+        if (avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
             // trace color so that it stands out from the background
-            var avgbgcolor = new paper.Color(bgpcolors[0]/pcount, bgpcolors[1]/pcount, bgpcolors[2]/pcount);
-            curstroke.strokeColor = invertColor(avgbgcolor);
+            var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
+            if (avgbgcolor.alpha <= 0.1) curstroke.strokeColor = 'black';
+            else curstroke.strokeColor = invertColor(avgbgcolor);
+            curstroke.data.free = true;
         } else {
-            var tracedpx = [];
-            var velocity = movedist / (event.timeStamp - prevtime) * 1000;
             tracedpx = traceClosestPixels(curitem.praster, curstroke, velocity);
-            if (tracedpx.length/pcount > 0.5) {
+            if (tracedpx.length / pcount > 0.3 || (tracedpx.length/pcount > 0.1 && avg_dist2fg < 4)) {
                 tracePixels(curitem.traster, curitem.praster, tracedpx);
                 curstroke.remove();
             } else {
-                var avgbgcolor = new paper.Color(bgpcolors[0]/pcount, bgpcolors[1]/pcount, bgpcolors[2]/pcount);
+                var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount);
                 curstroke.strokeColor = invertColor(avgbgcolor);
                 curstroke.data.free = true;
             }
         }
+
+
         post(inkMessage(curstroke, tracedpx, true));
     }
 };

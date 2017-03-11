@@ -343,14 +343,13 @@ function handleInkMessage(data) {
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
     curstroke.scale(scale, new paper.Point(0,0));
     var tracedpx = JSON.parse(data.tracedpx);
+
+    console.log("here");
+    console.log(data);
     if (data.end) {
         curstroke.data.free = data.free;
-        if (data.fillalpha) {
-            console.log(data.fillalpha);
-            curstroke.fillColor.alpha = data.fillalpha;
-        }
         prevstroke = curstroke;
-        if (tracedpx.length > 0) {
+        if (!data.free) {
             tracePixels(curitem.traster, curitem.praster, tracedpx);
             curstroke.onFrame = function () {
                 if (this.strokeColor.alpha <= 0) {
@@ -359,6 +358,7 @@ function handleInkMessage(data) {
                 this.strokeColor.alpha -= 0.05;
             };
         }
+        console.log("curstroke = mull");
         curstroke = null;
     }
 };
