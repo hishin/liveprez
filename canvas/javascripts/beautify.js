@@ -458,7 +458,7 @@ function isClosed(path) {
     return (dist < path.length*0.05 && dist < 15);
 };
 
-function traceClosestPixels(praster, path) {
+function traceClosestPixels(praster, path, velocity) {
     var tracedpx = [];
     var point, px, py, cx, cy;
     var clabel, color, labc;

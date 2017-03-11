@@ -17,6 +17,7 @@ var toolbox;
 var inkstyle = null;
 var slidedeck;
 var curitem = null;
+var bgitem = null;
 var awindow;
 var reveal = false;
 var prevcolor = new paper.Color(0.5,0,1);
@@ -29,6 +30,7 @@ var oldcenter;
 var prevpinchscale;
 var autostyle = true;
 var default_palette = ['rgb(0,0,0)', 'rgb(255,255,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'];
+var DIST2FG_THRES = 10.0;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -612,6 +614,7 @@ var movedist;
 var dist2fg;
 var prevtime;
 var pcount;
+var bgpcolors;
 function inkStart(event){
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
@@ -628,15 +631,20 @@ function inkStart(event){
     movedist = 0.0;
     prevtime = event.timeStamp;
     var p = getPixelPoint(event.point, curitem.praster);
-    console.log(p);
     dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
     pcount = 1;
+    bgpcolors = [0,0,0];
+    var pcolor = bgitem.praster.getPixel(p.x, p.y);
+    bgpcolors[0] += pcolor.red;
+    bgpcolors[1] += pcolor.green;
+    bgpcolors[2] += pcolor.blue;
     post(inkMessage(curstroke, false));
 };
 
 function selectItem() {
     // Select the Foreground Item
-    curitem = curslide.items[curslide.items.length-1];
+    curitem = curslide.items[1];
+    bgitem = curslide.items[0];
 };
 
 function inkContinue(event) {
@@ -645,22 +653,40 @@ function inkContinue(event) {
     var p = getPixelPoint(event.point, curitem.praster);
     dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
     pcount++;
+    var pcolor = bgitem.praster.getPixel(p.x, p.y);
+    bgpcolors[0] += pcolor.red;
+    bgpcolors[1] += pcolor.green;
+    bgpcolors[2] += pcolor.blue;
     post(inkMessage(curstroke, false));
 };
 
 function inkEnd(event) {
     if (curstroke) {
-        console.log('avg dist: ' + dist2fg/pcount);
-
-        var tracedpx = [];
         curstroke.add(event.point);
-        var velocity = movedist/(event.timeStamp - prevtime) * 1000;
-        tracedpx = traceClosestPixels(curitem.praster, curstroke);
-        if (tracedpx.length > 0) {
-            tracePixels(curitem.traster, curitem.praster, tracedpx);
-            curstroke.remove();
-        }
+        movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
+        var p = getPixelPoint(event.point, curitem.praster);
+        dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+        pcount++;
+        var pcolor = bgitem.praster.getPixel(p.x, p.y);
+        bgpcolors[0] += pcolor.red;
+        bgpcolors[1] += pcolor.green;
+        bgpcolors[2] += pcolor.blue;
 
+        var avg_dist2fg = dist2fg/pcount;
+        if (avg_dist2fg > DIST2FG_THRES) {
+            // trace color so that it stands out from the background
+            var avgbgcolor = new paper.Color(bgpcolors[0]/pcount, bgpcolors[1]/pcount, bgpcolors[2]/pcount);
+            curstroke.strokeColor = invertColor(avgbgcolor);
+        } else {
+            var tracedpx = [];
+            var velocity = movedist / (event.timeStamp - prevtime) * 1000;
+            tracedpx = traceClosestPixels(curitem.praster, curstroke, velocity);
+            console.log('proportion of tracedpx: ' + tracedpx.length/pcount);
+            if (tracedpx.length > 0) {
+                tracePixels(curitem.traster, curitem.praster, tracedpx);
+                curstroke.remove();
+            }
+        }
         post(inkMessage(curstroke, tracedpx, true));
     }
 };
@@ -787,7 +813,7 @@ function revealStart(event) {
     } else {
         curslide.inklayer.activate();
     }
-    selectItem(event.point);
+    selectItem();
 
     curstroke = new paper.Path();
     curstroke.add(event.point);
