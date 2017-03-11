@@ -474,9 +474,7 @@ function traceClosestPixels(praster, path, velocity) {
         cx = praster.dti[px+py*praster.width];
         cy = praster.dtj[px+py*praster.width];
 
-        // praster.setPixel(cx, cy, new paper.Color('red'));
-
-        if (pointDist(px,py,cx,cy) < MAX_SWIDTH_PX) {
+        if (pointDist(px,py,cx,cy) < DIST2FG_THRES) {
             clabel = praster.cclabel[cx + cy * praster.width];
             color = praster.getPixel(cx, cy);
             labc = rgb2lab([color.red*255, color.green*255, color.blue*255]);
