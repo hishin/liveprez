@@ -655,3 +655,9 @@ function traceWidthOld(width, m, n, path, scale) {
     console.log("maxwidth: " + maxwidth);
     return maxwidth/scale;
 };
+
+function getPixelPoint(point, raster) {
+    var px = Math.round((point.x - raster.wslack)*raster.scale);
+    var py = Math.round((point.y - raster.hslack)*raster.scale);
+    return new paper.Point(px, py);
+}

@@ -611,6 +611,7 @@ var curbound;
 var movedist;
 var dist2fg;
 var prevtime;
+var pcount;
 function inkStart(event){
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
@@ -618,7 +619,7 @@ function inkStart(event){
     } else {
         curslide.inklayer.activate();
     }
-    selectItem(event.point);
+    selectItem();
     curstroke = new paper.Path();
     curstroke.strokeWidth = 2;
     curstroke.strokeColor = curitem.praster.annocolor;
@@ -626,11 +627,14 @@ function inkStart(event){
     curstroke.strokeCap = 'round';
     movedist = 0.0;
     prevtime = event.timeStamp;
-    dist2fg = 0.0;
+    var p = getPixelPoint(event.point, curitem.praster);
+    console.log(p);
+    dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+    pcount = 1;
     post(inkMessage(curstroke, false));
 };
 
-function selectItem(point) {
+function selectItem() {
     // Select the Foreground Item
     curitem = curslide.items[curslide.items.length-1];
 };
@@ -638,21 +642,20 @@ function selectItem(point) {
 function inkContinue(event) {
     curstroke.add(event.point);
     movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
+    var p = getPixelPoint(event.point, curitem.praster);
+    dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+    pcount++;
     post(inkMessage(curstroke, false));
-
 };
 
 function inkEnd(event) {
     if (curstroke) {
+        console.log('avg dist: ' + dist2fg/pcount);
+
         var tracedpx = [];
         curstroke.add(event.point);
         var velocity = movedist/(event.timeStamp - prevtime) * 1000;
-        console.log(velocity);
         tracedpx = traceClosestPixels(curitem.praster, curstroke);
-        console.log(curstroke.length);
-        console.log(tracedpx.length);
-        console.log(tracedpx.length/curstroke.length);
-
         if (tracedpx.length > 0) {
             tracePixels(curitem.traster, curitem.praster, tracedpx);
             curstroke.remove();
