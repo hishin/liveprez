@@ -44,7 +44,6 @@ function preloadImages(srcs) {
             if (!aspectratio) {
                 aspectratio = this.height/this.width;
                 img_w = this.width;
-                console.log('wh = ' + $(window).height);
                 SLIDE_H = $(window).height() - MENU_H;
                 SLIDE_W = SLIDE_H/apsectratio;
                 if (SLIDE_W > $(window).width()) {
@@ -66,15 +65,15 @@ window.onload = function () {
         }
     }, {passive:false});
 
-    $('#pen-tool').change(function(event) {
-        hideMenu(document.getElementById('mask-context-menu'));
-        if (!spaper) return;
-        if (event.target.checked) {
-            spaper.tool = null;
-        } else {
-            activateMaskTool(0);
-        }
-    });
+    // $('#pen-tool').change(function(event) {
+    //     hideMenu(document.getElementById('mask-context-menu'));
+    //     if (!spaper) return;
+    //     if (event.target.checked) {
+    //         spaper.tool = null;
+    //     } else {
+    //         activateMaskTool(0);
+    //     }
+    // });
 
     document.oncontextmenu = function(event) {
         event.preventDefault();
@@ -91,21 +90,21 @@ window.onload = function () {
        handlePointerEvents(event);
     });
 
-    $('#strokec').on('move.spectrum', function (e, color) {
-        if (autostyle && curstroke) {
-            curstroke.strokeColor = color.toHexString();
-            post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
-        }
-    });
+    // $('#strokec').on('move.spectrum', function (e, color) {
+    //     if (autostyle && curstroke) {
+    //         curstroke.strokeColor = color.toHexString();
+    //         post(colorChangeMessage(curstroke.strokeColor, curstroke.data.free));
+    //     }
+    // });
+    //
+    // $('#auto-style').change(function(event) {
+    //     autostyle = event.target.checked;
+    //     if (autostyle) {
+    //         $('#strokec').spectrum("set", '');
+    //     }
+    // });
 
-    $('#auto-style').change(function(event) {
-        autostyle = event.target.checked;
-        if (autostyle) {
-            $('#strokec').spectrum("set", '');
-        }
-    });
-
-    setColorPalette([]);
+    // setColorPalette([]);
 
     // $('.slider').slider(
     //     {
@@ -187,16 +186,9 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
-    if(spaper && spaper.tool && spaper.tool.name == 'mask') {
-        return;
-    }
     if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
-        if (event.buttons == 2) {
-            activateRevealPen();
-        } else {
-            activateInkTool();
-        }
-    } else if (spaper) {
+        activateInkTool();
+    } else if (spaper){
         spaper.tool = null;
     }
 };
@@ -249,22 +241,21 @@ function setupSlideCanvas(slidedeck) {
         spaper.slide = sslide;
         spaper.canvas = scanvas;
 
-
-        viewhammer = new Hammer(document.getElementById('speaker-view'));
-        viewhammer.get('swipe').set({velocity: 0.5});
-        viewhammer.on('swipeleft', function(ev) {
-            ev.preventDefault();
-            if (ev.pointerType == 'touch') {
-                nextSlide();
-            }
-            return;
-        });
-        viewhammer.on('swiperight', function(ev) {
-            ev.preventDefault();
-           if (ev.pointerType == 'touch') {
-               prevSlide();
-           }
-        });
+        // viewhammer = new Hammer(document.getElementById('speaker-view'));
+        // viewhammer.get('swipe').set({velocity: 0.5});
+        // viewhammer.on('swipeleft', function(ev) {
+        //     ev.preventDefault();
+        //     if (ev.pointerType == 'touch') {
+        //         nextSlide();
+        //     }
+        //     return;
+        // });
+        // viewhammer.on('swiperight', function(ev) {
+        //     ev.preventDefault();
+        //    if (ev.pointerType == 'touch') {
+        //        prevSlide();
+        //    }
+        // });
 
         canvashammer = new Hammer(document.getElementById('speaker-slide'));
         canvashammer.get('pinch').set({enable:true});
@@ -272,9 +263,7 @@ function setupSlideCanvas(slidedeck) {
         canvashammer.on('pinchstart', function(ev){
             ev.preventDefault();
             oldzoom = spaper.view.zoom;
-            // console.log($(scanvas).offset().length);
             pinchcenter = new paper.Point(ev.center.x - $(scanvas).offset().left, ev.center.y - $(scanvas).offset().top);
-            // console.log("pinchcenter = " + pinchcenter);
             prevpinchscale = 1.0;
         });
         canvashammer.on('pinchout', function(ev) {
@@ -291,19 +280,21 @@ function setupSlideCanvas(slidedeck) {
             spaper.view.center = spaper.view.center.subtract(zoomresult[1]);
             prevpinchscale = ev.scale;
         });
+
+        canvashammer.get('pan').set({threshold: 0});
         canvashammer.on('panstart', function (ev) {
             ev.preventDefault();
-            if (ev.pointerType != 'touch' || Math.abs(ev.overallVelocity) > 0.5) return;
-            oldcenter = spaper.view.center;
+            if (ev.pointerType == 'touch') {
+                oldcenter = spaper.view.center;
+            }
         });
         canvashammer.on('panmove', function(ev){
             ev.preventDefault();
-            if (ev.pointerType != 'touch' || Math.abs(ev.overallVelocity) > 0.5) return;
-            var newcenter = new paper.Point(oldcenter.x - ev.deltaX, oldcenter.y - ev.deltaY);
-            spaper.view.center = newcenter;
+            if (ev.pointerType == 'touch') {
+                var newcenter = new paper.Point(oldcenter.x - ev.deltaX, oldcenter.y - ev.deltaY);
+                spaper.view.center = newcenter;
+            }
         });
-
-
     }
     else {
         curslidenum = 0;
@@ -346,33 +337,30 @@ function setupPaperTools() {
     spaper.inktool = inktool;
 
     // Space tool
-    var spacetool = new spaper.Tool();
-    spacetool.onMouseDown = makeSpaceStart;
-    spacetool.onMouseDrag = makeSpaceContinue;
-    // spacetool.onMouseUp = makeSpaceEnd;
-    spaper.spacetool = spacetool;
+    // var spacetool = new spaper.Tool();
+    // spacetool.onMouseDown = makeSpaceStart;
+    // spacetool.onMouseDrag = makeSpaceContinue;
+    // // spacetool.onMouseUp = makeSpaceEnd;
+    // spaper.spacetool = spacetool;
 
     // Mask tool
-    var masktool = new spaper.Tool();
-    masktool.name = 'mask';
-    masktool.onMouseDown = maskStart;
-    masktool.onMouseDrag = maskContinue;
-    masktool.onMouseUp = maskEnd;
-    spaper.masktool = masktool;
+    // var masktool = new spaper.Tool();
+    // masktool.name = 'mask';
+    // masktool.onMouseDown = maskStart;
+    // masktool.onMouseDrag = maskContinue;
+    // masktool.onMouseUp = maskEnd;
+    // spaper.masktool = masktool;
 
     // Reveal tool
-    var revealtool = new spaper.Tool();
-    revealtool.name = 'reveal';
-    revealtool.onMouseDown = revealStart;
-    revealtool.onMouseDrag = revealContinue;
-    revealtool.onMouseUp = revealEnd;
-    spaper.revealtool = revealtool;
+    // var revealtool = new spaper.Tool();
+    // revealtool.name = 'reveal';
+    // revealtool.onMouseDown = revealStart;
+    // revealtool.onMouseDrag = revealContinue;
+    // revealtool.onMouseUp = revealEnd;
+    // spaper.revealtool = revealtool;
 
-    if (!document.getElementById('pen-tool').checked) {
-        activateMaskTool();
-    } else {
-        activateInkTool();
-    }
+    // activateInkTool();
+    spaper.tool = null;
 };
 
 function loadSlide(slide) {
@@ -620,6 +608,9 @@ function activateInkTool() {
 
 var curstroke;
 var curbound;
+var movedist;
+var dist2fg;
+var prevtime;
 function inkStart(event){
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
@@ -629,11 +620,13 @@ function inkStart(event){
     }
     selectItem(event.point);
     curstroke = new paper.Path();
-    curstroke.strokeWidth = 1;
-    curstroke.fillStroke = null;
+    curstroke.strokeWidth = 2;
     curstroke.strokeColor = curitem.praster.annocolor;
     curstroke.add(event.point);
     curstroke.strokeCap = 'round';
+    movedist = 0.0;
+    prevtime = event.timeStamp;
+    dist2fg = 0.0;
     post(inkMessage(curstroke, false));
 };
 
@@ -643,38 +636,29 @@ function selectItem(point) {
 };
 
 function inkContinue(event) {
-    // if (curstroke) {
-        curstroke.add(event.point);
-        post(inkMessage(curstroke, false));
-    // }
+    curstroke.add(event.point);
+    movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
+    post(inkMessage(curstroke, false));
+
 };
 
 function inkEnd(event) {
     if (curstroke) {
         var tracedpx = [];
         curstroke.add(event.point);
-        if (autostyle) {
-            // get stroke width
-            traceWidth(curitem.praster, curstroke);
-            // get stroke color
-            traceColor(curitem.praster, curstroke);
-            setColorPalette(curstroke.data.colors);
-            // get stroke fillcolor
-            traceFill(curitem.praster, curstroke);
-            tracedpx = traceClosestPixels(curitem.praster, curstroke);
-            if (tracedpx.length > 0) {
-                tracePixels(curitem.traster, curitem.praster, tracedpx);
-                curstroke.remove();
-            }
-        } else {
-            // curstroke.remove();
-            var c1 = $('#strokec').spectrum("get");
-            if (c1) {
-                curstroke.strokeColor = c1.toHexString();
-            }
-        }
-        post(inkMessage(curstroke, tracedpx, true));
+        var velocity = movedist/(event.timeStamp - prevtime) * 1000;
+        console.log(velocity);
+        tracedpx = traceClosestPixels(curitem.praster, curstroke);
+        console.log(curstroke.length);
+        console.log(tracedpx.length);
+        console.log(tracedpx.length/curstroke.length);
 
+        if (tracedpx.length > 0) {
+            tracePixels(curitem.traster, curitem.praster, tracedpx);
+            curstroke.remove();
+        }
+
+        post(inkMessage(curstroke, tracedpx, true));
     }
 };
 

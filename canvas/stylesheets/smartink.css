@@ -60,6 +60,7 @@ h1 {
 
 canvas {
     border: 1px rgba(60, 63, 65, 0.75) solid;
+    touch-action: auto;
 }
 
 #audience-canvas {

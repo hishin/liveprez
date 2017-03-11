@@ -223,7 +223,7 @@ function BlobExtraction(data, w, h) {
 			} while (x++ < w);
 		} while (y++ < (h-1)); // We end one before the end to to avoid looking below the image
 
-		console.log("labels=" + c);
+		// console.log("labels=" + c);
 		return label;
 	};
 

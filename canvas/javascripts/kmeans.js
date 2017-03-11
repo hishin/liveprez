@@ -38,7 +38,7 @@ KMeans.prototype.determineCentroids = function(b, maxk, data) {
         var maxlab = [lmeans[idx], ameans[idx], bmeans[idx]];
         var meanrgb = lab2rgb(maxlab);
 
-        // find min dist to existing centroid
+        // find min movedist to existing centroid
         var mindist = Infinity;
         for (var i = 0; i < cents.length; i++) {
             var dist = deltaE(maxlab, rgb2lab(cents[i]));
