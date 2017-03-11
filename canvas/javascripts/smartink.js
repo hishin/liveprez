@@ -682,9 +682,13 @@ function inkEnd(event) {
             var velocity = movedist / (event.timeStamp - prevtime) * 1000;
             tracedpx = traceClosestPixels(curitem.praster, curstroke, velocity);
             console.log('proportion of tracedpx: ' + tracedpx.length/pcount);
-            if (tracedpx.length > 0) {
+            if (tracedpx.length/pcount > 0.5) {
                 tracePixels(curitem.traster, curitem.praster, tracedpx);
                 curstroke.remove();
+            } else {
+                var avgbgcolor = new paper.Color(bgpcolors[0]/pcount, bgpcolors[1]/pcount, bgpcolors[2]/pcount);
+                curstroke.strokeColor = invertColor(avgbgcolor);
+                cutstroke.data.free = true;
             }
         }
         post(inkMessage(curstroke, tracedpx, true));
