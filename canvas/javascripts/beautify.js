@@ -460,9 +460,11 @@ function isClosed(path) {
 
 function traceClosestPixels(praster, path, velocity) {
     var tracedpx = [];
-    var point, px, py, cx, cy;
+    var point, px, py, cx, cy, prevcx, prevcy;
     var clabel, color, labc;
-    // console.log('color_thres = ' + velocity*COLOR_THRES_A);
+    var prevlabel = null;
+    // console.log("velocity " +  velocity);
+    // console.log("pointdist: " + Math.min(40, (Math.exp(0.005*velocity)+5)));
     for (var i = 0; i < path.length; i+=0.25) {
         point = path.getPointAt(i);
 
@@ -473,30 +475,32 @@ function traceClosestPixels(praster, path, velocity) {
         // get closest foreground pixel
         cx = praster.dti[px+py*praster.width];
         cy = praster.dtj[px+py*praster.width];
-
-        if (pointDist(px,py,cx,cy) <= DIST2FG_THRES_A*velocity+DIST2FG_THRES_B) {
-
+        var dist2cur = pointDist(px,py,cx,cy);
+        if (dist2cur <= DIST2FG_THRES_A*velocity+DIST2FG_THRES_B) {
             clabel = praster.cclabel[cx + cy * praster.width];
-color = praster.getPixel(cx, cy);
+            if (prevlabel && prevlabel != clabel) {
+                var dist2prev = pointDist(prevcx, prevcy, cx, cy);
+                if (dist2prev - dist2cur < 5) {
+                    continue;
+                }
+            }
+            color = praster.getPixel(cx, cy);
             labc = rgb2lab([color.red*255, color.green*255, color.blue*255]);
             floodFill(praster, cx, cy, cx, cy, clabel, labc, tracedpx, velocity)
+            prevlabel = clabel; prevcx = cx; prevcy = cy;
         }
     }
     return tracedpx;
 };
 
 function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
-    // var c = new paper.Color('green');
     var w = praster.width;
     if (x < 0 || x >= w || y < 0 || y >= praster.height) return;
     if (praster.revealed[x+y*w]) return;
     if (!praster.fg[x+y*w]) return;
     if (praster.cclabel[x+y*w] != cl) return;
-
-    var dist2edge = praster.dtedge[x+y*w];
-
-    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.005*velocity)+10))) {
-        // console.log("dist blocked");
+    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.005*velocity)+3))) {
+        var dist2edge = praster.dtedge[x+y*w];
         if (dist2edge > 10) return;
         else {
             praster.revealed[x + y * w] = 1;
@@ -507,8 +511,7 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     var pc = praster.getPixel(x,y);
     var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
     var colordiff = deltaE(labc, labpc);
-
-    if (colordiff > 10) {
+    if (colordiff > 5) {
         return;
     }
     praster.revealed[x+y*w] = 1;
