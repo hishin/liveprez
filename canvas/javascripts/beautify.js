@@ -462,7 +462,8 @@ function traceClosestPixels(praster, path, velocity) {
     var tracedpx = [];
     var point, px, py, cx, cy;
     var clabel, color, labc;
-    for (var i = 0; i < path.length; i++) {
+    // console.log('color_thres = ' + velocity*COLOR_THRES_A);
+    for (var i = 0; i < path.length; i+=0.25) {
         point = path.getPointAt(i);
 
         // get pixel coordinates
@@ -494,7 +495,8 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
 
     var dist2edge = praster.dtedge[x+y*w];
 
-    if (pointDist(x,y,origx,origy) > Math.min(35, (Math.exp(0.005*velocity)+10))) {
+    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.005*velocity)+10))) {
+        // console.log("dist blocked");
         if (dist2edge > 10) return;
         else {
             praster.revealed[x + y * w] = 1;
@@ -505,11 +507,13 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     var pc = praster.getPixel(x,y);
     var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
     var colordiff = deltaE(labc, labpc);
-    // if (colordiff > velocity*COLOR_THRES_A) {
-    //     return;
-    // }
+
+    if (colordiff > 10) {
+        return;
+    }
     praster.revealed[x+y*w] = 1;
     tracedpx.push([x,y]);
+
     floodFill(praster, x-1, y, origx, origy, cl, labc, tracedpx, velocity);
     floodFill(praster, x+1, y, origx, origy, cl, labc, tracedpx, velocity);
     floodFill(praster, x, y-1, origx, origy, cl, labc, tracedpx, velocity);
