@@ -684,6 +684,10 @@ function inkEnd(event) {
         bgpcolors[1] += pcolor.green;
         bgpcolors[2] += pcolor.blue;
         bgpcolors[3] += pcolor.alpha;
+        var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
+        var icolor = invertColor(avgbgcolor);
+        console.log(' ' + icolor);
+        console.log(' ' + avgbgcolor.toCSS(true));
 
         var tracedpx = [];
         var avg_dist2fg = dist2fg / pcount;
@@ -691,17 +695,16 @@ function inkEnd(event) {
         // IF STROKE IS FAR FROM UNDERLYING PIXELS
         if (avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
             // trace color so that it stands out from the background
-            var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
             if (avgbgcolor.alpha <= 0.1) curstroke.strokeColor = 'black';
             else curstroke.strokeColor = invertColor(avgbgcolor);
             curstroke.data.free = true;
         } else {
             tracedpx = traceClosestPixels(curitem.praster, curstroke, velocity);
-            if (tracedpx.length / pcount > 0.3 || avg_dist2fg < 2) {
+            if (tracedpx.length / pcount > 0.3 || avg_dist2fg < 4) {
                 tracePixels(curitem.traster, curitem.praster, tracedpx);
                 curstroke.remove();
             } else {
-                var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount);
+
                 curstroke.strokeColor = invertColor(avgbgcolor);
                 curstroke.data.free = true;
             }

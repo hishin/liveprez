@@ -499,7 +499,7 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     if (praster.revealed[x+y*w]) return;
     if (!praster.fg[x+y*w]) return;
     if (praster.cclabel[x+y*w] != cl) return;
-    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.005*velocity)+3))) {
+    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.005*velocity)+10))) {
         var dist2edge = praster.dtedge[x+y*w];
         if (dist2edge > 10) return;
         else {
@@ -511,7 +511,7 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     var pc = praster.getPixel(x,y);
     var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
     var colordiff = deltaE(labc, labpc);
-    if (colordiff > 5) {
+    if (colordiff > 0.04*velocity + 10) {
         return;
     }
     praster.revealed[x+y*w] = 1;
