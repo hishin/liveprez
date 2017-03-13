@@ -463,9 +463,10 @@ function traceClosestPixels(praster, path, velocity) {
     var point, px, py, cx, cy, prevcx, prevcy;
     var clabel, color, labc;
     var prevlabel = null;
-    // console.log("velocity " +  velocity);
-    // console.log("pointdist: " + Math.min(40, (Math.exp(0.005*velocity)+5)));
-    for (var i = 0; i < path.length; i+=0.25) {
+    var avgcolors = [0,0,0,0];
+    var pcount = 0;
+
+    for (var i = 0; i <= path.length; i+=0.25) {
         point = path.getPointAt(i);
 
         // get pixel coordinates
@@ -485,12 +486,23 @@ function traceClosestPixels(praster, path, velocity) {
                 }
             }
             color = praster.getPixel(cx, cy);
+            avgcolors[0] += color.red;
+            avgcolors[1] += color.green;
+            avgcolors[2] += color.blue;
+            avgcolors[3] += color.alpha;
+            pcount ++;
             labc = rgb2lab([color.red*255, color.green*255, color.blue*255]);
             floodFill(praster, cx, cy, cx, cy, clabel, labc, tracedpx, velocity)
             prevlabel = clabel; prevcx = cx; prevcy = cy;
         }
     }
-    return tracedpx;
+
+    avgcolors[0] /= pcount;
+    avgcolors[1] /= pcount;
+    avgcolors[2] /= pcount;
+    avgcolors[3] /= pcount;
+
+    return [tracedpx, avgcolors];
 };
 
 function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
