@@ -684,28 +684,36 @@ function inkEnd(event) {
         bgpcolors[1] += pcolor.green;
         bgpcolors[2] += pcolor.blue;
         bgpcolors[3] += pcolor.alpha;
-        var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
-        var icolor = invertColor(avgbgcolor);
-        console.log(' ' + icolor);
-        console.log(' ' + avgbgcolor.toCSS(true));
 
-        var tracedpx = [];
+
+        var result;
         var avg_dist2fg = dist2fg / pcount;
         var velocity = movedist / (event.timeStamp - prevtime) * 1000;
+
         // IF STROKE IS FAR FROM UNDERLYING PIXELS
         if (avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
+            var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
+            var annocolor;
+            if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
+            else annocolor = invertColor(avgbgcolor);
+            console.log(annocolor);
             // trace color so that it stands out from the background
-            if (avgbgcolor.alpha <= 0.1) curstroke.strokeColor = 'black';
-            else curstroke.strokeColor = invertColor(avgbgcolor);
+            curstroke.strokeColor = annocolor;
             curstroke.data.free = true;
         } else {
-            tracedpx = traceClosestPixels(curitem.praster, curstroke, velocity);
-            if (tracedpx.length / pcount > 0.3 || avg_dist2fg < 4) {
+            result = traceClosestPixels(curitem.praster, curstroke, velocity);
+            var tracedpx = result[0];
+            var avgcolor = result[1];
+            // TRACING UNDERLYING CONTENT
+            if (tracedpx.length / pcount > 0.1) {
                 tracePixels(curitem.traster, curitem.praster, tracedpx);
                 curstroke.remove();
             } else {
-
-                curstroke.strokeColor = invertColor(avgbgcolor);
+                // ANNOTATING ON TOP OF UNDERLYING CONTENT
+                var avgbgcolor = new paper.Color(avgcolor[0], avgcolor[1], avgcolor[2], avgcolor[3]);
+                if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
+                else annocolor = invertColor(avgbgcolor);
+                curstroke.strokeColor = annocolor;
                 curstroke.data.free = true;
             }
         }

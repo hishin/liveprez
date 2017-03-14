@@ -18,7 +18,6 @@ function distanceTransform(booleanImage, m, n, method) {
         }
         else {
             g[x+0*m] = infinity;
-            cj[x+0*m] = -1;
         }
         // Scan 1
         for (var y=1; y<n; y++)	{
