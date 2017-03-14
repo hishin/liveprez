@@ -466,7 +466,8 @@ function traceClosestPixels(praster, path, velocity) {
     var avgcolors = [0,0,0,0];
     var pcount = 0;
 
-    for (var i = 0; i <= path.length; i+=0.25) {
+    var inc = Math.max(path.length/100, 1)
+    for (var i = 0; i < path.length; i+=inc) {
         point = path.getPointAt(i);
 
         // get pixel coordinates
