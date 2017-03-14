@@ -650,8 +650,9 @@ function inkStart(event){
     var cy = curitem.praster.dtj[p.x+p.y*curitem.praster.width];
     curstroke.strokeColor = curitem.praster.getPixel(cx, cy);
     curstroke.strokeColor.alpha = 1.0;
+    curstroke.data.free = false;
 
-    post(inkMessage(curstroke, false));
+    post(inkMessage(curstroke, [], false));
 };
 
 function selectItem() {
@@ -672,7 +673,7 @@ function inkContinue(event) {
     bgpcolors[2] += pcolor.blue;
     bgpcolors[3] += pcolor.alpha;
 
-    post(inkMessage(curstroke, false));
+    post(inkMessage(curstroke, [], false));
 };
 
 function inkEnd(event) {
@@ -692,7 +693,7 @@ function inkEnd(event) {
         var result;
         var avg_dist2fg = dist2fg / pcount;
         var velocity = movedist / (event.timeStamp - prevtime) * 1000;
-
+        var tracedpx = [];
         // IF STROKE IS FAR FROM UNDERLYING PIXELS
         if (avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
             var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
@@ -707,8 +708,11 @@ function inkEnd(event) {
             var tracedpx = result[0];
             var avgcolor = result[1];
             // TRACING UNDERLYING CONTENT
-            if (tracedpx.length / pcount > 0.1) {
-                tracePixels(curitem.traster, curitem.praster, tracedpx);
+            if (tracedpx.length / pcount > 0.1 || avg_dist2fg < 5) {
+                setTimeout( function() {
+                    tracePixels(curitem.traster, curitem.praster, tracedpx);
+                }, 0);
+                // tracePixels(curitem.traster, curitem.praster, tracedpx);
                 curstroke.remove();
             } else {
                 // ANNOTATING ON TOP OF UNDERLYING CONTENT

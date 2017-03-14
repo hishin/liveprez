@@ -336,7 +336,7 @@ function handleInkMessage(data) {
     }
     else
         curslide.inklayer.activate();
-    if (curstroke) {
+    if (curstroke ) {
         curstroke.remove();
     }
 
@@ -344,22 +344,24 @@ function handleInkMessage(data) {
     curstroke.scale(scale, new paper.Point(0,0));
     var tracedpx = JSON.parse(data.tracedpx);
 
-    console.log("here");
-    console.log(data);
+    // console.log("here");
     if (data.end) {
         curstroke.data.free = data.free;
         prevstroke = curstroke;
         if (!data.free) {
             tracePixels(curitem.traster, curitem.praster, tracedpx);
             curstroke.onFrame = function () {
-                if (this.strokeColor.alpha <= 0) {
-                    this.remove();
+                if (!data.free) {
+                    if (this.strokeColor.alpha <= 0) {
+                        this.remove();
+                    }
+                    this.strokeColor.alpha -= 0.05;
                 }
-                this.strokeColor.alpha -= 0.05;
             };
         }
-        console.log("curstroke = mull");
+        // console.log("curstroke = mull");
         curstroke = null;
+        prevstroke = null;
     }
 };
 
