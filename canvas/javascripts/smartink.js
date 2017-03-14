@@ -190,6 +190,9 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
+    if (event.pointerType == 'pen') {
+        console.log(event);
+    }
     if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
         activateInkTool();
     } else if (spaper){
@@ -696,7 +699,6 @@ function inkEnd(event) {
             var annocolor;
             if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
             else annocolor = invertColor(avgbgcolor);
-            console.log(annocolor);
             // trace color so that it stands out from the background
             curstroke.strokeColor = annocolor;
             curstroke.data.free = true;
@@ -721,6 +723,24 @@ function inkEnd(event) {
 
         post(inkMessage(curstroke, tracedpx, true));
     }
+};
+
+function eraseStart(event) {
+    var raster = curitem.praster;
+    var w = raster.width;
+    var p = getPixelPoint(event.point, raster);
+    var strokes = null;
+    if (curitem.inklayer) {
+        strokes = curitem.inklayer.hitTestAll(event.point,
+            { class: paper.Path});
+        console.log(strokes);
+    }
+    if (strokes!= null && raster.revealed[p.x+p.y*w]) {
+        raster.setPixel(x,y,new paper.Color(0,0,0,0));
+        raster.revealed[p.x+p.y*w] = false;
+    }
+
+
 };
 
 function setColorPalette(colors) {
