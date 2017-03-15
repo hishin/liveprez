@@ -466,7 +466,7 @@ function traceClosestPixels(praster, path, velocity) {
     var avgcolors = [0,0,0,0];
     var pcount = 0;
 
-    var inc = Math.max(path.length/100, 1)
+    var inc = Math.max(path.length/150, 1)
     for (var i = 0; i < path.length; i+=inc) {
         point = path.getPointAt(i);
 
@@ -512,7 +512,7 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     if (praster.revealed[x+y*w]) return;
     if (!praster.fg[x+y*w]) return;
     if (praster.cclabel[x+y*w] != cl) return;
-    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.005*velocity)+10))) {
+    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.01*velocity)+10))) {
         var dist2edge = praster.dtedge[x+y*w];
         if (dist2edge > 10) return;
         else {

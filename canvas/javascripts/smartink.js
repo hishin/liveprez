@@ -31,7 +31,7 @@ var prevpinchscale;
 var autostyle = true;
 var default_palette = ['rgb(0,0,0)', 'rgb(255,255,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'];
 var DIST2FG_THRES_A = 0.01;
-var DIST2FG_THRES_B = 10.0;
+var DIST2FG_THRES_B = 15.0;
 var COLOR_THRES_A = 1/15;
 
 function preloadImages(srcs) {
@@ -708,7 +708,7 @@ function inkEnd(event) {
             var tracedpx = result[0];
             var avgcolor = result[1];
             // TRACING UNDERLYING CONTENT
-            if (tracedpx.length / pcount > 0.1 || avg_dist2fg < 5) {
+            if (tracedpx.length / pcount > 0.1 || avg_dist2fg < 10) {
                 setTimeout( function() {
                     tracePixels(curitem.traster, curitem.praster, tracedpx);
                 }, 0);
