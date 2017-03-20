@@ -39,9 +39,9 @@ function chaikinSmooth(path) {
         newpath.add(path.getPointAt(0));
     for (var i = 0; i <= path.length - 1; i++) {
         var p0 = path.getPointAt(i);
-        var p1 = path.getPointAt(i+1);
+        var p1 = path.getPointAt(i + 1);
         var Q = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y);
-        var R = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y );
+        var R = new paper.Point(0.5 * p0.x + 0.5 * p1.x, 0.5 * p0.y + 0.5 * p1.y);
         newpath.add(Q);
         newpath.add(R);
     }
@@ -54,8 +54,8 @@ function chaikinSmooth(path) {
 
 function resample(path, maxpoints=100) {
     var points = [];
-    var inc = Math.max(path.length/maxpoints, 1)
-    for (var i = 0; i < path.length; i+=inc) {
+    var inc = Math.max(path.length / maxpoints, 1)
+    for (var i = 0; i < path.length; i += inc) {
         points.push(path.getPointAt(i));
     }
     points.push(path.getPointAt(path.length));
@@ -91,8 +91,8 @@ function pathFromPoints(points) {
 //     return df[df.length-1];
 // };
 
-function pointDist(x1,y1,x2,y2) {
-    return Math.sqrt(Math.pow(x1-x2, 2) + Math.pow(y1-y2, 2));
+function pointDist(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 };
 
 function distToPath(points, pathq) {
@@ -139,7 +139,7 @@ function interpolate(from, to, factor) {
     var new_p;
     for (var i = 0; i < from_p.length; i++) {
         to_p = to.getNearestPoint(from_p[i]);
-        new_p = new paper.Point(from_p[i].x*(1.0-factor) + to_p.x*factor , from_p[i].y*(1.0-factor) + to_p.y*factor);
+        new_p = new paper.Point(from_p[i].x * (1.0 - factor) + to_p.x * factor, from_p[i].y * (1.0 - factor) + to_p.y * factor);
         result.add(new_p);
     }
     return result;
@@ -156,18 +156,18 @@ function trace(path, sobel, r) {
         var maxx = Math.min(sobel.width, x + r);
         var miny = Math.max(0, y - r);
         var maxy = Math.min(sobel.height, y + r);
-        var offset = (y * sobel.width + x) *4;
-        var minvalue = sobel.data[offset] + sobel.data[offset+1] + sobel.data[offset+2];
+        var offset = (y * sobel.width + x) * 4;
+        var minvalue = sobel.data[offset] + sobel.data[offset + 1] + sobel.data[offset + 2];
         var svalue;
         var dist;
         var newx = x;
         var newy = y;
-        for (var py = miny; py <= maxy; py++ ) {
+        for (var py = miny; py <= maxy; py++) {
             for (var px = minx; px <= maxx; px++) {
-                offset = (py * sobel.width + px) *4;
-                svalue = sobel.data[offset] + sobel.data[offset+1] + sobel.data[offset+2];
-                dist = 0.25*((x-px)*(x-px) + (y-py)*(y-py));
-                if (dist + svalue  < minvalue) {
+                offset = (py * sobel.width + px) * 4;
+                svalue = sobel.data[offset] + sobel.data[offset + 1] + sobel.data[offset + 2];
+                dist = 0.25 * ((x - px) * (x - px) + (y - py) * (y - py));
+                if (dist + svalue < minvalue) {
                     minvalue = dist + svalue;// = svalue;
                     newx = px;
                     newy = py;
@@ -177,7 +177,7 @@ function trace(path, sobel, r) {
         newpoints.push(new paper.Point(newx, newy));
     }
     var newpath = new paper.Path();
-    for (var i = 0; i < newpoints.length; i++){
+    for (var i = 0; i < newpoints.length; i++) {
         newpath.add(newpoints[i]);
     }
     return newpath;
@@ -192,19 +192,19 @@ function traceColor(praster, path) {
     for (var i = 0; i < points.length; i++) {
         //pick salient colors
         var pcolors = [];
-        px = Math.round((points[i].x - praster.wslack)*praster.scale);
-        py = Math.round((points[i].y - praster.hslack)*praster.scale);
-        minx = Math.max(0, px-r);
-        maxx = Math.min(praster.width, px + r+1);
-        miny = Math.max(0, py-r);
-        maxy = Math.min(praster.height, py + r+1);
+        px = Math.round((points[i].x - praster.wslack) * praster.scale);
+        py = Math.round((points[i].y - praster.hslack) * praster.scale);
+        minx = Math.max(0, px - r);
+        maxx = Math.min(praster.width, px + r + 1);
+        miny = Math.max(0, py - r);
+        maxy = Math.min(praster.height, py + r + 1);
         for (var x = minx; x < maxx; x++) {
             for (var y = miny; y < maxy; y++) {
                 idx = y * praster.width + x;
                 if (praster.fg[idx] == 0) {
                     continue;
                 }
-                c = praster.getPixel(x,y);
+                c = praster.getPixel(x, y);
                 // c = colorToAlpha(c, praster.bgcolor);
                 if (c.alpha > 0.01)
                     pcolors.push(c);
@@ -236,8 +236,8 @@ function traceColor(praster, path) {
         path.strokeColor.alpha = 1.0;
         path.data.colors = [];
         for (var i = 0; i < Math.min(cclusters.length, 3); i++) {
-                cclusters[i].maxcolor.alpha = 1.0;
-                path.data.colors.push(cclusters[i].maxcolor.toCSS());
+            cclusters[i].maxcolor.alpha = 1.0;
+            path.data.colors.push(cclusters[i].maxcolor.toCSS());
         }
         path.data.free = false;
     }
@@ -255,22 +255,22 @@ function maskColor(praster, newstroke) {
     var px, py, minx, miny, maxx, maxy;
     var c, dr, dg, db, colordiff;
     for (var i = 0; i <= newstroke.length; i++) {
-        px = Math.round(newstroke.getPointAt(i).x*praster.scale);
-        py = Math.round(newstroke.getPointAt(i).y*praster.scale);
-        minx = Math.max(0, px-r);
-        maxx = Math.min(praster.width, px + r+1);
-        miny = Math.max(0, py-r);
-        maxy = Math.min(praster.height, py + r+1);
+        px = Math.round(newstroke.getPointAt(i).x * praster.scale);
+        py = Math.round(newstroke.getPointAt(i).y * praster.scale);
+        minx = Math.max(0, px - r);
+        maxx = Math.min(praster.width, px + r + 1);
+        miny = Math.max(0, py - r);
+        maxy = Math.min(praster.height, py + r + 1);
         for (var x = minx; x < maxx; x++) {
             for (var y = miny; y < maxy; y++) {
-                c = praster.getPixel(x,y);
+                c = praster.getPixel(x, y);
                 c = colorToAlpha(c, praster.bgcolor);
                 dr = c.red - color.red;
                 dg = c.green - color.green;
                 db = c.blue - color.blue;
-                colordiff = Math.sqrt(2*dr*dr + 4*dg*dg + 3*db*db);
+                colordiff = Math.sqrt(2 * dr * dr + 4 * dg * dg + 3 * db * db);
                 if (colordiff < 0.5) {
-                    praster.setPixel(x,y, new paper.Color(1,0,1));
+                    praster.setPixel(x, y, new paper.Color(1, 0, 1));
                     // maskstroke.add(new paper.Point(x/scale, y/scale));
                 }
             }
@@ -285,8 +285,8 @@ function getColorMode(praster, bounds, r) {
     var colors = [];
     var counts = [];
     var color, hex;
-    for (var x = bounds.left; x < bounds.right; x+=r) {
-        for (var y = bounds.top; y < bounds.bottom; y+=r) {
+    for (var x = bounds.left; x < bounds.right; x += r) {
+        for (var y = bounds.top; y < bounds.bottom; y += r) {
             color = praster.getPixel(x, y);
             hex = color.toCSS(true);
             var id = hexes.indexOf(hex);
@@ -336,8 +336,8 @@ function clusterColors(colors, thres) {
         mindiff = thres;
         for (var c = 0; c < clusters.length; c++) {
             clusteravg = clusters[c].colors[0];
-            var l1 = rgb2lab([clusteravg.red*255, clusteravg.green*255, clusteravg.blue*255]);
-            var l2 = rgb2lab([color.red*255, color.green*255, color.blue*255]);
+            var l1 = rgb2lab([clusteravg.red * 255, clusteravg.green * 255, clusteravg.blue * 255]);
+            var l2 = rgb2lab([color.red * 255, color.green * 255, color.blue * 255]);
             // dr = clusteravg.red - color.red;
             // dg = clusteravg.green - color.green;
             // db = clusteravg.blue - color.blue;
@@ -363,13 +363,13 @@ function clusterColors(colors, thres) {
     return clusters;
 };
 
-var ColorCluster = function() {
+var ColorCluster = function () {
     this.colors = [];
-    this.sumcolor = new paper.Color(0,0,0);
-    this.avgcolor = new paper.Color(0,0,0);
-    this.maxcolor = new paper.Color(0,0,0,0);
+    this.sumcolor = new paper.Color(0, 0, 0);
+    this.avgcolor = new paper.Color(0, 0, 0);
+    this.maxcolor = new paper.Color(0, 0, 0, 0);
     this.ncolors = 0.0;
-    this.addColor = function(color) {
+    this.addColor = function (color) {
         this.colors.push(color);
         this.sumcolor = this.sumcolor.add(color);
         this.avgcolor = this.sumcolor.divide(this.colors.length);
@@ -380,7 +380,7 @@ var ColorCluster = function() {
     };
 };
 
-function compareClusters(a,b) {
+function compareClusters(a, b) {
     if (a.ncolors < b.ncolors)
         return 1;
     if (a.ncolors > b.ncolors)
@@ -434,7 +434,7 @@ function closePath(path) {
     for (var i = 0; i < path.segments.length * 0.1; i++) {
         p = path.segments[i].point;
         for (var j = path.segments.length; j > path.segments.length * 0.9; j--) {
-            q = path.segments[j-1].point;
+            q = path.segments[j - 1].point;
             dist = p.getDistance(q);
             if (dist < mindist) {
                 mindist = dist;
@@ -445,7 +445,7 @@ function closePath(path) {
     }
 
     path.removeSegments(0, minpi);
-    path.removeSegments(minqj+1-minpi, path.segments.length);
+    path.removeSegments(minqj + 1 - minpi, path.segments.length);
     path.closePath();
     return path;
 };
@@ -455,34 +455,35 @@ function isClosed(path) {
     var p = path.getPointAt(0);
     var q = path.getPointAt(path.length);
     var dist = p.getDistance(q);
-    return (dist < path.length*0.05 && dist < 15);
+    return (dist < path.length * 0.05 && dist < 15);
 };
 
 function traceClosestPixels(praster, path, velocity) {
+
     var tracedpx = [];
-    var point, px, py, cx, cy, prevcx, prevcy;
+    var point, px, py, cx, cy, prevcx, prevcy, cos, sin;
     var clabel, color, labc;
     var prevlabel = null;
-    var avgcolors = [0,0,0,0];
+    var prevp = null;
+    var avgcolors = [0, 0, 0, 0];
     var pcount = 0;
-
-    var inc = Math.max(path.length/150, 1)
-    for (var i = 0; i < path.length; i+=inc) {
+    var inc = Math.max(path.length / 100, 1);
+    for (var i = 0; i <= path.length; i += inc) {
         point = path.getPointAt(i);
 
         // get pixel coordinates
-        px = Math.round((point.x - praster.wslack)*praster.scale);
-        py = Math.round((point.y - praster.hslack)*praster.scale);
+        px = Math.round((point.x - praster.wslack) * praster.scale);
+        py = Math.round((point.y - praster.hslack) * praster.scale);
 
         // get closest foreground pixel
-        cx = praster.dti[px+py*praster.width];
-        cy = praster.dtj[px+py*praster.width];
-        var dist2cur = pointDist(px,py,cx,cy);
-        if (dist2cur <= DIST2FG_THRES_A*velocity+DIST2FG_THRES_B) {
+        cx = praster.dti[px + py * praster.width];
+        cy = praster.dtj[px + py * praster.width];
+        var dist2cur = pointDist(px, py, cx, cy);
+        if (dist2cur <= DIST2FG_THRES_A * velocity + 10) {
             clabel = praster.cclabel[cx + cy * praster.width];
             if (prevlabel && prevlabel != clabel) {
                 var dist2prev = pointDist(prevcx, prevcy, cx, cy);
-                if (dist2prev - dist2cur < 5) {
+                if (dist2prev - dist2cur < DIST2FG_THRES_B) {
                     continue;
                 }
             }
@@ -491,12 +492,18 @@ function traceClosestPixels(praster, path, velocity) {
             avgcolors[1] += color.green;
             avgcolors[2] += color.blue;
             avgcolors[3] += color.alpha;
-            pcount ++;
-            labc = rgb2lab([color.red*255, color.green*255, color.blue*255]);
-            floodFill(praster, cx, cy, cx, cy, clabel, labc, tracedpx, velocity)
-            prevlabel = clabel; prevcx = cx; prevcy = cy;
+            pcount++;
+            labc = rgb2lab([color.red * 255, color.green * 255, color.blue * 255]);
+
+            floodFill(praster, cx, cy, cx, cy, clabel, labc, tracedpx, velocity);
+            prevlabel = clabel;
+            prevcx = cx;
+            prevcy = cy;
+
         }
+        prevp = point;
     }
+
 
     avgcolors[0] /= pcount;
     avgcolors[1] /= pcount;
@@ -504,42 +511,44 @@ function traceClosestPixels(praster, path, velocity) {
     avgcolors[3] /= pcount;
 
     return [tracedpx, avgcolors];
-};
+}
+;
 
 function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     var w = praster.width;
     if (x < 0 || x >= w || y < 0 || y >= praster.height) return;
-    if (praster.revealed[x+y*w]) return;
-    if (!praster.fg[x+y*w]) return;
-    if (praster.cclabel[x+y*w] != cl) return;
-    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.01*velocity)+10))) {
-        var dist2edge = praster.dtedge[x+y*w];
-        if (dist2edge > 10) return;
+    if (praster.revealed[x + y * w]) return;
+    if (!praster.fg[x + y * w]) return;
+    if (praster.cclabel[x + y * w] != cl) return;
+
+    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.02*velocity)+10))) {
+        var dist2edge = praster.dtedge[x + y * w];
+        if (dist2edge > DIST2FG_THRES_B) return;
         else {
             praster.revealed[x + y * w] = 1;
             tracedpx.push([x, y]);
             return;
         }
     }
-    var pc = praster.getPixel(x,y);
-    var labpc = rgb2lab([pc.red*255, pc.green*255, pc.blue*255]);
+    var pc = praster.getPixel(x, y);
+    var labpc = rgb2lab([pc.red * 255, pc.green * 255, pc.blue * 255]);
     var colordiff = deltaE(labc, labpc);
-    if (colordiff > 0.04*velocity + 10) {
+    if (colordiff > 0.04 * velocity + 10) {
         return;
     }
-    praster.revealed[x+y*w] = 1;
-    tracedpx.push([x,y]);
+    praster.revealed[x + y * w] = 1;
+    tracedpx.push([x, y]);
 
-    floodFill(praster, x-1, y, origx, origy, cl, labc, tracedpx, velocity);
-    floodFill(praster, x+1, y, origx, origy, cl, labc, tracedpx, velocity);
-    floodFill(praster, x, y-1, origx, origy, cl, labc, tracedpx, velocity);
-    floodFill(praster, x, y+1, origx, origy, cl, labc, tracedpx, velocity);
+    floodFill(praster, x - 1, y, origx, origy, cl, labc, tracedpx, velocity);
+    floodFill(praster, x + 1, y, origx, origy, cl, labc, tracedpx, velocity);
+    floodFill(praster, x, y - 1, origx, origy, cl, labc, tracedpx, velocity);
+    floodFill(praster, x, y + 1, origx, origy, cl, labc, tracedpx, velocity);
 };
 
 function traceWidth(praster, path) {
-    var inc = Math.max(path.length/100, 1);
+    var inc = Math.max(path.length / 100, 1);
     var point, normal, p, p1, p2, coords1, coords2, vals1, vals2, id1, id2, id;
-    var maxd = MAX_SWIDTH_PX/2.0 + MAX_ERROR_DIST*praster.scale;
+    var maxd = MAX_SWIDTH_PX / 2.0 + MAX_ERROR_DIST * praster.scale;
     var widths = [];
     for (var i = 0; i <= path.length; i += inc) {
         point = path.getPointAt(i);
@@ -552,9 +561,9 @@ function traceWidth(praster, path) {
 
         // px = Math.round((points[i].x - praster.wslack)*praster.scale);
         // py = Math.round((points[i].y - praster.hslack)*praster.scale);
-        p1 = new paper.Point((p1.x - praster.wslack)*praster.scale, (p1.y - praster.hslack)*praster.scale);//p1.multiply(praster.scale);
-        p2 = new paper.Point((p2.x - praster.wslack)*praster.scale, (p2.y - praster.hslack)*praster.scale);//p2.multiply(praster.scale);
-        p = new paper.Point((point.x - praster.wslack)*praster.scale, (point.y - praster.hslack)*praster.scale);//point.multiply(praster.scale);
+        p1 = new paper.Point((p1.x - praster.wslack) * praster.scale, (p1.y - praster.hslack) * praster.scale);//p1.multiply(praster.scale);
+        p2 = new paper.Point((p2.x - praster.wslack) * praster.scale, (p2.y - praster.hslack) * praster.scale);//p2.multiply(praster.scale);
+        p = new paper.Point((point.x - praster.wslack) * praster.scale, (point.y - praster.hslack) * praster.scale);//point.multiply(praster.scale);
         coords1 = bresenhamCoordinates(p, p1);
         coords2 = bresenhamCoordinates(p, p2);
 
@@ -566,7 +575,7 @@ function traceWidth(praster, path) {
         vals2 = getDataValues(praster.swidth, praster.width, praster.height, coords2);
         // check if point is local maxima
         if (vals1.length > 1 && vals2.length > 1 && vals1[0] > vals1[1] && vals1[0] > vals2[1]) {
-            if (vals1[0] > MAX_SWIDTH_PX/2.0) widths.push(-1);
+            if (vals1[0] > MAX_SWIDTH_PX / 2.0) widths.push(-1);
             else widths.push(vals1[0]);
         } else {
             // find id of closest local maximum
@@ -574,10 +583,10 @@ function traceWidth(praster, path) {
             id2 = findFirstLocalMaxima(vals2);
 
             if (id1 < id2 && id1 > 0) {
-                if (vals1[id1] > MAX_SWIDTH_PX/2.0) widths.push(-1);
+                if (vals1[id1] > MAX_SWIDTH_PX / 2.0) widths.push(-1);
                 else widths.push(vals1[id1]);
             } else if (id2 < id1 && id2 > 0) {
-                if (vals2[id2] > MAX_SWIDTH_PX/2.0) widths.push(-1);
+                if (vals2[id2] > MAX_SWIDTH_PX / 2.0) widths.push(-1);
                 else widths.push(vals2[id2]);
             } else {
                 widths.push(-1);
@@ -588,24 +597,22 @@ function traceWidth(praster, path) {
     if (mwidth == -1 || mwidth == 0) {
         path.strokeWidth = 1.0 / praster.scale;
     } else {
-        path.strokeWidth = mwidth*2.0 / praster.scale;
+        path.strokeWidth = mwidth * 2.0 / praster.scale;
     }
 };
 
 function findMode(array) {
-    if(array.length == 0)
+    if (array.length == 0)
         return -1;
     var modeMap = {};
     var maxEl = array[0], maxCount = 1;
-    for(var i = 0; i < array.length; i++)
-    {
+    for (var i = 0; i < array.length; i++) {
         var el = array[i];
-        if(modeMap[el] == null)
+        if (modeMap[el] == null)
             modeMap[el] = 1;
         else
             modeMap[el]++;
-        if(modeMap[el] > maxCount)
-        {
+        if (modeMap[el] > maxCount) {
             maxEl = el;
             maxCount = modeMap[el];
         }
@@ -615,7 +622,7 @@ function findMode(array) {
 
 function findFirstLocalMaxima(vals) {
     for (var i = 1; i < vals.length - 1; i++) {
-        if (vals[i] > vals[i-1] && vals[i] >= vals[i+1])
+        if (vals[i] > vals[i - 1] && vals[i] >= vals[i + 1])
             return i;
     }
     return Infinity;
@@ -629,7 +636,7 @@ function getDataValues(data, m, n, coords) {
         x = coords[i].x;
         y = coords[i].y;
         if (x < 0 || x >= m || y < 0 || y >= n) continue;
-        off = y*m + x;
+        off = y * m + x;
         if (preval && preval == data[off])
             continue;
         vals.push(data[off]);
@@ -646,14 +653,14 @@ function bresenhamCoordinates(p1, p2) {
 
     var dx = Math.abs(x2 - x1);
     var dy = Math.abs(y2 - y1);
-    var sx = (x1 < x2) ? 1: -1;
-    var sy = (y1 < y2) ? 1: -1;
+    var sx = (x1 < x2) ? 1 : -1;
+    var sy = (y1 < y2) ? 1 : -1;
     var err = dx - dy;
 
     var coords = [];
-    coords.push({x:x1, y:y1});
+    coords.push({x: x1, y: y1});
 
-    while(!((x1 == x2) && (y1 == y2))) {
+    while (!((x1 == x2) && (y1 == y2))) {
         var e2 = err * 2;
         if (e2 > -dy) {
             err -= dy;
@@ -663,7 +670,7 @@ function bresenhamCoordinates(p1, p2) {
             err += dx;
             y1 += sy;
         }
-        coords.push({x:x1, y:y1});
+        coords.push({x: x1, y: y1});
     }
     return coords;
 };
@@ -676,16 +683,16 @@ function traceWidthOld(width, m, n, path, scale) {
         point = path.getPointAt(i);
         px = Math.floor(point.x * scale);
         py = Math.floor(point.y * scale);
-        idx = py*m + px;
+        idx = py * m + px;
         widths.push(width[idx]);
         maxwidth = Math.max(maxwidth, width[idx]);
     }
     console.log("maxwidth: " + maxwidth);
-    return maxwidth/scale;
+    return maxwidth / scale;
 };
 
 function getPixelPoint(point, raster) {
-    var px = Math.round((point.x - raster.wslack)*raster.scale);
-    var py = Math.round((point.y - raster.hslack)*raster.scale);
+    var px = Math.round((point.x - raster.wslack) * raster.scale);
+    var py = Math.round((point.y - raster.hslack) * raster.scale);
     return new paper.Point(px, py);
 }
