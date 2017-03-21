@@ -33,6 +33,8 @@ var default_palette = ['rgb(0,0,0)', 'rgb(255,255,255)', 'rgb(255,0,0)', 'rgb(0,
 var DIST2FG_THRES_A = 0.02;
 var DIST2FG_THRES_B = 5.0;
 var COLOR_THRES_A = 1/15;
+var pen = true;
+var strokeid = 0;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -190,14 +192,31 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
-    if (event.pointerType == 'pen') {
-        console.log(event);
-    }
+
     if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
-        activateInkTool();
+        if (pen) {
+            activateInkTool();
+        }
+        else {
+            activateEraserTool();
+        }
+
+
     } else if (spaper){
         spaper.tool = null;
     }
+};
+
+function selectPen() {
+    $('#pen').addClass('checked');
+    $('#eraser').removeClass('checked');
+    pen = true;
+};
+
+function selectEraser() {
+    $('#eraser').addClass('checked');
+    $('#pen').removeClass('checked');
+    pen = false;
 };
 
 function popupAudienceView() {
@@ -342,6 +361,12 @@ function setupPaperTools() {
     inktool.onMouseDrag = inkContinue;
     inktool.onMouseUp = inkEnd;
     spaper.inktool = inktool;
+
+    var eraser = new spaper.Tool();
+    eraser.name = 'eraser';
+    eraser.onMouseDown = erase;
+    eraser.onMouseDrag = erase;
+    spaper.eraser = eraser;
 
     // Space tool
     // var spacetool = new spaper.Tool();
@@ -613,6 +638,11 @@ function activateInkTool() {
     // deactivateItemMouseEvents();
 };
 
+function activateEraserTool() {
+    if (!spaper) return;
+    spaper.eraser.activate();
+};
+
 var curstroke;
 var curbound;
 var movedist;
@@ -724,27 +754,32 @@ function inkEnd(event) {
             }
         }
 
-
+        curstroke.data.id = strokeid++;
         post(inkMessage(curstroke, tracedpx, true));
     }
 };
 
-function eraseStart(event) {
+function erase(event) {
     var raster = curitem.praster;
-    var w = raster.width;
-    var p = getPixelPoint(event.point, raster);
+    // var p = getPixelPoint(event.point, raster);
+
+    var hitoptions = {
+        segments: true,
+        stroke: true,
+        fill: true,
+        curves: true,
+        class: spaper.Path,
+        tolerance: 5
+    };
+
     var strokes = null;
-    if (curitem.inklayer) {
-        strokes = curitem.inklayer.hitTestAll(event.point,
-            { class: paper.Path});
-        console.log(strokes);
+    if (curslide.inklayer && curslide.inklayer.children.length > 0) {
+        strokes = curslide.inklayer.hitTestAll(event.point, hitoptions);
+        if (strokes.length > 0) {
+            strokes[0].item.remove();
+            post(inkDeleteMessage(strokes[0].item));
+        }
     }
-    if (strokes!= null && raster.revealed[p.x+p.y*w]) {
-        raster.setPixel(x,y,new paper.Color(0,0,0,0));
-        raster.revealed[p.x+p.y*w] = false;
-    }
-
-
 };
 
 function setColorPalette(colors) {
@@ -984,7 +1019,18 @@ function inkMessage(inkstroke, tracedpx, end) {
         free: inkstroke.data.free,
         fillalpha: inkstroke.data.fillalpha,
         tracedpx: JSON.stringify(tracedpx),
+        strokeid: inkstroke.data.id,
         end: end
+    } );
+    return msg;
+};
+
+function inkDeleteMessage(inkstroke) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'inkdel',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        strokeid: inkstroke.data.id
     } );
     return msg;
 };

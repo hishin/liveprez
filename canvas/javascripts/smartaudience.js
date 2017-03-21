@@ -43,6 +43,8 @@ window.addEventListener('message', function(event) {
             handleDrawMessage(data);
         } else if (data.type === 'ink') {
             handleInkMessage(data);
+        } else if (data.type === 'inkdel') {
+            handleInkDelMessage(data);
         } else if (data.type ==='lowermask') {
             handleLowerMaskMessage(data);
         } else if (data.type === 'mask') {
@@ -194,7 +196,6 @@ function loadSlide(slide) {
     if (curslidenum != undefined) {
         hideSlide(slides[curslidenum]);
     }
-    console.log(slide);
     showSlide(slides[slide.num]);
 
     curslide = slides[slide.num];
@@ -330,6 +331,18 @@ function handleUpdateViewMessage(data) {
     apaper.view.viewSize.height = data.height;
 };
 
+function handleInkDelMessage(data) {
+    if (curslide.inklayer && curslide.inklayer.children.length > 0) {
+        var item = curslide.inklayer.getItem({
+            data: {
+                id: data.strokeid
+            }
+        });
+        if (item)
+            item.remove();
+    }
+};
+
 function handleInkMessage(data) {
     if (!curslide.inklayer) {
         curslide.inklayer = new paper.Layer();
@@ -341,6 +354,7 @@ function handleInkMessage(data) {
     }
 
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
+    curstroke.data.id = data.strokeid;
     curstroke.scale(scale, new paper.Point(0,0));
     var tracedpx = JSON.parse(data.tracedpx);
 

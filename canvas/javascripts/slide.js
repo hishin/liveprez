@@ -64,8 +64,8 @@ var Slide = function(sfiles, p) {
                         aspectratio = this.height / this.width;
                     }
                     img_w = this.width;
-                    SLIDE_H = $(window).height() - MENU_H;
-                    SLIDE_W = $(window).width() - 5;//SLIDE_H / aspectratio;
+                    SLIDE_W = $('#speaker-slide').width();
+                    SLIDE_H = $(window).height() - 5;
                 }
                 slide.items[tempi] = item;
             }
