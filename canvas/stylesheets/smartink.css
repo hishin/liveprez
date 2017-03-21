@@ -114,14 +114,18 @@ label {
 
 .menu {
     display: flex;
-    align-items: center;
+    /*align-items: center;*/
     height:100vh;
     flex-direction: column;
-    vertical-align: center;
-    justify-content: center;
+    /*vertical-align: center;*/
+    /*justify-content: center;*/
     text-align: center;
 }
 
 .btn.checked {
     background-color: #EFA00B;
+}
+
+table {
+    height: 100%;
 }

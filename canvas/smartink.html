@@ -33,14 +33,21 @@
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
         <div class="col-md-1 menu">
-
-            <input type="file" id="files" style="display: none;" webkitdirectory directory multiple/>
-            <button type="button" title="Open" class="btn btn-default btn-circle btn-xl" onclick="document.getElementById('files').click();">
-                <i class=" glyphicon glyphicon-folder-open"></i></button><br/>
-            <button type="button" id="pen" title="Open" class="btn btn-default btn-circle btn-xl checked" onclick="selectPen();">
-                <i class=" glyphicon glyphicon-pencil"></i></button><br/>
-            <button type="button" id="eraser" title="Open" class="btn btn-default btn-circle btn-xl" onclick="selectEraser();">
-                <i class=" glyphicon glyphicon-erase"></i></button><br/>
+            <table>
+                <tr><td> <input type="file" id="files" style="display: none;" webkitdirectory directory multiple/>
+                <button type="button" title="Open" class="btn btn-default btn-circle btn-xl" onclick="document.getElementById('files').click();">
+                    <i class=" glyphicon glyphicon-folder-open"></i></button></td></tr>
+                <tr><td><button type="button" id="pen" title="Open" class="btn btn-default btn-circle btn-xl checked" onclick="selectPen();">
+                    <i class=" glyphicon glyphicon-pencil"></i></button><br/><button type="button" id="eraser" title="Open" class="btn btn-default btn-circle btn-xl" onclick="selectEraser();">
+                    <i class=" glyphicon glyphicon-erase"></i></button><br/></td></tr>
+                <tr><td>
+                    <button type="button" title="Previous" class="btn btn-default btn-circle btn-xl" onclick="nextSlide()">
+                    <i class="glyphicon glyphicon-arrow-right"></i></button>
+                    <button type="button" title="Next" class="btn btn-default btn-circle btn-xl" onclick="prevSlide()">
+                    <i class="glyphicon glyphicon-arrow-left"></i></button>
+                </td></tr>
+            </table>
+            
 
             <!--<input id="files" type="file" >-->
             <!--<input id='auto-style' type="checkbox" data-toggle="toggle" data-on="Auto Style" data-off="Manual" data-offstyle="default" checked />-->
@@ -52,12 +59,6 @@
             <!--<label><input id='auto-style' type="checkbox" checked/>&nbsp;Auto Style</label>-->
         </div>
         <div class="col-md-11 slide" id="speaker-slide"></div>
-        <!--<div id="page-btns" class="btn-group">-->
-            <!--<button type="button" title="Next" class="btn btn-default" onclick="prevSlide()">-->
-                <!--<i class="glyphicon glyphicon-arrow-left"></i></button>-->
-            <!--<button type="button" title="Previous" class="btn btn-default" onclick="nextSlide()">-->
-                <!--<i class="glyphicon glyphicon-arrow-right"></i></button>-->
-        <!--</div>        -->
         <div><a href="" download="smartink_result.png" id="download_link" >Download</a></div>
 
     </div>
