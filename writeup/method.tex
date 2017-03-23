@@ -1,0 +1,16 @@
+\section{Method}
+
+\subsection{Separation of Layers}
+3 layers: background, foreground, and notes.
+Background is always shown (analogous to contents the instructor draws before class or appears by default on slide).
+Foreground is flexible (analogous to contents that will be drawn on the board or revealed with animation) 
+Notes is only available to the presenter (analogous to lecture note or presenter notes). 
+
+\subsection{Inking to reveal}
+Presenter inks over a foreground element. Underlying content is revealed and user stroke disappears.
+For each point of user stroke, find closest foreground pixel. Do a flood fill that is limited by (1) distance from original point, (2) distance from starting pixel, (3) color difference from starting pixel. The thresholds depend on the velocity of the user stroke. 
+
+\subsection{Inking to annotate}
+Presenter inks over empty space (where there is no foreground element) or over a foreground element that is already revealed. Ink color is automatically selected to stand out from the background or foreground element.
+
+\subsection{Space Manipulation?}
