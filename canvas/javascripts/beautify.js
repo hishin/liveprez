@@ -467,8 +467,8 @@ function traceClosestPixels(praster, path, velocity) {
     var prevp = null;
     var avgcolors = [0, 0, 0, 0];
     var pcount = 0;
-    var inc = Math.max(path.length / 100, 1);
-    for (var i = 0; i <= path.length; i += inc) {
+    // var inc = Math.max(path.length / 100, 1);
+    for (var i = 0; i <= path.length; i += 1) {
         point = path.getPointAt(i);
 
         // get pixel coordinates
@@ -691,8 +691,14 @@ function traceWidthOld(width, m, n, path, scale) {
     return maxwidth / scale;
 };
 
-function getPixelPoint(point, raster) {
-    var px = Math.round((point.x - raster.wslack) * raster.scale);
-    var py = Math.round((point.y - raster.hslack) * raster.scale);
-    return new paper.Point(px, py);
-}
+function moveElementY(praster, elem, dist) {
+    var sub = praster.getSubRaster(elem.rect.bounds);
+
+    if (elem.eraster != null) {
+        elem.eraster.replaceWith(sub);
+    }
+    elem.eraster = sub;
+
+    sub.translate(new paper.Point(0, dist));
+    elem.miny += dist;
+};

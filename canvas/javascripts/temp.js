@@ -1,3 +1,20 @@
+var imageData = ctx.getImageData(0, 0, 500, 500),
+    data = imageData.data,
+    len = data.length;
+
+for (var i = 0; i < len; i += 4){
+    data[i] = buffer[i];
+    data[i + 1] = buffer[i + 1];
+    data[i + 2] = buffer[i + 2];
+}
+
+ctx.putImageData(imageData, 0, 0);
+
+
+
+
+
+
 pixelStack = [[startX, startY]];
 
 while(pixelStack.length)

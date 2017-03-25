@@ -33,8 +33,12 @@ var default_palette = ['rgb(0,0,0)', 'rgb(255,255,255)', 'rgb(255,0,0)', 'rgb(0,
 var DIST2FG_THRES_A = 0.02;
 var DIST2FG_THRES_B = 5.0;
 var COLOR_THRES_A = 1/15;
-var pen = true;
+var pen = 0; // eraser = 1, space = 2
 var strokeid = 0;
+var RIGHT = 0;
+var LEFT = 1;
+var BOTTOM = 2;
+var TOP = 3;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -70,16 +74,6 @@ window.onload = function () {
             event.preventDefault();
         }
     }, {passive:false});
-
-    // $('#pen-tool').change(function(event) {
-    //     hideMenu(document.getElementById('mask-context-menu'));
-    //     if (!spaper) return;
-    //     if (event.target.checked) {
-    //         spaper.tool = null;
-    //     } else {
-    //         activateMaskTool(0);
-    //     }
-    // });
 
     document.oncontextmenu = function(event) {
         event.preventDefault();
@@ -194,10 +188,10 @@ function handleKeyboardEvents(event) {
 function handlePointerEvents(event) {
 
     if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
-        if (pen) {
+        if (pen == 0) {
             activateInkTool();
         }
-        else {
+        else if (pen == 1) {
             activateEraserTool();
         }
 
@@ -210,14 +204,16 @@ function handlePointerEvents(event) {
 function selectPen() {
     $('#pen').addClass('checked');
     $('#eraser').removeClass('checked');
-    pen = true;
+    pen = 0;
 };
 
 function selectEraser() {
     $('#eraser').addClass('checked');
     $('#pen').removeClass('checked');
-    pen = false;
+    pen = 1;
 };
+
+
 
 function popupAudienceView() {
     awindow = window.open('smartaudience.html', 'Audience View');
@@ -368,30 +364,6 @@ function setupPaperTools() {
     eraser.onMouseDrag = erase;
     spaper.eraser = eraser;
 
-    // Space tool
-    // var spacetool = new spaper.Tool();
-    // spacetool.onMouseDown = makeSpaceStart;
-    // spacetool.onMouseDrag = makeSpaceContinue;
-    // // spacetool.onMouseUp = makeSpaceEnd;
-    // spaper.spacetool = spacetool;
-
-    // Mask tool
-    // var masktool = new spaper.Tool();
-    // masktool.name = 'mask';
-    // masktool.onMouseDown = maskStart;
-    // masktool.onMouseDrag = maskContinue;
-    // masktool.onMouseUp = maskEnd;
-    // spaper.masktool = masktool;
-
-    // Reveal tool
-    // var revealtool = new spaper.Tool();
-    // revealtool.name = 'reveal';
-    // revealtool.onMouseDown = revealStart;
-    // revealtool.onMouseDrag = revealContinue;
-    // revealtool.onMouseUp = revealEnd;
-    // spaper.revealtool = revealtool;
-
-    // activateInkTool();
     spaper.tool = null;
 };
 
@@ -451,8 +423,10 @@ function loadItem(slide, item, i) {
 function loadBackgroundItem(slide, item, i) {
     var layer = new paper.Layer();
     slide.itemlayer.push(layer);
+    layer.activate();
+
     var raster = new paper.Raster(item.src);
-    item.setRaster(raster, true);
+    item.setRaster(raster, false);
     item.praster.fitBounds(paper.view.bounds);
     item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
     item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
@@ -463,37 +437,31 @@ function loadBackgroundItem(slide, item, i) {
 function loadForegroundItem(slide, item) {
     var layer = new paper.Layer();
     slide.itemlayer.push(layer);
+    slide.fglayer = layer;
     if (slide.itemlayer.length > 1) {
         layer.insertAbove(slide.itemlayer[slide.itemlayer.length-2]);
     }
 
-    // var fadedraster = new paper.Raster(item.src);
-    // item.setRaster(fadedraster, false);
-    // item.fadedraster.fitBounds(paper.view.bounds);
-    // item.fadedraster.scale = Math.max(item.fadedraster.width/paper.view.bounds.width, item.fadedraster.height/paper.view.bounds.height);
-    // item.fadedraster.wslack = (paper.view.bounds.width - item.fadedraster.width/item.fadedraster.scale)/2.0;
-    // item.fadedraster.hslack = (paper.view.bounds.height - item.fadedraster.height/item.fadedraster.scale)/2.0;
-    // item.fadedraster.opacity = 0.5;
-
+    layer.activate();
     var raster = new paper.Raster(item.src);
     item.setRaster(raster, true);
     item.praster.fitBounds(paper.view.bounds);
     item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
     item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
     item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
-    item.praster.opacity = 0.5;
+    // makeSemiTransparent(item.praster);
+    // item.praster.opacity = 0.5;
     // item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
     // item.pclip.fillColor = 'black';
     // item.pgroup = new paper.Group(item.pclip, item.praster);
     // item.pgroup.clipped = true;
     // item.pgroup.insertAbove(item.fadedraster);
-
-    var traster = new paper.Raster();
-    traster.width = raster.width;
-    traster.height = raster.height;
-    traster.fitBounds(paper.view.bounds);
-    item.traster = traster;
-    item.traster.insertAbove(item.praster);
+    // var traster = new paper.Raster();
+    // traster.width = raster.width;
+    // traster.height = raster.height;
+    // traster.fitBounds(paper.view.bounds);
+    // item.traster = traster;
+    // item.traster.insertAbove(item.praster);
 };
 
 function hideSpeakerOnlyItems(pitem) {
@@ -510,20 +478,7 @@ function hideSpeakerOnlyItems(pitem) {
     }
 };
 
-function makeSemiTransparent(pitem) {
-    if (pitem.children) {
-        for (var i = 0; i < pitem.children.length; i++) {
-            // pitem.children[i].visible = false;
-            makeSemiTransparent(pitem.children[i]);
-        }
-    } else {
-        if (pitem.fillColor)
-            pitem.fillColor.alpha = 0.5;
-        if (pitem.strokeColor)
-            pitem.strokeColor.alpha = 0.5;
-    }
-    pitem.visible = true;
-};
+
 
 function revealItem(pitem) {
     if (pitem.children) {
@@ -643,6 +598,12 @@ function activateEraserTool() {
     spaper.eraser.activate();
 };
 
+function selectItem() {
+    // Select the Foreground Item
+    curitem = curslide.items[1];
+    bgitem = curslide.items[0];
+};
+
 var curstroke;
 var curbound;
 var movedist;
@@ -650,6 +611,13 @@ var dist2fg;
 var prevtime;
 var pcount;
 var bgpcolors;
+
+var timeout;
+var line_end;
+var expand = false;
+var subs = null;
+var line;
+var prev_p;
 function inkStart(event){
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
@@ -685,28 +653,41 @@ function inkStart(event){
     post(inkMessage(curstroke, [], false));
 };
 
-function selectItem() {
-    // Select the Foreground Item
-    curitem = curslide.items[1];
-    bgitem = curslide.items[0];
-};
-
 function inkContinue(event) {
-    curstroke.add(event.point);
-    movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
-    var p = getPixelPoint(event.point, curitem.praster);
-    dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
-    pcount++;
-    var pcolor = bgitem.praster.getPixel(p.x, p.y);
-    bgpcolors[0] += pcolor.red;
-    bgpcolors[1] += pcolor.green;
-    bgpcolors[2] += pcolor.blue;
-    bgpcolors[3] += pcolor.alpha;
-
-    post(inkMessage(curstroke, [], false));
+    if (!expand) {
+        curstroke.add(event.point);
+        movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
+        var p = getPixelPoint(event.point, curitem.praster);
+        dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+        pcount++;
+        var pcolor = bgitem.praster.getPixel(p.x, p.y);
+        bgpcolors[0] += pcolor.red;
+        bgpcolors[1] += pcolor.green;
+        bgpcolors[2] += pcolor.blue;
+        bgpcolors[3] += pcolor.alpha;
+        line_end = event.point;
+        if (timeout)
+            clearTimeout(timeout);
+        timeout = setTimeout(function() {
+            expand = true;
+            line = curstroke;
+            line.dashArray = [5,5];
+            line.strokeColor = 'red';
+            post(spaceStartMessage());
+        }, 300);
+        post(inkMessage(curstroke, [], false));
+    } else {
+        makeSpaceContinue(event);
+    }
 };
 
 function inkEnd(event) {
+    if (timeout)
+        clearTimeout(timeout);
+    if (expand) {
+        makeSpaceEnd(event);
+        return;
+    }
     if (curstroke) {
         curstroke.add(event.point);
         movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
@@ -718,7 +699,6 @@ function inkEnd(event) {
         bgpcolors[1] += pcolor.green;
         bgpcolors[2] += pcolor.blue;
         bgpcolors[3] += pcolor.alpha;
-
 
         var result;
         var avg_dist2fg = dist2fg / pcount;
@@ -738,11 +718,10 @@ function inkEnd(event) {
             var tracedpx = result[0];
             var avgcolor = result[1];
             // TRACING UNDERLYING CONTENT
-            if (tracedpx.length / pcount > 0.05 || avg_dist2fg < 15) {
+            if (tracedpx.length / pcount > 0.10) {
                 setTimeout( function() {
-                    tracePixels(curitem.traster, curitem.praster, tracedpx);
+                    tracePixels(curitem.praster, tracedpx);
                 }, 0);
-                // tracePixels(curitem.traster, curitem.praster, tracedpx);
                 curstroke.remove();
             } else {
                 // ANNOTATING ON TOP OF UNDERLYING CONTENT
@@ -760,6 +739,7 @@ function inkEnd(event) {
 };
 
 function erase(event) {
+    selectItem();
     var raster = curitem.praster;
     // var p = getPixelPoint(event.point, raster);
 
@@ -1010,6 +990,38 @@ function getSlideState() {
     return JSON.stringify(curslide);
 };
 
+function spaceStartMessage() {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'space-start',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search
+    } );
+    return msg;
+};
+
+function spaceContinueMessage(expanddir, delta) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'space-continue',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        dir: expanddir,
+        delta: JSON.stringify(delta)
+    } );
+    return msg;
+};
+
+function spaceEndMessage(raster) {
+    var msg = JSON.stringify( {
+        namespace: 'liveprez',
+        type: 'space-end',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        newraster: JSON.stringify(raster),
+        top: raster.bounds.top,
+        left: raster.bounds.left
+    } );
+    return msg;
+};
+
 function inkMessage(inkstroke, tracedpx, end) {
     var msg = JSON.stringify( {
         namespace: 'liveprez',
@@ -1117,78 +1129,231 @@ function post(msg) {
     }
 };
 
+function makeSpaceEnd(event) {
+    expand = false;
+    subs = null;
+    prev_p = null;
+    expanddir = -1;
+    curslide.fglayer.activate();
+    var newraster = curslide.fglayer.rasterize(72);
+    curslide.fglayer.removeChildren();
+    curslide.fglayer.addChild(newraster);
+    // set newraster as the praster
+    curitem.praster = null; // freeing memory;
+    curitem.praster = newraster;
+    curitem.praster.scale = Math.max(curitem.praster.width/curitem.praster.bounds.width, curitem.praster.height/curitem.praster.bounds.height);
+    curitem.praster.wslack = newraster.bounds.left;//(paper.view.bounds.width - curitem.praster.width/curitem.praster.scale)/2.0;
+    curitem.praster.hslack = newraster.bounds.top;//(paper.view.bounds.height - curitem.praster.height/curitem.praster.scale)/2.0;
+    newraster.imdata = newraster.getImageData(new paper.Rectangle(0, 0, newraster.width, newraster.height));
+    newraster.fg = booleanImageFromForeground(newraster.imdata);
+    // console.log("Compute Edge Information");
+    newraster.sobel = computeSobel(newraster);
+    newraster.sobelbool = booleanImageFromSobel(newraster.sobel, 10);
+    // console.log("Compute Distance Transformation");
+    newraster.dtresult1 = distanceTransform(newraster.sobelbool, newraster.width, newraster.height, "EDT");
+    newraster.dtedge = newraster.dtresult1[0];
+    newraster.dtresult2 = distanceTransform(newraster.fg, newraster.width, newraster.height, "EDT");
+    newraster.dtfg = newraster.dtresult2[0];
+    newraster.dti = newraster.dtresult2[1];
+    newraster.dtj = newraster.dtresult2[2];
+    newraster.revealed = isRevealed(newraster.imdata);
+    // console.log("Generate Stroke Width Image");
+    newraster.swidth = strokeWidthImage(newraster.dtedge, newraster.fg, 0, 10);
+    newraster.cclabel = BlobExtraction(newraster.fg, newraster.width, newraster.height);
 
-function activateSpaceTool() {
-    // deactivateItemMouseEvents();
-    spaper.spacetool.activate();
+    console.log('top: ' + curitem.praster.bounds.top);
+    console.log('left: ' + curitem.praster.bounds.left);
+    if (line)
+        line.remove();
+
+    post(spaceEndMessage(newraster));
+
 };
 
-var horizontal = false;
-var line_start;
-var line_end;
-var spaceline;
-var spacerect;
-var expand = false;
-var timeout;
-function makeSpaceStart(event) {
-    line_start = event.point;
-};
+var expanddir = -1;
 function makeSpaceContinue(event) {
-    line_end = event.point;
-    if (!expand) { //
-        var dx = Math.abs(line_end.x - line_start.x);
-        var dy = Math.abs(line_end.y - line_start.y);
-        if (dx > dy) {
-            line_end.y = line_start.y;
-            horizontal = true;
-        }
-        else {
-            line_end.x = line_start.x;
-            horizontal = false;
-        }
-        if (spaceline)
-            spaceline.remove();
-        spaceline = new paper.Path.Line(line_start, line_end);
-        spaceline.strokeColor = '#ff0000';
-        spaceline.dashArray = [5,5];
-        spaceline.strokeWidth = 2;
-        if (timeout)
-            clearTimeout(timeout);
-        timeout = setTimeout(function() {
-            expand = true;
-            spaceline.dashArray = [];
-        }, 300);
-    } else {
-        clearTimeout(timeout);
-        if (!spacerect) {
-            var rect_start = spaceline.strokeBounds.topLeft;
-            var rect_end = spaceline.strokeBounds.bottomRight;
-            spaceline.remove();
-            spacerect = new paper.Path.Rectangle(rect_start, rect_end);
-            spacerect.strokeColor = '#ff0000';
-            spacerect.strokeWidth = 2;
-        } else {
-            if (horizontal) {
-                if (event.point.y > (line_start.y + spacerect.strokeWidth/2.0)) { // expand below
-                    spacerect.bounds.bottom = event.point.y;
-                    spacerect.bounds.top = line_start.y + spacerect.strokeWidth/2.0;
-                } else if (event.point.y < (line_start.y - spacerect.strokeWidth/2.0)) { // expand above
-                    spacerect.bounds.top = event.point.y;
-                    spacerect.bounds.bottom = line_start.y + spacerect.strokeWidth/2.0;
-                }
-            } else { // vertical
-                if (event.point.x > (line_start.x + spacerect.strokeWidth/2.0)) { // expand right
-                    spacerect.bounds.right = event.point.x;
-                    spacerect.bounds.left = line_start.x + spacerect.strokeWidth/2.0;
-                } else if (event.point.x < (line_start.x - spacerect.strokeWidth/2.0)) { // expand left
-                    spacerect.bounds.left = event.point.x;
-                    spacerect.bounds.right = line_start.x - spacerect.strokeWidth/2.0;
-                }
+    clearTimeout(timeout);
+    // determine the direction of expansion:
+    if (expanddir < 0) {
+        var dist = event.point.getDistance(line_end);
+        if (dist > 5) {
+            var dx = event.point.x - line_end.x;
+            var dy = event.point.y - line_end.y;
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > 0) expanddir = RIGHT;
+                else if (dx < 0) expanddir = LEFT;
+            } else {
+                if (dy > 0) expanddir = BOTTOM;
+                else if (dy < 0) expanddir = TOP;
             }
         }
+    } else {
+        var delta;
+        switch(expanddir) {
+            case RIGHT:
+                delta = expandSpaceRight(event);
+                break;
+            case LEFT:
+                delta = expandSpaceLeft(event);
+                break;
+            case BOTTOM:
+                delta = expandSpaceBottom(event);
+                break;
+            case TOP:
+                delta = expandSpaceTop(event);
+                break;
+        }
+        post(spaceContinueMessage(expanddir, delta));
     }
 };
 
+function expandSpaceBottom(event) {
+    var delta = new paper.Point(0,0);
+    if (subs) {
+        var dy;
+        if (prev_p) {
+            dy = event.point.y - prev_p.y;
+        } else {
+            dy = event.point.y - line_end.y;
+        }
+        delta = new paper.Point(0,dy);
+        for (var i = 0; i < subs.length; i++) {
+            subs[i].translate(delta);
+        }
+        prev_p = event.point;
+    }
+    else {
+        console.log("sort point in x direction");
+        subs = [];
+        var ctx = curitem.praster.getContext(true);
+        curitem.praster.layer.activate();
+        for (var x = 0; x <= line.length-1; x +=1) {
+            var p = line.getPointAt(x);
+            var pnext = line.getPointAt(x+1);
+            var px = getPixelPoint(p, curitem.praster);
+            var pxnext = getPixelPoint(pnext, curitem.praster);
+            var rect = new paper.Shape.Rectangle(px.x, px.y, (pxnext.x - px.x), curitem.praster.height - px.y);
+            var subraster = curitem.praster.getSubRaster(rect.bounds);
+            ctx.clearRect(px.x, px.y, (pxnext.x - px.x), curitem.praster.height - px.y);
+            subs.push(subraster);
+        }
+    }
+    return delta;
+};
+
+function expandSpaceTop(event) {
+    var delta = new paper.Point(0,0);
+    if (subs) {
+        var dy;
+        if (prev_p) {
+            dy = event.point.y - prev_p.y;
+        } else {
+            dy = event.point.y - line_end.y;
+        }
+        delta = new paper.Point(0, dy)
+        for (var i = 0; i < subs.length; i++) {
+            subs[i].translate(delta);
+        }
+        prev_p = event.point;
+    }
+    else {
+        console.log("sort point in x direction");
+
+        subs = [];
+        var ctx = curitem.praster.getContext(true);
+        curitem.praster.layer.activate();
+        for (var x = 0; x <= line.length-1; x +=1) {
+            var p = line.getPointAt(x);
+            var pnext = line.getPointAt(x+1);
+            var px = getPixelPoint(p, curitem.praster);
+            var pxnext = getPixelPoint(pnext, curitem.praster);
+            var rect = new paper.Shape.Rectangle(px.x, 0, (pxnext.x - px.x), px.y);
+            var subraster = curitem.praster.getSubRaster(rect.bounds);
+            ctx.clearRect(px.x, 0, (pxnext.x - px.x), px.y);
+            subs.push(subraster);
+        }
+    }
+    return delta;
+};
+
+function expandSpaceRight(event) {
+    var delta = new paper.Point(0, 0);
+    if (subs) {
+        var dx;
+        if (prev_p) {
+            dx = event.point.x - prev_p.x;
+        } else {
+            dx = event.point.x - line_end.x;
+        }
+        delta = new paper.Point(dx, 0);
+        for (var i = 0; i < subs.length; i++) {
+            subs[i].translate(delta);
+        }
+        prev_p = event.point;
+    }
+    else {
+        console.log("sort point in y direction");
+        subs = [];
+        var ctx = curitem.praster.getContext(true);
+        curitem.praster.layer.activate();
+        for (var x = 0; x <= line.length-1; x +=1) {
+            var p = line.getPointAt(x);
+            var pnext = line.getPointAt(x+1);
+            var px = getPixelPoint(p, curitem.praster);
+            var pxnext = getPixelPoint(pnext, curitem.praster);
+            var rect = new paper.Shape.Rectangle(px.x, px.y, curitem.praster.width - px.x, (pxnext.y - px.y));
+            var subraster = curitem.praster.getSubRaster(rect.bounds);
+            ctx.clearRect(px.x, px.y, curitem.praster.width - px.x, (pxnext.y - px.y));
+            subs.push(subraster);
+        }
+    }
+    return delta;
+};
+
+function expandSpaceLeft(event) {
+    var delta = new paper.Point(0,0);
+    if (subs) {
+        var dx;
+        if (prev_p) {
+            dx = event.point.x - prev_p.x;
+        } else {
+            dx = event.point.x - line_end.x;
+        }
+        delta = new paper.point(dx, 0);
+        for (var i = 0; i < subs.length; i++) {
+            subs[i].translate(delta);
+        }
+        prev_p = event.point;
+    }
+    else {
+        console.log("sort point in y direction");
+        subs = [];
+        var ctx = curitem.praster.getContext(true);
+        curitem.praster.layer.activate();
+        for (var x = 0; x <= line.length-1; x +=1) {
+            var p = line.getPointAt(x);
+            var pnext = line.getPointAt(x+1);
+            var px = getPixelPoint(p, curitem.praster);
+            var pxnext = getPixelPoint(pnext, curitem.praster);
+            var rect = new paper.Shape.Rectangle(0, px.y, px.x, (pxnext.y - px.y));
+            var subraster = curitem.praster.getSubRaster(rect.bounds);
+            ctx.clearRect(0, px.y, px.x, (pxnext.y - px.y));
+            subs.push(subraster);
+        }
+    }
+    return delta;
+};
+
+
+
+function getElementsInRange(rect, elements) {
+    var selected = [];
+    for (var i = 0; i < elements.length; i++) {
+        if (rect.bounds.intersects(elements[i].rect.bounds))
+            selected.push(elements[i]);
+    }
+    return selected;
+};
 
 function revealMenu(elem, event) {
     // console.log(event.event);

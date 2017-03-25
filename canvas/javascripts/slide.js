@@ -88,7 +88,21 @@ var Slide = function(sfiles, p) {
         this.inklayer.visible = true;
         this.masklayer.visible = true;
     };
-}
+};
+
+var Element = function(praster, label, minx, miny, maxx, maxy) {
+    this.raster = praster;
+    this.eraster = null;
+    this.label = label;
+    this.rect = new paper.Shape.Rectangle(new paper.Point(minx, miny), new paper.Point(maxx, maxy));
+    // var temp = new paper.Path.Rectangle(this.rect.bounds);
+    // temp.strokeColor = 'green';
+    // temp.strokeWidth = 1;
+    this.minx = minx;
+    this.miny = miny;
+    this.maxx = maxx;
+    this.maxy = maxy;
+};
 
 function Item(url, slide) {
     this.src = url;
@@ -98,20 +112,21 @@ function Item(url, slide) {
     this.pgroup = null;
     this.pborder = null;
     this.pbbox = null;
+    // this.slide = slide;
 
     var white = new paper.Color('white');
     var black = new paper.Color('black');
     this.setRaster = function(raster, fg){
+        this.praster = raster;
         if (fg) {
-            this.praster = raster;
             this.praster.onLoad = function() {
                 // console.log("Compute Background Color");
-                var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
+                this.imdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
                 // var c = getBackgroundColor(imgdata.data)
                 // var pc = pColorFromDataRGB(c);
-                this.bgcolor = new paper.Color('white');
-                this.annocolor = invertColor(this.bgcolor);
-                this.fg = booleanImageFromForeground(imgdata);
+                // this.bgcolor = new paper.Color('white');
+                // this.annocolor = invertColor(this.bgcolor);
+                this.fg = booleanImageFromForeground(this.imdata);
                 // console.log("Compute Edge Information");
                 this.sobel = computeSobel(this);
                 this.sobelbool = booleanImageFromSobel(this.sobel, 10);
@@ -126,9 +141,10 @@ function Item(url, slide) {
                 // console.log("Generate Stroke Width Image");
                 this.swidth = strokeWidthImage(this.dtedge, this.fg, 0, 10);
                 this.cclabel = BlobExtraction(this.fg, this.width, this.height);
+                // this.elements = ccBoxes(this, this.cclabel, this.width, this.height);
+                makeSemiTransparent(this);//console.log("imdata" + this.imdata);
             }
         } else {
-            this.fadedraster = raster;
         }
     };
 };
@@ -148,6 +164,36 @@ function medianFilter(praster) {
         }
     }
 };
+
+function ccBoxes(raster, cclabel, w, h) {
+    var elements = [];
+    var labels = [];
+    var minx = [];
+    var miny = [];
+    var maxx = [];
+    var maxy = [];
+    var l;
+    for (var x = 0; x < w; x++) {
+        for (var y = 0; y < h; y++) {
+            l = cclabel[x + y*w];
+            var id = labels.indexOf(l);
+            if (id < 0) { // label appeared for the first time
+                labels.push(l);
+                minx.push(x); maxx.push(x); miny.push(y); maxy.push(y);
+            } else {
+                minx[id] = Math.min(minx[id], x);
+                maxx[id] = Math.max(maxx[id], x);
+                miny[id] = Math.min(miny[id], y);
+                maxy[id] = Math.max(maxy[id], y);
+            }
+        }
+    }
+    var cn = labels.length;
+    for (var i = 0; i < cn; i++) {
+        elements.push(new Element(raster, labels[i], minx[i], miny[i], maxx[i], maxy[i]));
+    }
+    return elements;
+}
 
 function shiftColors(praster) {
     var colors = [];
@@ -170,6 +216,16 @@ function shiftColors(praster) {
     }
     console.log("done");
 
+};
+
+function isRevealed(imdata) {
+    var revealed = new Uint8Array(imdata.width * imdata.height);
+    for (var x = 0; x < imdata.width; x++) {
+        for (var y = 0; y < imdata.height; y++) {
+            revealed[x+ y*imdata.width] = (imdata.data[(x+y*imdata.width)*4 +3] < 200) ? 0: 1;
+        }
+    }
+    return revealed;
 };
 
 function strokeWidthImage(dt, fg, min, max) {
@@ -291,33 +347,69 @@ function isLocalMaxima(grad, x, y) {
     return true;
 };
 
-function makeTransparent(raster) {
-    for (var x = 0; x < raster.width; x++) {
-        for(var y = 0; y < raster.height; y++) {
-            var c = raster.getPixel(x,y);
-            c.alpha = 0.0;
-            raster.setPixel(x,y, c);
+
+function tracePixels(praster, pixels) {
+    var pctx = praster.getContext(true);
+    var pimdata = praster.imdata;
+    var pdata = pimdata.data;
+    var px, py, off;
+    // console.log(praster.width);
+    for (var i = 0 ; i < pixels.length; i++) {
+        px = pixels[i][0];
+        py = pixels[i][1];
+        off = (py*praster.width + px)*4;
+        pdata[off+3] = 255;
+    }
+    pctx.putImageData(pimdata, 0, 0);
+
+};
+
+
+function makeSemiTransparent(praster) {
+    var pctx = praster.getContext();
+    // var pimdata = praster.getImageData(new paper.Shape.Rectangle(0, 0, praster.width, praster.height));
+    var pimdata = praster.imdata;
+    // console.log("pimdata:" + pimdata);
+    var pdata = pimdata.data;
+    var off;
+    for (var i = 0 ; i < pimdata.width; i++) {
+        for (var j = 0; j < pimdata.height; j++) {
+            off = (j*praster.width + i)*4;
+            pdata[off+3] = (pdata[off+3] == 0 ? 0: 125);
         }
     }
+    pctx.putImageData(pimdata, 0, 0);
 };
 
-function makeOpaque(raster, pixels) {
-    for (var i = 0 ; i < pixels.length; i++) {
-        var c = raster.getPixel(pixels[i][0], pixels[i][1]);
-        c.alpha = 1.0;
-        raster.setPixel(pixels[i][0], pixels[i][1], c);
+function makeTransparent(praster) {
+    var pctx = praster.getContext();
+    // var pimdata = praster.getImageData(new paper.Shape.Rectangle(0, 0, praster.width, praster.height));
+    var pimdata = praster.imdata;
+    var pdata = pimdata.data;
+    var off;
+    for (var i = 0 ; i < pimdata.width; i++) {
+        for (var j = 0; j < pimdata.height; j++) {
+            off = (j*praster.width + i)*4;
+            pdata[off+3] = 0;
+        }
     }
+    pctx.putImageData(pimdata, 0, 0);
 };
 
-function tracePixels(traster, praster, pixels) {
-    for (var i = 0 ; i < pixels.length; i++) {
-        var c = praster.getPixel(pixels[i][0], pixels[i][1]);
-        c.alpha = 1.0;
-        traster.setPixel(pixels[i][0], pixels[i][1], c);
+function hideTransparent(praster) {
+    var pctx = praster.getContext();
+    // var pimdata = praster.getImageData(new paper.Shape.Rectangle(0, 0, praster.width, praster.height));
+    var pimdata = praster.imdata;
+    var pdata = pimdata.data;
+    var off;
+    for (var i = 0 ; i < pimdata.width; i++) {
+        for (var j = 0; j < pimdata.height; j++) {
+            off = (j*praster.width + i)*4;
+            pdata[off+3] = (pdata[off+3] == 255? 255: 0);
+        }
     }
+    pctx.putImageData(pimdata, 0, 0);
 };
-
-
 
 // var InkStyle = function(pitem) {
 //     this.fillColor = pitem.style.fillColor;
@@ -362,4 +454,18 @@ function tracePixels(traster, praster, pixels) {
 //
 //     };
 // };
+function getPixelCoordsX(x, praster) {
+    var px = Math.round((x - praster.wslack) * praster.scale);
+    return px;
+};
 
+function getPixelCoordsY(y, praster) {
+    var py = Math.round((y - praster.hslack) * praster.scale);
+    return py;
+};
+
+function getPixelPoint(point, raster) {
+    var px = Math.round((point.x - raster.wslack) * raster.scale);
+    var py = Math.round((point.y - raster.hslack) * raster.scale);
+    return new paper.Point(px, py);
+};

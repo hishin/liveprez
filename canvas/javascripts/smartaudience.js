@@ -12,13 +12,12 @@ var connected;
 var curslide;
 var curslidenum;
 var curitem;
-// var bgcolor;
 var curstroke = null;
 var prevstroke = null;
 var slidelayer;
 var reveal = false;
 var aspectratio;
-var scale = 1.0;
+var scale = 1.0; // speaker view / audience view ratio
 var speakerwidth;
 var slides;
 
@@ -57,6 +56,12 @@ window.addEventListener('message', function(event) {
             handleSlideResizeMessage(data);
         } else if (data.type === 'color-change') {
             handleColorChangeMessage(data);
+        } else if (data.type === 'space-start') {
+            handleSpaceStartMessage(data);
+        } else if (data.type === 'space-continue') {
+            handleSpaceContinueMessage(data);
+        } else if (data.type === 'space-end') {
+            handleSpaceEndMessage(data);
         }
 
     }
@@ -79,6 +84,11 @@ window.onload = function() {
     acanvas.slide = aslide;
     apaper.slide = aslide;
     apaper.canvas = acanvas;
+
+    document.addEventListener("keyup", function(event) {
+        handleKeyboardEvents(event);
+    });
+    document.getElementById('download_link').addEventListener('click', saveCanvasImage, false);
 
 };
 
@@ -214,14 +224,20 @@ function resizeCanvas(width, height) {
     acanvas.width = width;
     acanvas.height = height;
 
-
     if (apaper.project.layers) {
         for (var i = 0; i < apaper.project.layers.length; i++) {
             apaper.project.layers[i].scale(rscale, new paper.Point(0, 0));
         }
     }
-
     scale = SLIDE_W/speakerwidth;
+
+    // update raster.scale, wslack, hslack
+    if (curitem && curitem.praster) {
+        curitem.praster.scale = Math.max(curitem.praster.width / paper.view.bounds.width, curitem.praster.height / paper.view.bounds.height);
+        curitem.praster.wslack = (paper.view.bounds.width - curitem.praster.width/curitem.praster.scale)/2.0;
+        curitem.praster.hslack = (paper.view.bounds.height - curitem.praster.height/curitem.praster.scale)/2.0;
+    };
+
     apaper.view.update();
 
 };
@@ -229,30 +245,24 @@ function resizeCanvas(width, height) {
 function loadItem(slide, item, i) {
     var layer = new paper.Layer();
     slide.itemlayer.push(layer);
+    layer.activate();
     var raster = new paper.Raster(item.src);
     item.praster = raster;
     item.praster.fitBounds(paper.view.bounds);
     item.praster.scale = Math.max(item.praster.width / paper.view.bounds.width, item.praster.height / paper.view.bounds.height);
+    item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
+    item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
+
     if (i == 0) {
         item.praster.onLoad = function () {
-            // var imgdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
-            // var c = getBackgroundColor(imgdata.data)
-            // var pc = pColorFromDataRGB(c);
-            this.bgcolor = new paper.Color('white');//new paper.Color(pc[0], pc[1], pc[2]);
+            this.bgcolor = new paper.Color('white');
         };
     } else {
-        item.praster.opacity = 0.0;
-        var traster = new paper.Raster();
-        traster.width = raster.width;
-        traster.height = raster.height;
-        traster.fitBounds(paper.view.bounds);
-        item.traster = traster;
-        item.traster.insertAbove(item.praster);
-        // item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
-        // item.pclip.fillColor = 'black';
-        // item.pgroup = new paper.Group(item.pclip, item.praster);
-        // item.pgroup.clipped = true;
-        // layer.insertAbove(slide.itemlayer[slide.itemlayer.length - 2]);
+        slide.fglayer = layer;
+        item.praster.onLoad = function() {
+            this.imdata = this.getImageData(new paper.Shape.Rectangle(0, 0, this.width, this.height));
+            makeTransparent(this);
+        }
     }
 };
 
@@ -343,40 +353,126 @@ function handleInkDelMessage(data) {
     }
 };
 
+var expand = false;
+
 function handleInkMessage(data) {
-    if (!curslide.inklayer) {
-        curslide.inklayer = new paper.Layer();
-    }
-    else
-        curslide.inklayer.activate();
-    if (curstroke ) {
-        curstroke.remove();
-    }
-
-    curstroke = new paper.Path(JSON.parse(data.content)[1]);
-    curstroke.data.id = data.strokeid;
-    curstroke.scale(scale, new paper.Point(0,0));
-    var tracedpx = JSON.parse(data.tracedpx);
-
-    // console.log("here");
-    if (data.end) {
-        curstroke.data.free = data.free;
-        prevstroke = curstroke;
-        if (!data.free) {
-            tracePixels(curitem.traster, curitem.praster, tracedpx);
-            curstroke.onFrame = function () {
-                if (!data.free) {
-                    if (this.strokeColor.alpha <= 0) {
-                        this.remove();
-                    }
-                    this.strokeColor.alpha -= 0.05;
-                }
-            };
+    if (!expand) {
+        if (!curslide.inklayer) {
+            curslide.inklayer = new paper.Layer();
         }
-        // console.log("curstroke = mull");
-        curstroke = null;
-        prevstroke = null;
+        else
+            curslide.inklayer.activate();
+        if (curstroke ) {
+            curstroke.remove();
+        }
+
+        curstroke = new paper.Path(JSON.parse(data.content)[1]);
+        curstroke.data.id = data.strokeid;
+        curstroke.scale(scale, new paper.Point(0,0));
+        var tracedpx = JSON.parse(data.tracedpx);
+
+        if (data.end) {
+            curstroke.data.free = data.free;
+            prevstroke = curstroke;
+            if (!data.free) {
+                tracePixels(curitem.praster, tracedpx);
+                curstroke.onFrame = function () {
+                    if (!data.free) {
+                        if (this.strokeColor.alpha <= 0) {
+                            this.remove();
+                        }
+                        this.strokeColor.alpha -= 0.05;
+                    }
+                };
+            }
+            curstroke = null;
+            prevstroke = null;
+        }
     }
+};
+
+var line;
+var expanddir = -1;
+var subs = null;
+function handleSpaceStartMessage() {
+    expand = true;
+    line = curstroke;
+    line.dashArray = [5,5];
+    line.strokeColor = 'red';
+};
+
+function handleSpaceEndMessage(data)
+{
+    expand = false;
+    subs = null;
+    expanddir = -1;
+    curslide.fglayer.activate();
+    curslide.fglayer.removeChildren();
+    // get newraster from speaker-view
+    var newraster = new paper.Raster(JSON.parse(data.newraster)[1].source);
+    newraster.imdata = newraster.getImageData(new paper.Rectangle(0, 0, newraster.width, newraster.height));
+    hideTransparent(newraster);
+    curitem.praster = null; // freeing memory;
+    curitem.praster = newraster;
+
+    newraster.scale(scale);
+    var dy = data.top*scale - newraster.bounds.top
+    var dx = data.left*scale - newraster.bounds.left;
+    newraster.translate(new paper.Point(dx,dy));
+    curitem.praster.scale = Math.max(curitem.praster.width / paper.view.bounds.width, curitem.praster.height / paper.view.bounds.height);
+    curitem.praster.wslack = newraster.bounds.left;
+    curitem.praster.hslack = newraster.bounds.top;//
+
+    if (line)
+        line.remove();
+};
+
+function handleSpaceContinueMessage(data) {
+    if (subs) {
+        var delta = new paper.Point(JSON.parse(data.delta)[1], JSON.parse(data.delta)[2]);
+        delta = delta.multiply(scale);
+        for (var i = 0; i < subs.length; i++) {
+            subs[i].translate(delta);
+        }
+    } else {
+        subs = [];
+        var ctx = curitem.praster.getContext(true);
+        curitem.praster.layer.activate();
+        for (var x = 0; x <= line.length-1; x +=1) {
+            var p = line.getPointAt(x);
+            var pnext = line.getPointAt(x+1);
+            var px = getPixelPoint(p, curitem.praster);
+            var pxnext = getPixelPoint(pnext, curitem.praster);
+            var rect, subraster;
+            if (data.dir == 0) {
+                rect = new paper.Shape.Rectangle(px.x, px.y, curitem.praster.width - px.x, (pxnext.y - px.y));
+                subraster = curitem.praster.getSubRaster(rect.bounds);
+                ctx.clearRect(px.x, px.y, curitem.praster.width - px.x, (pxnext.y - px.y));
+
+            } else if (data.dir == 1) {
+                rect = new paper.Shape.Rectangle(0, px.y, px.x, (pxnext.y - px.y));
+                subraster = curitem.praster.getSubRaster(rect.bounds);
+                ctx.clearRect(0, px.y, px.x, (pxnext.y - px.y));
+
+            } else if (data.dir == 2) {
+                rect = new paper.Shape.Rectangle(px.x, px.y, (pxnext.x - px.x), curitem.praster.height - px.y);
+                subraster = curitem.praster.getSubRaster(rect.bounds);
+                ctx.clearRect(px.x, px.y, (pxnext.x - px.x), curitem.praster.height - px.y);
+
+            } else if (data.dir == 3) {
+                rect = new paper.Shape.Rectangle(px.x, 0, (pxnext.x - px.x), px.y);
+                subraster = curitem.praster.getSubRaster(rect.bounds);
+                ctx.clearRect(px.x, 0, (pxnext.x - px.x), px.y);
+            }
+            subs.push(subraster);
+        }
+    }
+};
+
+function saveCanvasImage() {
+    var dataURL = acanvas.toDataURL("image/png");
+    var href = dataURL.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
+    $('#download_link').attr('href', href);
 };
 
 
@@ -446,27 +542,18 @@ function handleMaskMessage(data) {
     curitem.pgroup.clipped = true;
     curslide.masklayer.visible = false;
 
-    // if (!data.add) {
-    //     // get ink inside this region
-    //     var inkitems = curslide.inklayer.getItems({inside: maskbox.bounds});
-    //     for (var i = 0; i < inkitems.length; i++) {
-    //         if (!inkitems[i].data.free)
-    //             inkitems[i].onFrame = function (event) {
-    //                 if (this.strokeColor.alpha <= 0) this.remove();
-    //                 this.strokeColor.alpha -= 0.05;
-    //             }
-    //     }
-    //
-    //     maskbox.onFrame = function () {
-    //         if (this.fillColor.alpha <= 0) {
-    //             this.remove();
-    //         }
-    //         this.fillColor.alpha -= 0.05;
-    //     };
-    // }
 };
 
 function handleReleaseTargetMessage(data) {
     curtargetitem = null;
 };
 
+
+function handleKeyboardEvents(event) {
+    switch(event.key) {
+        case "s":
+            document.getElementById('download_link').style.display = 'block';
+            break;
+        default:
+    }
+};
