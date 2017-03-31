@@ -415,8 +415,10 @@ function setMask() {
 function loadItem(slide, item, i) {
     if (i == 0) {
         loadBackgroundItem(slide, item);
-    } else {
+    } else if (i == 1) {
         loadForegroundItem(slide, item);
+    } else {
+        loadBackgroundItem(slide, item);
     }
 };
 
