@@ -129,7 +129,7 @@ function handleSlideSetupMessage(data) {
     for (var i = 0; i < deck.length; i++) {
         slide = deck[i];
         slide.itemlayer = [];
-        for (var j = 0; j < slide.nitems; j++) {
+        for (var j = 0; j < 2; j++) {
             item = slide.items[j];
             loadItem(slide, item, j);
         }
@@ -210,8 +210,9 @@ function loadSlide(slide) {
 
     curslide = slides[slide.num];
     curslidenum = curslide.num;
-    curitem = curslide.items[curslide.items.length-1];
-};
+    curitem = curslide.items[1];
+    console.log(curslide.items.length);
+}
 
 function resizeCanvas(width, height) {
     var origw = apaper.view.viewSize.width;
@@ -257,7 +258,7 @@ function loadItem(slide, item, i) {
         item.praster.onLoad = function () {
             this.bgcolor = new paper.Color('white');
         };
-    } else {
+    } else if (i==1) {
         slide.fglayer = layer;
         item.praster.onLoad = function() {
             this.imdata = this.getImageData(new paper.Shape.Rectangle(0, 0, this.width, this.height));
