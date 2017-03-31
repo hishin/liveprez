@@ -521,7 +521,7 @@ function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     if (!praster.fg[x + y * w]) return;
     if (praster.cclabel[x + y * w] != cl) return;
 
-    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.02*velocity)+20))) {
+    if (pointDist(x,y,origx,origy) > Math.min(40, (Math.exp(0.007*velocity)+5))) {
         var dist2edge = praster.dtedge[x + y * w];
         if (dist2edge > DIST2FG_THRES_B) return;
         else {
