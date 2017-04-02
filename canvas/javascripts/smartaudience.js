@@ -92,18 +92,18 @@ window.onload = function() {
 
 };
 
-window.onresize = function(event) {
-    event.preventDefault();
-    SLIDE_W = $(window).width() - 5 ;
-    SLIDE_H = SLIDE_W * aspectratio;
-    if (SLIDE_H > $(window).height() - 5) {
-        SLIDE_H = $(window).height() -5;
-        SLIDE_W = SLIDE_H/aspectratio;
-    }
-
-    resizeCanvas(SLIDE_W, SLIDE_H);
-
-};
+// window.onresize = function(event) {
+//     event.preventDefault();
+//     SLIDE_W = $(window).width() - 5 ;
+//     SLIDE_H = SLIDE_W * aspectratio;
+//     if (SLIDE_H > $(window).height() - 5) {
+//         SLIDE_H = $(window).height() -5;
+//         SLIDE_W = SLIDE_H/aspectratio;
+//     }
+//
+//     resizeCanvas(SLIDE_W, SLIDE_H);
+//
+// };
 
 function handleConnectMessage(data) {
     if (connected === false) {

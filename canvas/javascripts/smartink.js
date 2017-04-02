@@ -711,8 +711,9 @@ function inkEnd(event) {
             var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
             var annocolor;
             // if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
-            // else annocolor = invertColor(avgbgcolor);
-            annocolor = '#0033ff';
+            // else
+            annocolor = invertColor(avgbgcolor);
+            // annocolor = '#0033ff';
             // trace color so that it stands out from the background
             curstroke.strokeColor = annocolor;
             curstroke.data.free = true;
@@ -721,17 +722,17 @@ function inkEnd(event) {
             var tracedpx = result[0];
             var avgcolor = result[1];
             // TRACING UNDERLYING CONTENT
-            if (tracedpx.length / pcount > 0.10 || avfg_dist2fg < 5) {
+            if (tracedpx.length / pcount > 0.10 || avg_dist2fg < 5) {
                 setTimeout( function() {
                     tracePixels(curitem.praster, tracedpx);
                 }, 0);
                 curstroke.remove();
             } else {
                 // ANNOTATING ON TOP OF UNDERLYING CONTENT
-                // var avgbgcolor = new paper.Color(avgcolor[0], avgcolor[1], avgcolor[2], avgcolor[3]);
-                // if (avgbgcolor.hue <= 0.20) annocolor = '#66ff33';
+                var avgbgcolor = new paper.Color(avgcolor[0], avgcolor[1], avgcolor[2], avgcolor[3]);
+                // if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
                 // else
-                annocolor = '#0033ff';//invertColor(avgbgcolor);
+                annocolor = invertColor(avgbgcolor);
                 curstroke.strokeColor = annocolor;
                 curstroke.data.free = true;
             }
