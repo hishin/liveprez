@@ -742,7 +742,7 @@ function inkEnd(event) {
             var tracedpx = result[0];
             var avgcolor = result[1];
             // TRACING UNDERLYING CONTENT
-            if (tracedpx.length / pcount > 0.10 || avg_dist2fg < 5) {
+            if (tracedpx.length / pcount > 0.10) {
                 setTimeout( function() {
                     tracePixels(curitem.praster, tracedpx);
                 }, 0);
