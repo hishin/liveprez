@@ -45,24 +45,23 @@ function preloadImages(srcs) {
         preloadImages.cache = [];
     }
     var img;
-    var MENU_H = 32;
     for (var i = 0; i < srcs.length; i++) {
         img = new Image();
         img.src = srcs[i];
         // assume slide-deck has fixed aspect ratio
-        img.onload = function(){
-            if (!aspectratio) {
-                aspectratio = this.height/this.width;
-                img_w = this.width;
-                SLIDE_H = $(window).height() - MENU_H;
-                SLIDE_W = SLIDE_H/apsectratio;
-                if (SLIDE_W > $(window).width()) {
-                    SLIDE_W = $(window).width();
-                    SLIDE_H = SLIDE_W*aspectratio;
-                }
-                // scale = img_w/SLIDE_W;
-            }
-        };
+        // img.onload = function(){
+        //     if (!aspectratio) {
+        //         aspectratio = this.height/this.width;
+        //         img_w = this.width;
+        //         SLIDE_H = $(window).height() - MENU_H;
+        //         SLIDE_W = SLIDE_H/apsectratio;
+        //         if (SLIDE_W > $(window).width()) {
+        //             SLIDE_W = $(window).width();
+        //             SLIDE_H = SLIDE_W*aspectratio;
+        //         }
+        //         // scale = img_w/SLIDE_W;
+        //     }
+        // };
 
         preloadImages.cache.push(img);
     }
@@ -123,7 +122,6 @@ function handleFileSelect(evt) {
 
     // var thumbdiv = document.getElementById('slide-thumbnails');
     for (var i = 0, f; f = files[i]; i++) {
-
         if (!f.type.match('image.*')) {
             continue;
         }
@@ -376,6 +374,7 @@ function loadSlide(slide) {
     // load or show new slide
     if (!slide.loaded) {
         slide.itemlayer = [];
+        console.log('slide nitems: ' + slide.nitems);
         for (var i = 0; i < slide.nitems; i++) {
             var item = slide.items[i];
             loadItem(slide, item, i);
@@ -418,7 +417,7 @@ function loadItem(slide, item, i) {
     } else if (i == 1) {
         loadForegroundItem(slide, item);
     } else {
-        loadBackgroundItem(slide, item);
+        loadSpeakerNoteItem(slide, item);
     }
 };
 
@@ -428,12 +427,31 @@ function loadBackgroundItem(slide, item, i) {
     layer.activate();
 
     var raster = new paper.Raster(item.src);
-    item.setRaster(raster, false);
-    item.praster.fitBounds(paper.view.bounds);
-    item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
-    item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
-    item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
-    item.praster.opacity = 1.0;
+    item.setRaster(raster, 0);
+    // raster.onLoad = function() {
+    //     item.praster.fitBounds(paper.view.bounds);
+    //     item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
+    //     item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
+    //     item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
+    //     item.praster.opacity = 1.0;
+    // }
+};
+
+function loadSpeakerNoteItem(slide, item) {
+    var layer = new paper.Layer();
+    slide.itemlayer.push(layer);
+    layer.activate();
+
+    var raster = new paper.Raster(item.src);
+    item.setRaster(raster, 2);
+    // raster.onLoad = function() {
+    //     item.noteraster = raster;
+    //     item.noteraster.fitBounds(paper.view.bounds);
+    //     item.noteraster.scale = Math.max(item.noteraster.width/paper.view.bounds.width, item.noteraster.height/paper.view.bounds.height);
+    //     item.noteraster.wslack = (paper.view.bounds.width - item.noteraster.width/item.noteraster.scale)/2.0;
+    //     item.noteraster.hslack = (paper.view.bounds.height - item.noteraster.height/item.noteraster.scale)/2.0;
+    //     item.noteraster.opacity = 1.0;
+    // };
 };
 
 function loadForegroundItem(slide, item) {
@@ -446,11 +464,11 @@ function loadForegroundItem(slide, item) {
 
     layer.activate();
     var raster = new paper.Raster(item.src);
-    item.setRaster(raster, true);
-    item.praster.fitBounds(paper.view.bounds);
-    item.praster.scale = Math.max(item.praster.width/paper.view.bounds.width, item.praster.height/paper.view.bounds.height);
-    item.praster.wslack = (paper.view.bounds.width - item.praster.width/item.praster.scale)/2.0;
-    item.praster.hslack = (paper.view.bounds.height - item.praster.height/item.praster.scale)/2.0;
+    item.setRaster(raster, 1);
+    // raster.onLoad = function() {
+    //
+    // }
+    // item.praster.opacity = 0.5;
     // makeSemiTransparent(item.praster);
     // item.praster.opacity = 0.5;
     // item.pclip = new paper.Path.Rectangle([0,0],[0,0]);
@@ -604,6 +622,7 @@ function selectItem() {
     // Select the Foreground Item
     curitem = curslide.items[1];
     bgitem = curslide.items[0];
+
 };
 
 var curstroke;
@@ -708,6 +727,7 @@ function inkEnd(event) {
         var tracedpx = [];
         // IF STROKE IS FAR FROM UNDERLYING PIXELS
         if (avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
+            // console.log("here 1");
             var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
             var annocolor;
             // if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
@@ -727,6 +747,8 @@ function inkEnd(event) {
                     tracePixels(curitem.praster, tracedpx);
                 }, 0);
                 curstroke.remove();
+                // console.log("here 2");
+
             } else {
                 // ANNOTATING ON TOP OF UNDERLYING CONTENT
                 var avgbgcolor = new paper.Color(avgcolor[0], avgcolor[1], avgcolor[2], avgcolor[3]);
@@ -735,6 +757,8 @@ function inkEnd(event) {
                 annocolor = invertColor(avgbgcolor);
                 curstroke.strokeColor = annocolor;
                 curstroke.data.free = true;
+                // console.log("here 3");
+
             }
         }
 
@@ -1021,6 +1045,8 @@ function spaceEndMessage(raster) {
         type: 'space-end',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         newraster: JSON.stringify(raster),
+        width: raster.bounds.width,
+        height: raster.bounds.height,
         top: raster.bounds.top,
         left: raster.bounds.left
     } );

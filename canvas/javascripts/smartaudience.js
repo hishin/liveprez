@@ -411,19 +411,22 @@ function handleSpaceEndMessage(data)
     curslide.fglayer.removeChildren();
     // get newraster from speaker-view
     var newraster = new paper.Raster(JSON.parse(data.newraster)[1].source);
-    newraster.imdata = newraster.getImageData(new paper.Rectangle(0, 0, newraster.width, newraster.height));
-    hideTransparent(newraster);
-    curitem.praster = null; // freeing memory;
-    curitem.praster = newraster;
+    newraster.onLoad = function() {
+        newraster.imdata = newraster.getImageData(new paper.Rectangle(0, 0, data.width, data.height));
+        hideTransparent(newraster);
+        curitem.praster = null; // freeing memory;
+        curitem.praster = newraster;
 
-    newraster.scale(scale);
-    var dy = data.top*scale - newraster.bounds.top
-    var dx = data.left*scale - newraster.bounds.left;
-    newraster.translate(new paper.Point(dx,dy));
-    curitem.praster.scale = Math.max(curitem.praster.width / paper.view.bounds.width, curitem.praster.height / paper.view.bounds.height);
-    curitem.praster.wslack = newraster.bounds.left;
-    curitem.praster.hslack = newraster.bounds.top;//
-
+        // console.log("scale = " + scale);
+        // console.log(newraster.bounds);
+        newraster.scale(scale);
+        var dy = data.top*scale - newraster.bounds.top
+        var dx = data.left*scale - newraster.bounds.left;
+        newraster.translate(new paper.Point(dx,dy));
+        curitem.praster.scale = Math.max(curitem.praster.width / paper.view.bounds.width, curitem.praster.height / paper.view.bounds.height);
+        curitem.praster.wslack = newraster.bounds.left;
+        curitem.praster.hslack = newraster.bounds.top;//
+    }
     if (line)
         line.remove();
 };

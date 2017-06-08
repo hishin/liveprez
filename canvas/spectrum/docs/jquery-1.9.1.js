@@ -5108,7 +5108,7 @@ function addCombinator( matcher, combinator, base ) {
       var data, cache, outerCache,
         dirkey = dirruns + " " + doneName;
 
-      // We can't set arbitrary data on XML nodes, so they don't benefit from dir caching
+      // We can't set arbitrary data on XML nodes, so they don't benefit from expanddir caching
       if ( xml ) {
         while ( (elem = elem[ dir ]) ) {
           if ( elem.nodeType === 1 || checkNonElements ) {

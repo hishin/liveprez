@@ -52,7 +52,7 @@ var Slide = function(sfiles, p) {
         reader.onload = function(theFile) {
             var tempi = i;
             return function (e) {
-                var MENU_H = 50;
+                // var MENU_H = 50;
                 // document.getElementById('thumb-'+slide.pagenum).src = e.target.result;
                 var item = new Item(e.target.result, slide);
                 var img = new Image();
@@ -108,7 +108,8 @@ function Item(url, slide) {
     this.src = url;
     this.psvg = null;
     this.praster = null;
-    this.fadedraster = null;
+    this.noteraster = null;
+    this.bgraster = null;
     this.pgroup = null;
     this.pborder = null;
     this.pbbox = null;
@@ -117,9 +118,13 @@ function Item(url, slide) {
     var white = new paper.Color('white');
     var black = new paper.Color('black');
     this.setRaster = function(raster, fg){
-        this.praster = raster;
-        if (fg) {
-            this.praster.onLoad = function() {
+        if (fg == 1) {
+            this.praster = raster;
+            raster.onLoad = function() {
+                this.fitBounds(paper.view.bounds);
+                this.scale = Math.max(this.width/paper.view.bounds.width, this.height/paper.view.bounds.height);
+                this.wslack = (paper.view.bounds.width - this.width/this.scale)/2.0;
+                this.hslack = (paper.view.bounds.height - this.height/this.scale)/2.0;
                 // console.log("Compute Background Color");
                 this.imdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
                 // var c = getBackgroundColor(imgdata.data)
@@ -143,8 +148,26 @@ function Item(url, slide) {
                 this.cclabel = BlobExtraction(this.fg, this.width, this.height);
                 // this.elements = ccBoxes(this, this.cclabel, this.width, this.height);
                 makeSemiTransparent(this);//console.log("imdata" + this.imdata);
-            }
+
+            };
+        } else if (fg == 0) {
+            this.praster = raster;
+            raster.onLoad = function() {
+                this.fitBounds(paper.view.bounds);
+                this.scale = Math.max(this.width/paper.view.bounds.width, this.height/paper.view.bounds.height);
+                this.wslack = (paper.view.bounds.width - this.width/this.scale)/2.0;
+                this.hslack = (paper.view.bounds.height - this.height/this.scale)/2.0;
+                this.opacity = 1.0;
+            };
         } else {
+            this.noteraster = raster;
+            raster.onLoad = function() {
+                this.fitBounds(paper.view.bounds);
+                this.scale = Math.max(this.width/paper.view.bounds.width, this.height/paper.view.bounds.height);
+                this.wslack = (paper.view.bounds.width - this.width/this.scale)/2.0;
+                this.hslack = (paper.view.bounds.height - this.height/this.scale)/2.0;
+                this.opacity = 1.0;
+            };
         }
     };
 };
@@ -379,6 +402,7 @@ function makeSemiTransparent(praster) {
         }
     }
     pctx.putImageData(pimdata, 0, 0);
+    // paper.view.update();
 };
 
 function makeTransparent(praster) {
