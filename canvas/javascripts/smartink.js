@@ -140,6 +140,8 @@ function handleFileSelect(evt) {
     slide_files.sort(compareFileName);
     slidedeck = new SlideDeck(slide_files);
     numslides = slidedeck.n;
+
+    // call setupSlide after 1s
     setTimeout(function () {
         setupSlideCanvas(slidedeck);
         setupPaperTools();
@@ -620,8 +622,10 @@ function activateEraserTool() {
 
 function selectItem() {
     // Select the Foreground Item
-    curitem = curslide.items[1];
     bgitem = curslide.items[0];
+    if (curslide.items.length > 0)
+        curitem = curslide.items[1];
+    else curitem = null
 
 };
 
@@ -651,26 +655,30 @@ function inkStart(event){
     curstroke.strokeWidth = 2;
     curstroke.add(event.point);
     curstroke.strokeCap = 'round';
+    curstroke.strokeColor = 'black';
     movedist = 0.0;
     prevtime = event.timeStamp;
-    var p = getPixelPoint(event.point, curitem.praster);
-
-    dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+    var p = getPixelPoint(event.point, bgitem.praster);
+    if (curitem) {
+        dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+        //set stroke color to closest fg color
+        var cx = curitem.praster.dti[p.x+p.y*bgitem.praster.width];
+        var cy = curitem.praster.dtj[p.x+p.y*bgitem.praster.width];
+        curstroke.strokeColor = bgitem.praster.getPixel(cx, cy);
+        curstroke.strokeColor.alpha = 1.0;
+        curstroke.data.free = false;
+    }
+    else {
+        dist2fg = Infinity;
+    }
     pcount = 1;
+    // background pixel color
     bgpcolors = [0,0,0,0];
     var pcolor = bgitem.praster.getPixel(p.x, p.y);
     bgpcolors[0] += pcolor.red;
     bgpcolors[1] += pcolor.green;
     bgpcolors[2] += pcolor.blue;
     bgpcolors[3] += pcolor.alpha;
-
-    //set stroke color to closest fg color
-    var cx = curitem.praster.dti[p.x+p.y*curitem.praster.width];
-    var cy = curitem.praster.dtj[p.x+p.y*curitem.praster.width];
-    curstroke.strokeColor = curitem.praster.getPixel(cx, cy);
-    curstroke.strokeColor.alpha = 1.0;
-    curstroke.data.free = false;
-
     post(inkMessage(curstroke, [], false));
 };
 
@@ -678,8 +686,9 @@ function inkContinue(event) {
     if (!expand) {
         curstroke.add(event.point);
         movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
-        var p = getPixelPoint(event.point, curitem.praster);
-        dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+        var p = getPixelPoint(event.point, bgitem.praster);
+        if (curitem)
+            dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
         pcount++;
         var pcolor = bgitem.praster.getPixel(p.x, p.y);
         bgpcolors[0] += pcolor.red;
@@ -712,8 +721,9 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
-        var p = getPixelPoint(event.point, curitem.praster);
-        dist2fg += curitem.praster.dtfg[p.x + p.y * curitem.praster.width];
+        var p = getPixelPoint(event.point, bgitem.praster);
+        if (curitem)
+            dist2fg += curitem.praster.dtfg[p.x + p.y * curitem.praster.width];
         pcount++;
         var pcolor = bgitem.praster.getPixel(p.x, p.y);
         bgpcolors[0] += pcolor.red;
@@ -726,15 +736,10 @@ function inkEnd(event) {
         var velocity = movedist / (event.timeStamp - prevtime) * 1000;
         var tracedpx = [];
         // IF STROKE IS FAR FROM UNDERLYING PIXELS
-        if (avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
-            // console.log("here 1");
+        if (curitem == null || avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
             var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
             var annocolor;
-            // if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
-            // else
             annocolor = invertColor(avgbgcolor);
-            // annocolor = '#0033ff';
-            // trace color so that it stands out from the background
             curstroke.strokeColor = annocolor;
             curstroke.data.free = true;
         } else {

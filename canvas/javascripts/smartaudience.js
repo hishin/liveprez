@@ -129,7 +129,8 @@ function handleSlideSetupMessage(data) {
     for (var i = 0; i < deck.length; i++) {
         slide = deck[i];
         slide.itemlayer = [];
-        for (var j = 0; j < 2; j++) {
+        console.log('item length: ' + slide.items.length);
+        for (var j = 0; j < slide.items.length; j++) {
             item = slide.items[j];
             loadItem(slide, item, j);
         }
