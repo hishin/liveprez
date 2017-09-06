@@ -9,9 +9,11 @@
     <link href="stylesheets/slider.css" rel="stylesheet" type="text/css">
     <link href="spectrum/spectrum.css" rel="stylesheet" type="text/css">
     <link href="stylesheets/bootstrap-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
     <script src="javascripts/paper-full.js"></script>
     <script src="javascripts/jquery-3.1.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="javascripts/colorutil.js"></script>
     <script src="javascripts/kmeans.js"></script>
     <script src="javascripts/smartink.js"></script>
@@ -32,38 +34,51 @@
 <div class="container col-md-12 ">
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
-        <div class="col-md-1 menu">
-            <table>
-                <tr><td> <input type="file" id="files" style="display: none;" webkitdirectory directory multiple/>
-                <button type="button" title="Open" class="btn btn-default btn-circle btn-xl" onclick="document.getElementById('files').click();">
-                    <i class=" glyphicon glyphicon-folder-open"></i></button></td></tr>
-                <tr><td>
-                    <button type="button" id="pen" title="Pen" class="btn btn-default btn-circle btn-xl checked" onclick="selectPen();">
-                    <i class=" glyphicon glyphicon-pencil"></i></button><br/>
-                    <button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-xl" onclick="selectEraser();">
-                    <i class=" glyphicon glyphicon-erase"></i></button><br/>
-                    <!--<button type="button" id="spacer" title="Insert Space" class="btn btn-default btn-circle btn-xl" onclick="selectSpacer();">-->
-                        <!--<i class=" glyphicon glyphicon-plus"></i></button><br/>-->
-                </td></tr>
-                <tr><td>
-                    <button type="button" title="Previous" class="btn btn-default btn-circle btn-xl" onclick="nextSlide()">
-                    <i class="glyphicon glyphicon-arrow-right"></i></button>
-                    <button type="button" title="Next" class="btn btn-default btn-circle btn-xl" onclick="prevSlide()">
-                    <i class="glyphicon glyphicon-arrow-left"></i></button>
-                </td></tr>
-            </table>
-
-
-            <!--<input id="files" type="file" >-->
-            <!--<input id='auto-style' type="checkbox" data-toggle="toggle" data-on="Auto Style" data-off="Manual" data-offstyle="default" checked />-->
-            <!--<input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning"  checked/>-->
-            <!--<input type = "text" id='strokec' />-->
-            <!--<input type = "text" id='strokec2' />-->
-            <!--<input type="text" class="slider" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" value="0" />-->
-
-            <!--<label><input id='auto-style' type="checkbox" checked/>&nbsp;Auto Style</label>-->
+        <div class="col-md-9 slide" id="speaker-slide"></div>
+        <div class="col-md-3 slide-menu" >
+            <div class="col-md-12" id="next-slide">
+                <img class="next-slide-image" id="next-slide-image-bg"/>
+                <img class="next-slide-image" id="next-slide-image-fg"/>
+            </div>
         </div>
-        <div class="col-md-11 slide" id="speaker-slide"></div>
+        <div class="col-md-3">
+            <div class="col-md-12 menu">
+                <table>
+                    <tr><td> <input type="file" id="files" style="display: none;" webkitdirectory directory multiple/>
+                        <button type="button" title="Open" class="btn btn-default btn-circle btn-xl" onclick="document.getElementById('files').click();">
+                            <i class=" glyphicon glyphicon-folder-open"></i></button></td></tr>
+                    <tr><td>
+                        <button type="button" id="pen" title="Pen" class="btn btn-default btn-circle btn-xl checked" onclick="selectPen();">
+                            <i class=" glyphicon glyphicon-pencil"></i></button>
+                        <button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-xl" onclick="selectEraser();">
+                            <i class=" glyphicon glyphicon-erase"></i></button>
+                        <!--<button type="button" id="spacer" title="Insert Space" class="btn btn-default btn-circle btn-xl" onclick="selectSpacer();">-->
+                        <!--<i class=" glyphicon glyphicon-plus"></i></button><br/>-->
+                    </td></tr>
+                    <tr><td>
+                        <button type="button" title="Next" class="btn btn-default btn-circle btn-xl" onclick="prevSlide()">
+                            <i class="glyphicon glyphicon-arrow-left"></i></button>
+                        <button type="button" title="Previous" class="btn btn-default btn-circle btn-xl" onclick="nextSlide()">
+                            <i class="glyphicon glyphicon-arrow-right"></i></button>
+
+                    </td></tr>
+                </table>
+
+
+                <!--<input id="files" type="file" >-->
+                <!--<input id='auto-style' type="checkbox" data-toggle="toggle" data-on="Auto Style" data-off="Manual" data-offstyle="default" checked />-->
+                <!--<input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning"  checked/>-->
+                <!--<input type = "text" id='strokec' />-->
+                <!--<input type = "text" id='strokec2' />-->
+                <!--<input type="text" class="slider" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" value="0" />-->
+
+                <!--<label><input id='auto-style' type="checkbox" checked/>&nbsp;Auto Style</label>-->
+            </div>
+        </div>
+
+
+
+
         <div><a href="" download="presenter_result.png" id="download_link" >Download</a></div>
 
     </div>

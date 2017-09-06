@@ -74,9 +74,9 @@ window.onload = function () {
         }
     }, {passive:false});
 
-    document.oncontextmenu = function(event) {
-        event.preventDefault();
-    };
+    // document.oncontextmenu = function(event) {
+    //     event.preventDefault();
+    // };
     popupAudienceView();
 
     document.getElementById('download_link').addEventListener('click', saveCanvasImage, false);
@@ -89,6 +89,8 @@ window.onload = function () {
        handlePointerEvents(event);
     });
 
+    SLIDE_W = $('#speaker-slide').width();
+    SLIDE_H = $('#speaker-slide').height();
     // $('#strokec').on('move.spectrum', function (e, color) {
     //     if (autostyle && curstroke) {
     //         curstroke.strokeColor = color.toHexString();
@@ -102,7 +104,6 @@ window.onload = function () {
     //         $('#strokec').spectrum("set", '');
     //     }
     // });
-
     // setColorPalette([]);
 
     // $('.slider').slider(
@@ -195,7 +196,6 @@ function handlePointerEvents(event) {
             activateEraserTool();
         }
 
-
     } else if (spaper){
         spaper.tool = null;
     }
@@ -251,9 +251,10 @@ function setupSlideCanvas(slidedeck) {
         scanvas.setAttribute('keepalive', true);
         scanvas.setAttribute('data-paper-keepalive', true);
         sslide.appendChild(scanvas);
+    }
+    if (!spaper) {
         spaper = new paper.PaperScope();
         spaper.setup(scanvas);
-
         resizeCanvas(SLIDE_W, SLIDE_H);
 
         sslide.paper = spaper;
@@ -401,8 +402,24 @@ function loadSlide(slide) {
     } else {
         slide.show();
     }
+
+    // console.log('pagenum' + slide.pagenum);
+    if (slide.num < numslides - 1) {
+        loadNextSlide(slidedeck.getSlide(slide.num+1));
+    }
     spaper.view.update();
     post(slideChangeMessage());
+};
+
+function loadNextSlide(slide) {
+    // load background
+    document.getElementById('next-slide-image-bg').setAttribute('src', slide.items[0].src);
+    // load foreground
+    if (slide.nitems > 1) {
+        document.getElementById('next-slide-image-fg').setAttribute('src', slide.items[1].src);
+    } else {
+        document.getElementById('next-slide-image-fg').setAttribute('src', '');
+    }
 };
 
 function setMask() {
@@ -427,7 +444,6 @@ function loadBackgroundItem(slide, item, i) {
     var layer = new paper.Layer();
     slide.itemlayer.push(layer);
     layer.activate();
-
     var raster = new paper.Raster(item.src);
     item.setRaster(raster, 0);
     // raster.onLoad = function() {
@@ -463,7 +479,6 @@ function loadForegroundItem(slide, item) {
     if (slide.itemlayer.length > 1) {
         layer.insertAbove(slide.itemlayer[slide.itemlayer.length-2]);
     }
-
     layer.activate();
     var raster = new paper.Raster(item.src);
     item.setRaster(raster, 1);

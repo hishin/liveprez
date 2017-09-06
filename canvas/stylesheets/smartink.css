@@ -51,15 +51,44 @@ h1 {
 }
 
 .slide {
+    background-color: white;
     /*width: 960px;*/
     /*height: 720px;*/
-    display: inline-block;
-    background-color: white;
+    /*display: inline-block;*/
     /*margin-bottom: 10px;*/
 }
 
+#speaker-slide {
+    height: 100%;
+}
+
+#next-slide {
+    display: block;
+}
+.next-slide-image {
+    max-width: 100%;
+    max-height: 100%;
+}
+#next-slide-image-bg {
+    border: 1px solid grey;
+
+}
+#next-slide-image-fg {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
+
+.slide-menu {
+    text-align: center;
+}
+
 canvas {
-    border: inset;
+    /*display: inline-block;*/
+    /*width:*/
+    /*border: inset;*/
+    margin: 0;
+    border: 1px solid black;
     /*1px rgba(60, 63, 65, 0.75) inset;*/
     touch-action: auto;
 }
@@ -115,7 +144,6 @@ label {
 .menu {
     display: flex;
     /*align-items: center;*/
-    height:100vh;
     flex-direction: column;
     /*vertical-align: center;*/
     /*justify-content: center;*/
@@ -128,4 +156,5 @@ label {
 
 table {
     height: 100%;
+    margin: 0 auto;
 }
