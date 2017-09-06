@@ -45,20 +45,22 @@
             <div class="col-md-12 menu">
                 <table>
                     <tr><td> <input type="file" id="files" style="display: none;" webkitdirectory directory multiple/>
-                        <button type="button" title="Open" class="btn btn-default btn-circle btn-xl" onclick="document.getElementById('files').click();">
+                        <button type="button" title="Open" class="btn btn-default btn-circle btn-sm" onclick="document.getElementById('files').click();">
                             <i class=" glyphicon glyphicon-folder-open"></i></button></td></tr>
                     <tr><td>
-                        <button type="button" id="pen" title="Pen" class="btn btn-default btn-circle btn-xl checked" onclick="selectPen();">
+                        <button type="button" id="pen" title="Pen" class="btn btn-default btn-circle btn-sm checked" onclick="selectPen();">
                             <i class=" glyphicon glyphicon-pencil"></i></button>
-                        <button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-xl" onclick="selectEraser();">
+                        <button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-sm" onclick="selectEraser();">
                             <i class=" glyphicon glyphicon-erase"></i></button>
                         <!--<button type="button" id="spacer" title="Insert Space" class="btn btn-default btn-circle btn-xl" onclick="selectSpacer();">-->
                         <!--<i class=" glyphicon glyphicon-plus"></i></button><br/>-->
                     </td></tr>
                     <tr><td>
-                        <button type="button" title="Next" class="btn btn-default btn-circle btn-xl" onclick="prevSlide()">
+                        <button type="button" title="Next" class="btn btn-default btn-circle btn-sm" onclick="prevSlide()">
                             <i class="glyphicon glyphicon-arrow-left"></i></button>
-                        <button type="button" title="Previous" class="btn btn-default btn-circle btn-xl" onclick="nextSlide()">
+                        <button type="button" title="Insert New Slide" class="btn btn-default btn-circle btn-sm" onclick="insertNewSlide()">
+                            <i class="glyphicon glyphicon-plus"></i></button>
+                        <button type="button" title="Previous" class="btn btn-default btn-circle btn-sm" onclick="nextSlide()">
                             <i class="glyphicon glyphicon-arrow-right"></i></button>
 
                     </td></tr>
