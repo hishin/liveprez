@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Masking Test</title>
+    <script src="javascripts/paper-full.js"></script>
+    <script type="text/javascript">
+        var raster;
+        window.onload = function() {
+            // Get a reference to the canvas object
+            var canvas = document.getElementById('myCanvas');
+            // Create an empty project and a view for the canvas:
+            paper.setup(canvas);
+            canvas.style.width = 600 +'px';
+            canvas.style.height = 400 + 'px';
+            paper.view.viewSize.width = 600;
+            paper.view.viewSize.height = 400;
+
+            // Load an image
+            raster = new paper.Raster('myImage');
+            raster.onLoad = function() {
+                this.fitBounds(paper.view.bounds);
+            };
+
+            // Setup reveal tool
+            var revealtool = new paper.Tool();
+            revealtool.onMouseDown = revealStart;
+            revealtool.onMouseDrag = revealContinue;
+            revealtool.onMouseUp = revealEnd;
+       };
+
+       var clipgroup = null;
+       var revealpath = null;
+       var fixedw = 15;
+       function revealStart(evt) { // fixed radius
+           revealpath = new paper.Path();
+           revealpath.strokeWidth = fixedw;
+           revealpath.strokeColor = 'black';
+           revealpath.add(new paper.Point(evt.point));
+
+           clipgroup = new paper.Group([revealpath, raster]);
+           clipgroup.clipped = true;
+
+       };
+
+       function revealContinue(evt) {
+           if (revealpath != null) {
+                revealpath.add(new paper.Point(evt.point));
+           }
+       };
+
+       function revealEnd(evt) {
+           if (revealpath != null) {
+               revealpath.add(new paper.Point(evt.point));
+           }
+       };
+
+
+
+    </script>
+
+</head>
+<body>
+    <canvas id="myCanvas" resize></canvas>
+    <img id="myImage" src="images/adobe_sf.jpg" style="display:none;">
+</body>
+</html>
