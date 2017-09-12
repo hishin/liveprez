@@ -12,7 +12,7 @@
         var clipgroup, aclipgroup;
         var mypapers = [];
 
-        window.onload = function() {
+        window.onload = function () {
             // Create Presenter and Audience View
             mypapers[0] = new paper.PaperScope();
             mypapers[1] = new paper.PaperScope();
@@ -20,29 +20,31 @@
             // Setup Presenter View
             var canvas = document.getElementById('presCanvas');
             mypapers[0].setup(canvas);
-            canvas.style.width = 1200 +'px';
+            canvas.style.width = 1200 + 'px';
             canvas.style.height = 800 + 'px';
             mypapers[0].view.viewSize.width = 1200;
             mypapers[0].view.viewSize.height = 800;
 
             bgraster = new mypapers[0].Raster('myImage');
-            bgraster.onLoad = function() {
+            bgraster.onLoad = function () {
                 this.fitBounds(mypapers[0].view.bounds);
             };
             bgraster.opacity = 0.5;
+            bgraster.hit = false;
             raster = new mypapers[0].Raster('myImage');
-            raster.onLoad = function() {
+            raster.onLoad = function () {
                 this.fitBounds(mypapers[0].view.bounds);
             };
-            revealmask = new mypapers[0].CompoundPath();
-            clipgroup = new mypapers[0].Group([revealmask, raster]);
-            clipgroup.clipped = true;
+            raster.hit = false;
+//            revealmask = new mypapers[0].CompoundPath();
+//            clipgroup = new mypapers[0].Group([revealmask, raster]);
+//            clipgroup.clipped = true;
 
 
             // Setup Audience View
             var acanvas = document.getElementById('audCanvas');
             mypapers[1].setup(acanvas);
-            acanvas.style.width = 1200 +'px';
+            acanvas.style.width = 1200 + 'px';
             acanvas.style.height = 800 + 'px';
             mypapers[1].view.viewSize.width = 1200;
             mypapers[1].view.viewSize.height = 800;
@@ -50,12 +52,12 @@
             // Load an image, and create a clipgroup
             paper = mypapers[1];
             araster = new mypapers[1].Raster('myImage');
-            araster.onLoad = function() {
+            araster.onLoad = function () {
                 this.fitBounds(mypapers[1].view.bounds);
             };
-            arevealmask = new mypapers[1].CompoundPath();
-            aclipgroup = new mypapers[1].Group([arevealmask, araster]);
-            aclipgroup.clipped = true;
+//            arevealmask = new mypapers[1].CompoundPath();
+//            aclipgroup = new mypapers[1].Group([arevealmask, araster]);
+//            aclipgroup.clipped = true;
 
             // Setup reveal tool
             paper = mypapers[0];
@@ -63,40 +65,56 @@
             revealtool.onMouseDown = revealStart;
             revealtool.onMouseDrag = revealContinue;
             revealtool.onMouseUp = revealEnd;
-       };
+            paper.revealtool = revealtool;
 
-       var revealpath = null;
+            var selecttool = new paper.Tool();
+            selecttool.onMouseDown = moveSelectStart;
+            selecttool.onMouseDrag = moveSelectContinue;
+            selecttool.onMouseUp = moveSelectEnd;
+            paper.selecttool = selecttool;
 
-       // reveal using simple path
-       var fixedw = 15;
-       function revealStartSimplePath(evt) { // fixed radius
-           revealpath = new mypapers[0].Path();
-           revealpath.strokeWidth = fixedw;
-           revealpath.strokeColor = 'black';
-           revealpath.add(new paper.Point(evt.point));
-           revealmask.addChild(revealpath);
+            var movetool = new paper.Tool();
+            movetool.onMouseDown = moveStart;
+            movetool.onMouseDrag = moveContinue;
+            paper.movetool = movetool;
 
-       };
+            paper.selecttool.activate();
+        };
 
-       function revealContinueSimplePath(evt) {
-           if (revealpath != null) {
+        var revealpath = null;
+
+        // reveal using simple path
+        var fixedw = 15;
+
+        function revealStartSimplePath(evt) { // fixed radius
+            revealpath = new mypapers[0].Path();
+            revealpath.strokeWidth = fixedw;
+            revealpath.strokeColor = 'black';
+            revealpath.add(new paper.Point(evt.point));
+            revealmask.addChild(revealpath);
+
+        };
+
+        function revealContinueSimplePath(evt) {
+            if (revealpath != null) {
                 revealpath.add(new mypapers[0].Point(evt.point));
-           }
-       };
+            }
+        };
 
-       function revealEndSimplePath(evt) {
-           if (revealpath != null) {
-               revealpath.add(new mypapers[0].Point(evt.point));
-           }
-       };
+        function revealEndSimplePath(evt) {
+            if (revealpath != null) {
+                revealpath.add(new mypapers[0].Point(evt.point));
+            }
+        };
 
-       // reveal using width + path
+        // reveal using width + path
 
         var startp = null;
         var widthp = null;
         var timeout = null;
         var inserti;
         var width = 0;
+
         function revealStart(evt) {
             revealpath = new mypapers[0].Path();
             revealpath.strokeWidth = 2;
@@ -132,12 +150,12 @@
                     if (timeout) {
                         clearTimeout(timeout);
                     }
-                    timeout = setTimeout(function() {
+                    timeout = setTimeout(function () {
                         widthp = new mypapers[0].Point(evt.point);
                         width = widthp.y - startp.y;
                         revealpath.strokeColor = 'blue';
-                        revealpath.dashArray = [5,2];
-                    }, 300)
+                        revealpath.dashArray = [5, 2];
+                    }, 200)
                 }
             }
         };
@@ -172,14 +190,104 @@
         };
 
 
+        var selectedRaster, aselectedRaster;
+        var select_p1 = null;
+        var select_p2 = null;
+        var select_rect = null;
 
+        function moveSelectStart(evt) {
+            paper = mypapers[0];
+            var hitresult = paper.project.hitTest(evt.point);
+            if (hitresult.item && hitresult.item.hit) {
+                selectedRaster = hitresult.item;
+                selectedRaster.selected = true;
+                aselectedRaster = selectedRaster.counterpart;
+                paper.movetool.activate();
+            }
+            select_p1 = new paper.Point(evt.point);
+        };
+
+        function moveSelectContinue(evt) {
+            if (select_p1) {
+                paper = mypapers[0];
+                select_p2 = new paper.Point(evt.point);
+                if (select_rect) select_rect.remove();
+                select_rect = new paper.Path.Rectangle(
+                    {
+                        from: select_p1,
+                        to: select_p2,
+                        strokeColor: 'black',
+                        strokeWidth: 1,
+                        dashArray: [5, 2]
+                    });
+            }
+        };
+
+        function moveSelectEnd(evt) {
+            if (select_rect) {
+                paper = mypapers[0];
+                var srect = new paper.Rectangle(
+                    getRasterPoint(select_p1, raster),
+                    getRasterPoint(evt.point, raster)
+                );
+                select_rect.remove();
+                select_rect = null;
+                select_p1 = null;
+                selectedRaster = raster.getSubRaster(srect);
+                selectedRaster.selected = true;
+                selectedRaster.hit = true;
+
+                paper = mypapers[1];
+                aselectedRaster = araster.getSubRaster(srect);
+
+                selectedRaster.counterpart = aselectedRaster;
+
+                paper = mypapers[0];
+                paper.movetool.activate();
+            }
+        };
+
+        function moveStart(evt) {
+            if (selectedRaster && !selectedRaster.contains(evt.point)) {
+                selectedRaster.selected = false;
+                selectedRaster = null;
+                aselectedRaster = null;
+                paper.selecttool.activate();
+                moveSelectStart(evt);
+            }
+        };
+
+        function moveContinue(evt) {
+            if (selectedRaster) {
+//                paper = mypapers[0];
+                selectedRaster.translate(evt.delta);
+
+//                paper = mypapers[1];
+                aselectedRaster.translate(evt.delta);
+
+            }
+        };
+
+        function getRasterPoint(point, raster) {
+            var scale = Math.max(raster.width / paper.view.bounds.width, raster.height / paper.view.bounds.height);
+            var wslack = (paper.view.bounds.width - raster.width / scale) / 2.0;
+            var hslack = (paper.view.bounds.height - raster.height / scale) / 2.0;
+
+            var px = Math.round((point.x - wslack) * scale);
+            var py = Math.round((point.y - hslack) * scale);
+            return new paper.Point(px, py);
+        };
 
     </script>
 
 </head>
 <body>
-    <canvas id="presCanvas" resize style="border: 1px solid black;"></canvas>
-    <canvas id="audCanvas" resize style="border: 1px solid black;"></canvas>
-    <img id="myImage" src="images/adobe_sf.jpg" style="display:none;">
+<canvas id="presCanvas" resize style="border: 1px solid black;"></canvas>
+<canvas id="audCanvas" resize style="border: 1px solid black;"></canvas>
+<img id="myImage" src="images/COS226_SelectionSort.png" style="display:none;">
+<br>
+<div id="menu">
+
+</div>
 </body>
 </html>
