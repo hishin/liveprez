@@ -122,9 +122,16 @@ function Item(url, slide) {
             this.praster = raster;
             raster.onLoad = function() {
                 this.fitBounds(paper.view.bounds);
+                console.log("raster.width:" + this.width);
+                console.log("paper.view.bounds.width:" + paper.view.bounds.width);
+                console.log("raster.height:" + this.height);
+                console.log("paper.view.bounds.height:" + paper.view.bounds.height);
                 this.scale = Math.max(this.width/paper.view.bounds.width, this.height/paper.view.bounds.height);
+                console.log("raster.scale:" + this.scale);
                 this.wslack = (paper.view.bounds.width - this.width/this.scale)/2.0;
                 this.hslack = (paper.view.bounds.height - this.height/this.scale)/2.0;
+                console.log('wslack:' + this.wslack);
+                console.log('hslack:' + this.hslack);
                 // console.log("Compute Background Color");
                 this.imdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
                 // var c = getBackgroundColor(imgdata.data)
@@ -155,6 +162,7 @@ function Item(url, slide) {
             raster.onLoad = function() {
                 this.fitBounds(paper.view.bounds);
                 this.scale = Math.max(this.width/paper.view.bounds.width, this.height/paper.view.bounds.height);
+                console.log("bg scale:" + this.scale);
                 this.wslack = (paper.view.bounds.width - this.width/this.scale)/2.0;
                 this.hslack = (paper.view.bounds.height - this.height/this.scale)/2.0;
                 this.opacity = 1.0;
@@ -489,6 +497,9 @@ function getPixelCoordsY(y, praster) {
 };
 
 function getPixelPoint(point, raster) {
+    console.log('x:' +point.x);
+    console.log('raster.wslack: ' + raster.wslack);
+    console.log('raster.scale: ' + raster.scale);
     var px = Math.round((point.x - raster.wslack) * raster.scale);
     var py = Math.round((point.y - raster.hslack) * raster.scale);
     return new paper.Point(px, py);
