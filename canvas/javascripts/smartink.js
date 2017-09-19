@@ -673,10 +673,9 @@ function inkStart(event){
     curstroke.strokeColor = 'black';
     movedist = 0.0;
     prevtime = event.timeStamp;
-    var p = getPixelPoint(event.point, bgitem.praster);
-    console.log("event.point: " + event.point);
-    console.log("p:" + p);
+
     if (curitem) {
+        var p = getPixelPoint(event.point, curitem.praster);
         dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
         //set stroke color to closest fg color
         var cx = curitem.praster.dti[p.x+p.y*bgitem.praster.width];
@@ -691,7 +690,8 @@ function inkStart(event){
     pcount = 1;
     // background pixel color
     bgpcolors = [0,0,0,0];
-    var pcolor = bgitem.praster.getPixel(p.x, p.y);
+    var bgp = getPixelPoint(event.point, bgitem.praster);
+    var pcolor = bgitem.praster.getPixel(bgp.x, bgp.y);
     bgpcolors[0] += pcolor.red;
     bgpcolors[1] += pcolor.green;
     bgpcolors[2] += pcolor.blue;
@@ -703,14 +703,17 @@ function inkContinue(event) {
     if (!expand) {
         curstroke.add(event.point);
         movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
-        var p = getPixelPoint(event.point, bgitem.praster);
+
         // console.log(event.point);
         // console.log(curitem.praster.scale);
         // console.log('p.x:' + p.x + ' p.y:' + p.y + ' praster.width: ' + curitem.praster.width + ' praster.height:' + curitem.praster.height);
-        if (curitem)
+        if (curitem) {
+            var p = getPixelPoint(event.point, curitem.praster);
             dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+        }
         pcount++;
-        var pcolor = bgitem.praster.getPixel(p.x, p.y);
+        var bgp = getPixelPoint(event.point, bgitem.praster);
+        var pcolor = bgitem.praster.getPixel(bgp.x, bgp.y);
         bgpcolors[0] += pcolor.red;
         bgpcolors[1] += pcolor.green;
         bgpcolors[2] += pcolor.blue;
@@ -741,11 +744,13 @@ function inkEnd(event) {
     if (curstroke) {
         curstroke.add(event.point);
         movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
-        var p = getPixelPoint(event.point, bgitem.praster);
-        if (curitem)
+        if (curitem) {
+            var p = getPixelPoint(event.point, curitem.praster);
             dist2fg += curitem.praster.dtfg[p.x + p.y * curitem.praster.width];
+        }
         pcount++;
-        var pcolor = bgitem.praster.getPixel(p.x, p.y);
+        var bgp = getPixelPoint(event.point, bgitem.praster);
+        var pcolor = bgitem.praster.getPixel(bgp.x, bgp.y);
         bgpcolors[0] += pcolor.red;
         bgpcolors[1] += pcolor.green;
         bgpcolors[2] += pcolor.blue;
@@ -756,9 +761,9 @@ function inkEnd(event) {
         var velocity = movedist / (event.timeStamp - prevtime) * 1000;
         var tracedpx = [];
         // IF STROKE IS FAR FROM UNDERLYING PIXELS
-        console.log(curitem == null);
-        console.log(avg_dist2fg);
-        console.log(DIST2FG_THRES_A * velocity + DIST2FG_THRES_B);
+        // console.log(curitem == null);
+        // console.log(avg_dist2fg);
+        // console.log(DIST2FG_THRES_A * velocity + DIST2FG_THRES_B);
         if (curitem == null || avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
             var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
             var annocolor;
