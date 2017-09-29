@@ -1,6 +1,6 @@
-var scanvas;
-var spaper;
+var mypapers;
 var svgitem = null;
+
 
 function handleFiles(files) {
     var numFiles = files.length;
@@ -9,29 +9,48 @@ function handleFiles(files) {
 };
 
 function setupSlideCanvas(fileURL) {
-    if (!scanvas) {
-        scanvas = document.getElementById('presCanvas');
+    if (!mypapers) {
+        mypapers = [];
+        var scanvas = document.getElementById('presCanvas');
         scanvas.setAttribute('keepalive', true);
         scanvas.setAttribute('data-paper-keepalive', true);
-        spaper = new paper.PaperScope();
+        var spaper = new paper.PaperScope();
         spaper.setup(scanvas);
         scanvas.paper = spaper;
         spaper.canvas = scanvas;
+        spaper.project.activeLayer.selectedColor = [1,0,0,0.75];
+        spaper.settings.hitTolerance = 10;
+        mypapers[0] = spaper;
 
-        var selectTool = new spaper.Tool();
+        // Audience Canvas
+        var acanvas = document.getElementById('audCanvas');
+        var apaper = new paper.PaperScope();
+        apaper.setup(acanvas);
+        acanvas.paper = apaper;
+        apaper.canvas = acanvas;
+        mypapers[1] = apaper;
+
+
+        // Selection Tool
+        paper = mypapers[0];
+        var selectTool = new paper.Tool();
         selectTool.onMouseDown = selectStart;
         selectTool.onMouseDrag = selectContinue;
         selectTool.onMouseUp = selectEnd;
 
-        spaper.project.activeLayer.selectedColor = [1,0,0,0.75];
-        spaper.settings.hitTolerance = 10;
 
     }
     else {
-        spaper.project.clear();
+        mypapers[0].project.clear();
+        mypapers[1].project.clear();
     }
 
-    svgitem = spaper.project.activeLayer.importSVG(fileURL, svgOnLoad);
+    svgitem = paper.project.activeLayer.importSVG(fileURL,
+        {
+            expandShapes: true,
+            onLoad: svgOnLoad
+        }
+    );
 };
 
 /**
@@ -62,11 +81,42 @@ function selectContinue(event) {
  */
 function selectEnd(event) {
     // Click select
+    var selectedItems;
     if (!dragged) {
-        clickSelect(svgitem, event.point);
+        selectedItems = clickSelect(svgitem, event.point);
     }
     else {
-        pathSelect(svgitem, userStroke);
+        selectedItems = pathSelect(svgitem, userStroke);
     }
+
+    if (selectedItems)
+        showAudience(selectedItems);
 };
 
+function showAudience(selectedItems) {
+    paper = mypapers[1];
+    for (var i = 0; i < selectedItems.length; i++) {
+        createClone(selectedItems[i]);
+    }
+    paper = mypapers[0];
+};
+
+function createClone(item) {
+    var citem;
+    if (item.className == 'Group') {
+        citem = new mypapers[1].Group();
+    } else if (item.classNmae == 'CompoundPath') {
+        citem = new mypapers[1].CompoundPath();
+    } else if (item.className == 'Path') {
+        citem = new mypapers[1].Path();
+    } else if (item.className == 'Shape') {
+        citem = new mypapers[1].Shape();
+    } else if (item.className == 'PointText') {
+        citem = new mypapers[1].PointText();
+    } else {
+        console.log(item.className);
+    }
+    citem.copyContent(item);
+    citem.copyAttributes(item);
+    citem.selected = false;
+};

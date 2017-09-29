@@ -55,16 +55,16 @@
             araster.onLoad = function () {
                 this.fitBounds(mypapers[1].view.bounds);
             };
-//            arevealmask = new mypapers[1].CompoundPath();
-//            aclipgroup = new mypapers[1].Group([arevealmask, araster]);
-//            aclipgroup.clipped = true;
+            arevealmask = new mypapers[1].CompoundPath();
+            aclipgroup = new mypapers[1].Group([arevealmask, araster]);
+            aclipgroup.clipped = true;
 
             // Setup reveal tool
             paper = mypapers[0];
             var revealtool = new paper.Tool();
-            revealtool.onMouseDown = revealStart;
-            revealtool.onMouseDrag = revealContinue;
-            revealtool.onMouseUp = revealEnd;
+            revealtool.onMouseDown = revealStartSimplePath;
+            revealtool.onMouseDrag = revealContinueSimplePath;
+            revealtool.onMouseUp = revealEndSimplePath;
             paper.revealtool = revealtool;
 
             var selecttool = new paper.Tool();
@@ -78,7 +78,7 @@
             movetool.onMouseDrag = moveContinue;
             paper.movetool = movetool;
 
-            paper.selecttool.activate();
+            paper.revealtool.activate();
         };
 
         var revealpath = null;
@@ -284,7 +284,7 @@
 <body>
 <canvas id="presCanvas" resize style="border: 1px solid black;"></canvas>
 <canvas id="audCanvas" resize style="border: 1px solid black;"></canvas>
-<img id="myImage" src="images/COS226_SelectionSort.png" style="display:none;">
+<img id="myImage" src="images/hwt37.png" style="display:none;">
 <br>
 <div id="menu">
 
