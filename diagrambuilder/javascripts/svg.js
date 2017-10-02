@@ -1,5 +1,59 @@
+var tokens;
+
+var TokenChain = function(token, path) {
+    this.tlist = [token];
+    this.path = path;
+    this.fracs = [fractionSpanned(token, path)];
+    this.dists = [tokenToPathDistance(token, path)];
+    this.score = this.fracs[0] * this.dists[0];
+    this.best_possible_score = this.score;
+
+    this.addToken = function(t) {
+        this.tlist.push(t);
+        var frac = fractionSpanned(t, this.path);
+        var dist = tokenToPathDistance(t, this.path);
+        this.fracs.push(frac);
+        this.dists.push(dist);
+        this.score += (frac * dist);
+        this.best_possible_score = this.score;
+    };
+};
+
+/**
+ * return fraction p of path spanned by the token curve
+ * @param token
+ * @param path
+ */
+function fractionSpanned(token, path) {
+    var p1 = path.getNearestPoint(token.segment1.point);
+    var offset1 = path.getOffsetOf(p1);
+    var p2 = path.getNearestPoint(token.segment2.point);
+    var offset2 = path.getOffsetOf(p2);
+    var frac = Math.abs(offset1 - offset2) / path.length;
+
+    return frac;
+};
+
+function tokenToPathDistance(token, path) {
+    var n = 10;
+    var maxdist = -1;
+    for (var i = 0; i <= token.length; i += token.length / n) {
+        var tokenp = token.getPointAt(i);
+        var nearestp = path.getNearestPoint(tokenp);
+        var dist = tokenp.getDistance(nearestp);
+        if (dist > maxdist)
+            maxdist = dist;
+    }
+    return maxdist;
+};
+
+function chainScore(tokenchain) {
+    return tokenchain.best_possible_score;
+};
+
 function svgOnLoad(item, svgdata) {
     svgitem = item;
+    tokens = [];
     item.fitBounds(paper.view.bounds);
 
     // Break all paths at intersections
@@ -19,41 +73,65 @@ function svgOnLoad(item, svgdata) {
             }
         }
     }
+
+    for (var i = 0; i < childPaths.length; i++) {
+        tokens.push.apply(tokens, childPaths[i].curves);
+    }
 };
 
 function clickSelect(svgitem, point) {
     if (!svgitem) return;
     var hitresult = svgitem.hitTest(point);
-    if (hitresult)
+    if (hitresult) {
         hitresult.item.selected = true;
+    }
     return [hitresult.item];
 };
 
 function pathSelect(svgitem, userStroke) {
-    // Compare UserStroke to Paths in svgitem
-    var minerror = Infinity;
-    var closestPath;
-    var childPaths = svgitem.getItems({class: 'Path'});
-    for (var i = 0; i < childPaths.length; i++) {
-        var error = comparePaths(childPaths[i], userStroke);
-        if (error < minerror) {
-            minerror = error;
-            closestPath = childPaths[i];
-        }
+    var startp = userStroke.firstSegment.point;
+    var partialchains = BinaryHeap(chainScore);
+
+    // Get all tokens close to startp and form partial chains
+    for (var i = 0; i < tokens.length; i++) {
+        var nearp = tokens[i].getNearestPoint(startp);
+        var dist = nearp.getDistance(startp);
+        var tchain = TokenChain(tokens[i], userStroke);
+        partialchains.push(tchain);
     }
 
-    if (closestPath) {
-        closestPath.selected = !closestPath.selected;
-        return [closestPath];
-    }
+    
 
 };
 
-function comparePaths(candidatePath, userStroke) {
-    // Uniformly sample 10 points from each stroke
+function selectClosestToken(svgitem, userStroke) {
+    // Compare UserStroke to Tokens in svgitem
+    var minerror = Infinity;
+    var closestToken;
 
+    for (var i = 0; i < tokens.length; i++) {
+        var error = comparePaths(tokens[i], userStroke);
+        if (error < minerror) {
+            minerror = error;
+            closestToken = tokens[i];
+        }
+    }
+
+    if (closestToken) {
+        closestToken.selected = true;
+        var tokenpath = new paper.Path({
+            segments: [closestToken.segment1, closestToken.segment2],
+        });
+        tokenpath.copyAttributes(closestToken.path);
+        return [tokenpath];
+    }
+};
+
+function comparePaths(candidatePath, userStroke) {
+    // Uniformly sample n = 10 points from each stroke
+    var n = 10;
     var psdists = [];
-    for (var i = 0; i <= userStroke.length; i += userStroke.length / 10) {
+    for (var i = 0; i <= userStroke.length; i += userStroke.length / n) {
         var ps = userStroke.getPointAt(i);
         var cs = candidatePath.getNearestPoint(ps);
         var dist = ps.getDistance(cs);
@@ -63,7 +141,7 @@ function comparePaths(candidatePath, userStroke) {
     var psstd = math.std(psdists);
 
     var pcdists = [];
-    for (var j = 0; j <= candidatePath.length; j += candidatePath.length / 10) {
+    for (var j = 0; j <= candidatePath.length; j += candidatePath.length / n) {
         var pc = candidatePath.getPointAt(j);
         var cs = userStroke.getNearestPoint(pc);
         var dist = pc.getDistance(cs);

@@ -118,5 +118,6 @@ function createClone(item) {
     }
     citem.copyContent(item);
     citem.copyAttributes(item);
+    console.log('stroke width ' +  citem.strokeWidth);
     citem.selected = false;
 };
