@@ -1,21 +1,22 @@
 var tokens;
+var maxdist = 100;
 
 var TokenChain = function(token, path) {
     this.tlist = [token];
     this.path = path;
-    this.fracs = [fractionSpanned(token, path)];
-    this.dists = [tokenToPathDistance(token, path)];
-    this.score = this.fracs[0] * this.dists[0];
-    this.best_possible_score = this.score;
+    this.frac = fractionSpanned(token, path);
+    this.dist = tokenToPathDistance(token, path);
+    this.score = (this.frac * this.dist) + (1-this.frac) * maxdist;
+    this.best_possible_score = this.frac * this.dist;
 
     this.addToken = function(t) {
         this.tlist.push(t);
         var frac = fractionSpanned(t, this.path);
         var dist = tokenToPathDistance(t, this.path);
-        this.fracs.push(frac);
-        this.dists.push(dist);
-        this.score += (frac * dist);
-        this.best_possible_score = this.score;
+        this.frac += frac;
+        this.dist = Math.max(this.dist, dist);
+        this.score = (this.frac * this.dist) + (1-this.frac)*maxdist;
+        this.best_possible_score = this.frac * this.dist;
     };
 };
 
@@ -96,11 +97,19 @@ function pathSelect(svgitem, userStroke) {
     for (var i = 0; i < tokens.length; i++) {
         var nearp = tokens[i].getNearestPoint(startp);
         var dist = nearp.getDistance(startp);
-        var tchain = TokenChain(tokens[i], userStroke);
-        partialchains.push(tchain);
+        if (dist < maxdist) {
+            var tchain = TokenChain(tokens[i], userStroke);
+            partialchains.push(tchain);
+        }
     }
 
-    
+    while() {
+        var bestchain = partialchains.pop();
+
+        // grow chain by adding tokens
+        
+
+    }
 
 };
 
