@@ -1,6 +1,7 @@
 var tokens;
 var maxdist = 100;
 
+
 var TokenChain = function(token, path) {
     this.tlist = [token];
     this.path = path;
@@ -105,11 +106,19 @@ function pathSelect(svgitem, userStroke) {
 
     while() {
         var bestchain = partialchains.pop();
-
         // grow chain by adding tokens
-        
+        var connected = getConnectedTokens(token);
+        for (var c = 0; c < connected.length; c++) {
+            // should return a new partial chain
+            bestchain.addToken(connected[c]);
+            partialchains.push(bestchain);
+        }
 
     }
+
+};
+
+function getConnectedTokens(token) {
 
 };
 
