@@ -113,11 +113,15 @@ function createClone(item) {
         citem = new mypapers[1].Shape();
     } else if (item.className == 'PointText') {
         citem = new mypapers[1].PointText();
+    } else if (item.className == 'Curve') {
+        citem = new paper.Path({
+            segments: [item.segment1, item.segment2]
+        });
+        citem.copyAttributes(item.path);
     } else {
         console.log(item.className);
     }
-    citem.copyContent(item);
-    citem.copyAttributes(item);
-    console.log('stroke width ' +  citem.strokeWidth);
+    // citem.copyContent(item);
+    // citem.copyAttributes(item);
     citem.selected = false;
 };

@@ -5,19 +5,23 @@ var maxdist = 100;
 var TokenChain = function(token, path) {
     this.tlist = [token];
     this.path = path;
-    this.frac = fractionSpanned(token, path);
-    this.dist = tokenToPathDistance(token, path);
-    this.score = (this.frac * this.dist) + (1-this.frac) * maxdist;
-    this.best_possible_score = this.frac * this.dist;
+    var frac = fractionSpanned(token, path);
+    this.totalfrac = frac;
+    var cfrac = 1-frac;
+    var dist = tokenToPathDistance(token, path);
+    var cdist = Math.min(1.0, dist/maxdist);
+    this.cost = 1.0 - (1.0 - cfrac)*(1.0 - cdist);
+    this.best_possible_cost = this.cost - this.totalfrac;
 
     this.addToken = function(t) {
         this.tlist.push(t);
         var frac = fractionSpanned(t, this.path);
+        this.totalfrac += frac;
+        var cfrac = 1-frac;
         var dist = tokenToPathDistance(t, this.path);
-        this.frac += frac;
-        this.dist = Math.max(this.dist, dist);
-        this.score = (this.frac * this.dist) + (1-this.frac)*maxdist;
-        this.best_possible_score = this.frac * this.dist;
+        var cdist = Math.min(1.0, dist/maxdist);
+        this.cost -= (1.0-cfrac)*(1.0-cdist);
+        this.best_possible_cost = this.cost - this.totalfrac;
     };
 };
 
@@ -49,8 +53,8 @@ function tokenToPathDistance(token, path) {
     return maxdist;
 };
 
-function chainScore(tokenchain) {
-    return tokenchain.best_possible_score;
+function chainCost(tokenchain) {
+    return tokenchain.best_possible_cost;
 };
 
 function svgOnLoad(item, svgdata) {
@@ -87,35 +91,44 @@ function clickSelect(svgitem, point) {
     if (hitresult) {
         hitresult.item.selected = true;
     }
+
     return [hitresult.item];
 };
 
 function pathSelect(svgitem, userStroke) {
     var startp = userStroke.firstSegment.point;
-    var partialchains = BinaryHeap(chainScore);
+    var partialchains = new BinaryHeap(chainCost);
 
     // Get all tokens close to startp and form partial chains
+    var temptokens = []
     for (var i = 0; i < tokens.length; i++) {
         var nearp = tokens[i].getNearestPoint(startp);
         var dist = nearp.getDistance(startp);
         if (dist < maxdist) {
-            var tchain = TokenChain(tokens[i], userStroke);
+            var tchain = new TokenChain(tokens[i], userStroke);
             partialchains.push(tchain);
         }
     }
+    var bestchain = partialchains.pop();
+    console.log('total_frac ' + bestchain.totalfrac);
+    console.log('cost ' + bestchain.cost);
+    console.log('score ' + bestchain.best_possible_cost);
+    return bestchain.tlist;
 
-    while() {
-        var bestchain = partialchains.pop();
-        // grow chain by adding tokens
-        var connected = getConnectedTokens(token);
-        for (var c = 0; c < connected.length; c++) {
-            // should return a new partial chain
-            bestchain.addToken(connected[c]);
-            partialchains.push(bestchain);
+};
+
+function getAllLinkedTokens(token) {
+    var linked = [];
+    for (var i = 0; i < tokens.length; i++) {
+        console.log(token);
+        console.log(tokens[i]);
+
+        if (tokens[i] == token) continue;
+        else if (tokens[i].getIntersections(token).length == 1) {
+            linked.push(tokens[i]);
         }
-
     }
-
+    return linked;
 };
 
 function getConnectedTokens(token) {
