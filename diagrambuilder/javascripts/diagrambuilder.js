@@ -103,9 +103,10 @@ function showAudience(selectedItems) {
 
 function createClone(item) {
     var citem;
+    console.log(item.className);
     if (item.className == 'Group') {
         citem = new mypapers[1].Group();
-    } else if (item.classNmae == 'CompoundPath') {
+    } else if (item.className == 'CompoundPath') {
         citem = new mypapers[1].CompoundPath();
     } else if (item.className == 'Path') {
         citem = new mypapers[1].Path();
@@ -117,7 +118,13 @@ function createClone(item) {
         citem = new paper.Path({
             segments: [item.segment1, item.segment2]
         });
+        console.log(item.path);
+        item.path.selected = true;
         citem.copyAttributes(item.path);
+        console.log(item.path.style);
+        console.log(item.path.className);
+        citem.strokeColor = 'red';
+        citem.strokeWidth = 2;
     } else {
         console.log(item.className);
     }
