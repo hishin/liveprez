@@ -26,4 +26,11 @@ canvas/paper-old/*\
 UIST_Video\
 UserStudy2Videos\
 UserStudyForms\
+canvas/slick/*\
+writeup/*\
+writeup\
+canvas/paper-old\
+canvas/samplepresentations\
+canvas/images\
+canvas/.idea\
 }
