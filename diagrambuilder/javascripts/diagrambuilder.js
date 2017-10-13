@@ -118,11 +118,8 @@ function createClone(item) {
         citem = new paper.Path({
             segments: [item.segment1, item.segment2]
         });
-        console.log(item.path);
         item.path.selected = true;
         citem.copyAttributes(item.path);
-        console.log(item.path.style);
-        console.log(item.path.className);
         citem.strokeColor = 'red';
         citem.strokeWidth = 2;
     } else {

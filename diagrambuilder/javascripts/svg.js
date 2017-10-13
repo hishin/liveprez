@@ -1,5 +1,6 @@
 var tokens;
 var maxdist = 100;
+var eps = 10e-3;
 
 
 var TokenChain = function(path) {
@@ -15,7 +16,7 @@ var TokenChain = function(path) {
             this.totalfrac += frac;
             var cfrac = 1-frac;
             var dist = tokenToPathDistance(t, path);
-            var cdist = Math.min(1.0, dist/maxdist);
+            var cdist = dist/maxdist;
             this.cost -= (1.0 - cfrac)*(1.0 - cdist);
             this.best_possible_cost = this.cost - (1-this.totalfrac);
 
@@ -32,12 +33,14 @@ var TokenChain = function(path) {
             newchain.totalfrac = this.totalfrac + frac;
             var cfrac = 1-frac;
             var dist = tokenToPathDistance(t, path);
-            var cdist = Math.min(1.0, dist/maxdist);
+            newchain.dist = dist;
+            var cdist = dist/maxdist;
+            newchain.frac = frac;
             newchain.cost = this.cost - (1.0 - cfrac)*(1.0 - cdist);
             newchain.best_possible_cost = newchain.cost - (1-newchain.totalfrac);
 
-            if (this.p1.equals(p)) {
-                if (t.point1.equals(p)) {
+            if (this.p1.getDistance(p) < eps) {
+                if (t.point1.getDistance(p) < eps) {
                     newchain.p1 = t.point2;
                 } else {
                     newchain.p1 = t.point1;
@@ -45,8 +48,8 @@ var TokenChain = function(path) {
                 newchain.c1 = t;
                 newchain.p2 = this.p2;
                 newchain.c2 = this.c2;
-            } else if (this.p2.equals(p)) {
-                if (t.point1.equals(p)) {
+            } else if (this.p2.getDistance(p) < eps) {
+                if (t.point1.getDistance(p) <eps) {
                     newchain.p2 = t.point2;
                 } else {
                     newchain.p2 = t.point1;
@@ -62,10 +65,30 @@ var TokenChain = function(path) {
     };
 
     this.getConnectedPoint = function(t) {
-        if (t.point1.equals(this.p1) && t != this.c1) return t.point1;
-        if (t.point1.equals(this.p2) && t != this.c2) return t.point1;
-        if (t.point2.equals(this.p1) && t != this.c1) return t.point2;
-        if (t.point2.equals(this.p2) && t != this.c2) return t.point2;
+        // var tpoint = new paper.Path.Circle(this.p2, 5);
+        // tpoint.strokeColor = 'blue';
+        if (t.point1.getDistance(this.p1) < eps && t != this.c1) {
+            // var tpoint = new paper.Path.Circle(t.point1, 5);
+            // tpoint.fillColor = 'yellow';
+
+            return t.point1;
+        }
+        if (t.point1.getDistance(this.p2) < eps && t != this.c2) {
+            // var tpoint = new paper.Path.Circle(t.point1, 5);
+            // tpoint.fillColor = 'red';
+            return t.point1;
+        }
+        if (t.point2.getDistance(this.p1) < eps && t != this.c1) {
+            // var tpoint = new paper.Path.Circle(t.point2, 5);
+            // tpoint.fillColor = 'yellow';
+
+            return t.point2;
+        }
+        if (t.point2.getDistance(this.p2) < eps && t != this.c2) {
+            // var tpoint = new paper.Path.Circle(t.point2, 5);
+            // tpoint.fillColor = 'red';
+            return t.point2;
+        }
         return null;
     };
 };
@@ -111,16 +134,20 @@ function svgOnLoad(item, svgdata) {
     var childPaths = svgitem.getItems({class:'Path'});
     for (var i = 0; i < childPaths.length; i++) {
         var p1 = childPaths[i];
-        for (var j = 0; j < childPaths.length; j++) {
-            if (i == j) continue;
+        for (var j = i+1; j < childPaths.length; j++) {
+            // if (i == j) continue;
+            // console.log("i = " + i + " j = " + j);
             var p2 = childPaths[j];
+            // console.log("p1.getintersection(p2)")
             var crossings = p1.getIntersections(p2);
             for (var c = 0; c < crossings.length; c++) {
                 p1.divideAt(crossings[c]);
+                // console.log(crossings[c]);
             }
             crossings = p2.getIntersections(p1);
             for (var c = 0; c < crossings.length; c++) {
                 p2.divideAt(crossings[c]);
+                // console.log(crossings[c]);
             }
         }
     }
@@ -142,6 +169,8 @@ function clickSelect(svgitem, point) {
 
 function pathSelect(svgitem, userStroke) {
     var startp = userStroke.firstSegment.point;
+    var tpoint = new paper.Path.Circle(startp, 5);
+    tpoint.strokeColor = 'blue';
     var partialchains = new BinaryHeap(chainCost);
 
     // Get all tokens close to startp and form partial chains
@@ -163,27 +192,29 @@ function pathSelect(svgitem, userStroke) {
                 best_actual_cost = tchain.cost;
                 best_actual_chain = tchain;
             }
-            if (tchain.cost < 0.75) {
+            if (tchain.cost < 0.9) {
                 partialchains.push(tchain);
             }
         }
     }
 
-    console.log('candidate size: ' + partialchains.size());
     var bestchain = partialchains.pop();
     var debug = 0;
-    while(bestchain && debug < 5) {
-        console.log("debug = " + debug);
+    while(bestchain && debug < 1) {
         // At each step grow the partialchain
         if (bestchain.best_possible_cost >= best_actual_cost) {
-            console.log("returning");
             return best_actual_chain.tlist;
         }
+
+        makePath(bestchain.tlist[0], {strokeColor:'red', strokeWidth:5})
+
         var connected = getConnectedTokens(bestchain);
         bestchain.tlist[0].selected = true;
-        console.log("num connected: " +  connected.length);
+
         for (var i = 0; i < connected.length; i++) {
             var newchain = bestchain.addToken(connected[i].token, connected[i].point);
+
+
             if (newchain.best_possible_cost < best_actual_cost) {
                 partialchains.push(newchain);
             }
@@ -195,12 +226,12 @@ function pathSelect(svgitem, userStroke) {
         bestchain = partialchains.pop();
         debug++;
     }
+    if (!best_actual_chain) return;
     return best_actual_chain.tlist;
 };
 
 function getConnectedTokens(chain) {
     var connected = [];
-    console.log("tokens.length: " + tokens.length);
     for (var i = 0; i < tokens.length; i++) {
         var p = chain.getConnectedPoint(tokens[i]);
         if (p) {
@@ -224,7 +255,7 @@ function selectClosestToken(svgitem, userStroke) {
     }
 
     if (closestToken) {
-        closestToken.selected = true;
+        // closestToken.selected = true;
         var tokenpath = new paper.Path({
             segments: [closestToken.segment1, closestToken.segment2],
         });
@@ -259,5 +290,14 @@ function comparePaths(candidatePath, userStroke) {
     var beta = 1.0;
     return beta * (psmean + pcmean) + (1 - beta) * (psstd + pcstd);
 
+
+};
+
+function makePath(token, style) {
+    var path = new paper.Path({
+        segments:[token.segment1, token.segment2]
+    });
+    path.style = style;
+    return path;
 
 };
