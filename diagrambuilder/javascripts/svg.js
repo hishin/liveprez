@@ -8,36 +8,50 @@ var TokenChain = function(path) {
     this.tlist = [];
     this.totalfrac = 0.0;
     this.cost = 1.0;
+    this.mdist = 0.0;
 
     this.addToken = function(t, p) {
         if (!p) { // first token
             this.tlist.push(t);
-            var frac = fractionSpanned(t, path);
-            this.totalfrac += frac;
-            var cfrac = 1-frac;
-            var dist = tokenToPathDistance(t, path);
-            var cdist = dist/maxdist;
-            this.cost -= (1.0 - cfrac)*(1.0 - cdist);
-            this.best_possible_cost = this.cost - (1-this.totalfrac);
-
             this.p1 = t.point1;
             this.p2 = t.point2;
             this.c1 = t;
             this.c2 = t;
+            this.length = t.length;
+            this.curve_spanned_length = curveLengthSpanned(t, path);
+            this.path_spanned_length = pathLengthSpanned(t, path);
+
+            this.curvefrac = this.curve_spanned_length / this.length;
+            this.pathfrac = this.path_spanned_length / this.path.length;
+
+            var dist = tokenToPathDistance(t, path);
+            this.mdist = Math.max(this.mdist, dist);
+            this.cdist = this.mdist/maxdist;
+
+            this.cost = 1.0 - this.curvefrac*this.pathfrac*(1.0 - this.cdist);
+            var best_curvefrac = (this.length - this.curve_spanned_length)/(this.length - this.curve_spanned_length + this.path.length);
+            this.best_curvefrac = best_curvefrac;
+            this.best_possible_cost = 1.0 - (1.0 - best_curvefrac)*(1.0 - this.cdist);
             return this;
         } else { // adding additional token
             var newchain = new TokenChain(this.path);
             newchain.tlist = this.tlist.slice(0, this.tlist.length);
             newchain.tlist.push(t);
-            var frac = fractionSpanned(t, path);
-            newchain.totalfrac = this.totalfrac + frac;
-            var cfrac = 1-frac;
+            newchain.length = this.length + t.length;
+            newchain.curve_spanned_length = this.curve_spanned_length + curveLengthSpanned(t, path);
+            newchain.path_spanned_length = this.path_spanned_length + pathLengthSpanned(t, path);
+
+            newchain.curvefrac = newchain.curve_spanned_length/newchain.length;
+            newchain.pathfrac = newchain.path_spanned_length/newchain.path.length;
+
             var dist = tokenToPathDistance(t, path);
-            newchain.dist = dist;
-            var cdist = dist/maxdist;
-            newchain.frac = frac;
-            newchain.cost = this.cost - (1.0 - cfrac)*(1.0 - cdist);
-            newchain.best_possible_cost = newchain.cost - (1-newchain.totalfrac);
+            newchain.mdist = Math.max(this.mdist, dist);
+            newchain.cdist = newchain.mdist/maxdist;
+
+            newchain.cost = 1.0 - newchain.curvefrac*newchain.pathfrac*(1.0 - newchain.cdist);
+            var best_curvefrac = (newchain.length - newchain.curve_spanned_length)/(newchain.length - newchain.curve_spanned_length + newchain.path.length);
+            newchain.best_curvefrac = best_curvefrac;
+            newchain.best_possible_cost = 1.0 - (1.0-best_curvefrac)*(1.0 - newchain.cdist);
 
             if (this.p1.getDistance(p) < eps) {
                 if (t.point1.getDistance(p) < eps) {
@@ -98,7 +112,27 @@ var TokenChain = function(path) {
  * @param token
  * @param path
  */
-function fractionSpanned(token, path) {
+function curveFractionSpanned(token, path) {
+    var p1 = token.getNearestPoint(path.firstSegment.point);//path.getNearestPoint(token.segment1.point);
+    var offset1 = token.getOffsetOf(p1);
+    var p2 = token.getNearestPoint(path.lastSegment.point);
+    var offset2 = token.getOffsetOf(p2);
+    var frac = Math.abs(offset1 - offset2) / token.length;
+
+    return frac;
+};
+
+function curveLengthSpanned(token, path) {
+    var p1 = token.getNearestPoint(path.firstSegment.point);//path.getNearestPoint(token.segment1.point);
+    var offset1 = token.getOffsetOf(p1);
+    var p2 = token.getNearestPoint(path.lastSegment.point);
+    var offset2 = token.getOffsetOf(p2);
+    var len = Math.abs(offset1 - offset2);
+
+    return len;
+};
+
+function pathFractionSpanned(token, path) {
     var p1 = path.getNearestPoint(token.segment1.point);
     var offset1 = path.getOffsetOf(p1);
     var p2 = path.getNearestPoint(token.segment2.point);
@@ -106,6 +140,16 @@ function fractionSpanned(token, path) {
     var frac = Math.abs(offset1 - offset2) / path.length;
 
     return frac;
+};
+
+function pathLengthSpanned(token, path) {
+    var p1 = path.getNearestPoint(token.segment1.point);
+    var offset1 = path.getOffsetOf(p1);
+    var p2 = path.getNearestPoint(token.segment2.point);
+    var offset2 = path.getOffsetOf(p2);
+    var len = Math.abs(offset1 - offset2);
+
+    return len;
 };
 
 function tokenToPathDistance(token, path) {
@@ -152,8 +196,14 @@ function svgOnLoad(item, svgdata) {
         }
     }
 
+    var curves;
     for (var i = 0; i < childPaths.length; i++) {
-        tokens.push.apply(tokens, childPaths[i].curves);
+        curves = childPaths[i].curves;
+        for (var j = 0; j < curves.length; j++) {
+            var curve = new paper.Curve(curves[j].segment1, curves[j].segment2);
+            tokens.push(curve);
+        }
+        // tokens.push.apply(tokens, childPaths[i].curves);
     }
 };
 
@@ -169,8 +219,8 @@ function clickSelect(svgitem, point) {
 
 function pathSelect(svgitem, userStroke) {
     var startp = userStroke.firstSegment.point;
-    var tpoint = new paper.Path.Circle(startp, 5);
-    tpoint.strokeColor = 'blue';
+    // var tpoint = new paper.Path.Circle(startp, 5);
+    // tpoint.strokeColor = 'blue';
     var partialchains = new BinaryHeap(chainCost);
 
     // Get all tokens close to startp and form partial chains
@@ -198,23 +248,67 @@ function pathSelect(svgitem, userStroke) {
         }
     }
 
+    makePath(best_actual_chain.tlist[0], {strokeColor:'red', strokeWidth:3, opacity: 0.5})
+    console.log("best_actual_chain.cost: " + best_actual_chain.cost);
+    console.log("length: " + best_actual_chain.length);
+    console.log("curvespanned: " + best_actual_chain.curve_spanned_length);
+    console.log("curvefrac: " + best_actual_chain.curvefrac);
+    console.log("pathfrac: " + best_actual_chain.pathfrac);
+    console.log("best_curvefrac: " + best_actual_chain.best_curvefrac);
+    console.log("best_actual_chain.bestcost: " + best_actual_chain.best_possible_cost);
+
+    var token = best_actual_chain.tlist[0];
+    console.log("tindex " + token.index);
+    var path = userStroke;
+    var p1 = token.getNearestPoint(path.firstSegment.point);//path.getNearestPoint(token.segment1.point);
+    console.log("tindex " + token.index);
+
+    var offset1 = token.getLocationOf(p1);
+    var p2 = token.getNearestPoint(path.lastSegment.point);
+    console.log("tindex " + token.index);
+
+    var offset2 = token.getLocationOf(p2);
+    console.log("tokenlength: " + token.length);
+    console.log("p1: " + p1 + " offset: " + offset1);
+    console.log("p2: " + p2 + " offset: " + offset2);
+    tpoint = new paper.Path.Circle(p1, 5);
+    tpoint.strokeColor = 'red';
+
+    tpoint = new paper.Path.Circle(p2, 5);
+    tpoint.strokeColor = 'blue';
+
+
+    // var len = Math.abs(offset1 - offset2);
+
     var bestchain = partialchains.pop();
     var debug = 0;
-    while(bestchain && debug < 1) {
+    while(bestchain && debug < 3) {
         // At each step grow the partialchain
+        makePath(bestchain.tlist[0], {strokeColor:'green', strokeWidth:5})
+        console.log("bestchain.cost: " + bestchain.cost);
+        console.log("bestchain.curvefrac: " + bestchain.curvefrac);
+        console.log("bestchain.pathfrac: " + bestchain.pathfrac);
+        console.log("bestchain.bestcost: " + bestchain.best_possible_cost);
         if (bestchain.best_possible_cost >= best_actual_cost) {
             return best_actual_chain.tlist;
         }
 
-        makePath(bestchain.tlist[0], {strokeColor:'red', strokeWidth:5})
 
         var connected = getConnectedTokens(bestchain);
         bestchain.tlist[0].selected = true;
-
+        console.log("number of connected tokens: " + connected.length);
         for (var i = 0; i < connected.length; i++) {
             var newchain = bestchain.addToken(connected[i].token, connected[i].point);
+            console.log("newchain.cost: " + newchain.cost);
+            console.log("newchain.curvefrac: " + newchain.curvefrac);
+            console.log("newchain.pathfrac: " + newchain.pathfrac);
+            console.log("newchain.bestcost: " + newchain.best_possible_cost);
 
-
+            if (i == 0) {
+                makePath(connected[i].token, {strokeColor:'green', strokeWidth:5})
+            } else if (i == 1) {
+                makePath(connected[i].token, {strokeColor:'blue', strokeWidth:5})
+            }
             if (newchain.best_possible_cost < best_actual_cost) {
                 partialchains.push(newchain);
             }

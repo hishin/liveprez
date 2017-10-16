@@ -103,7 +103,6 @@ function showAudience(selectedItems) {
 
 function createClone(item) {
     var citem;
-    console.log(item.className);
     if (item.className == 'Group') {
         citem = new mypapers[1].Group();
     } else if (item.className == 'CompoundPath') {
@@ -118,8 +117,8 @@ function createClone(item) {
         citem = new paper.Path({
             segments: [item.segment1, item.segment2]
         });
-        item.path.selected = true;
-        citem.copyAttributes(item.path);
+        // item.path.selected = true;
+        // citem.copyAttributes(item.path);
         citem.strokeColor = 'red';
         citem.strokeWidth = 2;
     } else {
