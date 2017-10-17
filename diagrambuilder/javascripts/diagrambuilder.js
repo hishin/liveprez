@@ -47,7 +47,7 @@ function setupSlideCanvas(fileURL) {
 
     svgitem = paper.project.activeLayer.importSVG(fileURL,
         {
-            expandShapes: true,
+            // expandShapes: true,
             onLoad: svgOnLoad
         }
     );

@@ -1,6 +1,6 @@
 var tokens;
 var maxdist = 100;
-var eps = 10e-3;
+var eps = 10e-1;
 
 
 var TokenChain = function(path) {
@@ -12,9 +12,10 @@ var TokenChain = function(path) {
 
     this.addToken = function(t, p) {
         if (!p) { // first token
+            this.tpath = new paper.Path([t.segment1, t.segment2]);
             this.tlist.push(t);
-            this.p1 = t.point1;
-            this.p2 = t.point2;
+            this.p1 = t.segment1.point;
+            this.p2 = t.segment2.point;
             this.c1 = t;
             this.c2 = t;
             this.length = t.length;
@@ -24,49 +25,40 @@ var TokenChain = function(path) {
             this.curvefrac = this.curve_spanned_length / this.length;
             this.pathfrac = this.path_spanned_length / this.path.length;
 
-            var dist = tokenToPathDistance(t, path);
+            var dist = tokenToPathMaxDistance(t, path);
             this.mdist = Math.max(this.mdist, dist);
             this.cdist = this.mdist/maxdist;
 
-            this.cost = 1.0 - this.curvefrac*this.pathfrac*(1.0 - this.cdist);
+            this.cost = tokenToPathAvgDistance(this.tpath, path) + tokenToPathAvgDistance(path, this.tpath);
+            //1.0 - this.curvefrac*this.pathfrac*(1.0 - this.cdist);
             var best_curvefrac = (this.length - this.curve_spanned_length)/(this.length - this.curve_spanned_length + this.path.length);
             this.best_curvefrac = best_curvefrac;
-            this.best_possible_cost = 1.0 - (1.0 - best_curvefrac)*(1.0 - this.cdist);
+            this.best_possible_cost = this.cost;//1.0 - (1.0 - best_curvefrac)*(1.0 - this.cdist);
             return this;
         } else { // adding additional token
             var newchain = new TokenChain(this.path);
             newchain.tlist = this.tlist.slice(0, this.tlist.length);
             newchain.tlist.push(t);
-            newchain.length = this.length + t.length;
-            newchain.curve_spanned_length = this.curve_spanned_length + curveLengthSpanned(t, path);
-            newchain.path_spanned_length = this.path_spanned_length + pathLengthSpanned(t, path);
-
-            newchain.curvefrac = newchain.curve_spanned_length/newchain.length;
-            newchain.pathfrac = newchain.path_spanned_length/newchain.path.length;
-
-            var dist = tokenToPathDistance(t, path);
-            newchain.mdist = Math.max(this.mdist, dist);
-            newchain.cdist = newchain.mdist/maxdist;
-
-            newchain.cost = 1.0 - newchain.curvefrac*newchain.pathfrac*(1.0 - newchain.cdist);
-            var best_curvefrac = (newchain.length - newchain.curve_spanned_length)/(newchain.length - newchain.curve_spanned_length + newchain.path.length);
-            newchain.best_curvefrac = best_curvefrac;
-            newchain.best_possible_cost = 1.0 - (1.0-best_curvefrac)*(1.0 - newchain.cdist);
+            newchain.tpath = new paper.Path(this.tpath.segments);
 
             if (this.p1.getDistance(p) < eps) {
-                if (t.point1.getDistance(p) < eps) {
+                if (t.segment1.point.getDistance(p) < eps) {
                     newchain.p1 = t.point2;
+                    newchain.tpath.insertSegments(0, [t.segment1, t.segment2]);
                 } else {
                     newchain.p1 = t.point1;
+                    newchain.tpath.insertSegments(0, [t.segment2, t.segment1]);
                 }
                 newchain.c1 = t;
                 newchain.p2 = this.p2;
                 newchain.c2 = this.c2;
             } else if (this.p2.getDistance(p) < eps) {
-                if (t.point1.getDistance(p) <eps) {
+                if (t.segment1.point.getDistance(p) <eps) {
                     newchain.p2 = t.point2;
+                    newchain.tpath.addSegments([t.segment1, t.segment2]);
                 } else {
                     newchain.p2 = t.point1;
+                    newchain.tpath.addSegments([t.segment2, t.segment1]);
                 }
                 newchain.c2 = t;
                 newchain.p1 = this.p1;
@@ -74,6 +66,25 @@ var TokenChain = function(path) {
             } else {
                 console.log("Error: You cannot add a disconnected token to a partial chain!")
             }
+
+
+            newchain.length = this.length + t.length;
+            newchain.curve_spanned_length = this.curve_spanned_length + curveLengthSpanned(t, path);
+            newchain.path_spanned_length = this.path_spanned_length + pathLengthSpanned(t, path);
+
+            newchain.curvefrac = newchain.curve_spanned_length/newchain.length;
+            newchain.pathfrac = newchain.path_spanned_length/newchain.path.length;
+
+            var dist = tokenToPathMaxDistance(t, path);
+            newchain.mdist = Math.max(this.mdist, dist);
+            newchain.cdist = newchain.mdist/maxdist;
+
+            newchain.cost = tokenToPathAvgDistance(newchain.tpath, path) + tokenToPathAvgDistance(path, newchain.tpath);
+            //1.0 - newchain.curvefrac*newchain.pathfrac*(1.0 - newchain.cdist);
+            var best_curvefrac = (newchain.length - newchain.curve_spanned_length)/(newchain.length - newchain.curve_spanned_length + newchain.path.length);
+            newchain.best_curvefrac = best_curvefrac;
+            newchain.best_possible_cost = newchain.cost;//1.0 - (1.0-best_curvefrac)*(1.0 - newchain.cdist);
+
             return newchain;
         }
     };
@@ -152,7 +163,7 @@ function pathLengthSpanned(token, path) {
     return len;
 };
 
-function tokenToPathDistance(token, path) {
+function tokenToPathMaxDistance(token, path) {
     var n = 10;
     var maxdist = -1;
     for (var i = 0; i <= token.length; i += Math.max(token.length/n, 1/n)) {
@@ -163,6 +174,20 @@ function tokenToPathDistance(token, path) {
             maxdist = dist;
     }
     return maxdist;
+};
+
+function tokenToPathAvgDistance(token, path) {
+    var n = 10;
+    var totaldist = 0.0;
+    var count = 0;
+    for (var i = 0; i <= token.length; i += Math.max(token.length/n, 1/n)) {
+        var tokenp = token.getPointAt(i);
+        var nearestp = path.getNearestPoint(tokenp);
+        var dist = tokenp.getDistance(nearestp);
+        totaldist += dist;
+        count+=1;
+    }
+    return totaldist / count;
 };
 
 function chainCost(tokenchain) {
@@ -199,12 +224,15 @@ function svgOnLoad(item, svgdata) {
     var curves;
     for (var i = 0; i < childPaths.length; i++) {
         curves = childPaths[i].curves;
+        console.log(curves.length);
         for (var j = 0; j < curves.length; j++) {
             var curve = new paper.Curve(curves[j].segment1, curves[j].segment2);
             tokens.push(curve);
         }
         // tokens.push.apply(tokens, childPaths[i].curves);
     }
+    console.log('childpaths: ' + childPaths.length);
+    console.log('tokens: ' + tokens.length);
 };
 
 function clickSelect(svgitem, point) {
@@ -224,7 +252,7 @@ function pathSelect(svgitem, userStroke) {
     var partialchains = new BinaryHeap(chainCost);
 
     // Get all tokens close to startp and form partial chains
-    var best_actual_cost = 1.0;
+    var best_actual_cost = Infinity;
     var best_actual_chain = null;
     for (var i = 0; i < tokens.length; i++) {
         // console.log("i = " + i);
@@ -242,72 +270,71 @@ function pathSelect(svgitem, userStroke) {
                 best_actual_cost = tchain.cost;
                 best_actual_chain = tchain;
             }
-            if (tchain.cost < 0.9) {
+            // if (tchain.cost < 0.9) {
                 partialchains.push(tchain);
-            }
+            // }
         }
     }
 
     makePath(best_actual_chain.tlist[0], {strokeColor:'red', strokeWidth:3, opacity: 0.5})
     console.log("best_actual_chain.cost: " + best_actual_chain.cost);
-    console.log("length: " + best_actual_chain.length);
-    console.log("curvespanned: " + best_actual_chain.curve_spanned_length);
-    console.log("curvefrac: " + best_actual_chain.curvefrac);
-    console.log("pathfrac: " + best_actual_chain.pathfrac);
-    console.log("best_curvefrac: " + best_actual_chain.best_curvefrac);
-    console.log("best_actual_chain.bestcost: " + best_actual_chain.best_possible_cost);
+    // console.log("length: " + best_actual_chain.length);
+    // console.log("curvespanned: " + best_actual_chain.curve_spanned_length);
+    // console.log("curvefrac: " + best_actual_chain.curvefrac);
+    // console.log("pathfrac: " + best_actual_chain.pathfrac);
+    // console.log("best_curvefrac: " + best_actual_chain.best_curvefrac);
+    // console.log("best_actual_chain.bestcost: " + best_actual_chain.best_possible_cost);
 
-    var token = best_actual_chain.tlist[0];
-    console.log("tindex " + token.index);
-    var path = userStroke;
-    var p1 = token.getNearestPoint(path.firstSegment.point);//path.getNearestPoint(token.segment1.point);
-    console.log("tindex " + token.index);
+    // var token = best_actual_chain.tlist[0];
+    // // console.log("tindex " + token.index);
+    // var path = userStroke;
+    // var p1 = token.getNearestPoint(path.firstSegment.point);//path.getNearestPoint(token.segment1.point);
+    // // console.log("tindex " + token.index);
+    //
+    // var offset1 = token.getLocationOf(p1);
+    // var p2 = token.getNearestPoint(path.lastSegment.point);
+    // // console.log("tindex " + token.index);
+    //
+    // var offset2 = token.getLocationOf(p2);
+    // console.log("tokenlength: " + token.length);
+    // console.log("p1: " + p1 + " offset: " + offset1);
+    // console.log("p2: " + p2 + " offset: " + offset2);
+    // tpoint = new paper.Path.Circle(p1, 5);
+    // tpoint.strokeColor = 'red';
 
-    var offset1 = token.getLocationOf(p1);
-    var p2 = token.getNearestPoint(path.lastSegment.point);
-    console.log("tindex " + token.index);
-
-    var offset2 = token.getLocationOf(p2);
-    console.log("tokenlength: " + token.length);
-    console.log("p1: " + p1 + " offset: " + offset1);
-    console.log("p2: " + p2 + " offset: " + offset2);
-    tpoint = new paper.Path.Circle(p1, 5);
-    tpoint.strokeColor = 'red';
-
-    tpoint = new paper.Path.Circle(p2, 5);
-    tpoint.strokeColor = 'blue';
+    // tpoint = new paper.Path.Circle(p2, 5);
+    // tpoint.strokeColor = 'blue';
 
 
     // var len = Math.abs(offset1 - offset2);
 
     var bestchain = partialchains.pop();
     var debug = 0;
-    while(bestchain && debug < 3) {
+    while(bestchain && debug < 10) {
         // At each step grow the partialchain
-        makePath(bestchain.tlist[0], {strokeColor:'green', strokeWidth:5})
+        // makePath(bestchain.tlist[0], {strokeColor:'green', strokeWidth:5})
         console.log("bestchain.cost: " + bestchain.cost);
-        console.log("bestchain.curvefrac: " + bestchain.curvefrac);
-        console.log("bestchain.pathfrac: " + bestchain.pathfrac);
-        console.log("bestchain.bestcost: " + bestchain.best_possible_cost);
-        if (bestchain.best_possible_cost >= best_actual_cost) {
-            return best_actual_chain.tlist;
-        }
-
+        // console.log("bestchain.curvefrac: " + bestchain.curvefrac);
+        // console.log("bestchain.pathfrac: " + bestchain.pathfrac);
+        // console.log("bestchain.bestcost: " + bestchain.best_possible_cost);
+        // if (bestchain.best_possible_cost >= best_actual_cost) {
+        //     return best_actual_chain.tlist;
+        // }
 
         var connected = getConnectedTokens(bestchain);
-        bestchain.tlist[0].selected = true;
+        // bestchain.tlist[0].selected = true;
         console.log("number of connected tokens: " + connected.length);
         for (var i = 0; i < connected.length; i++) {
             var newchain = bestchain.addToken(connected[i].token, connected[i].point);
             console.log("newchain.cost: " + newchain.cost);
-            console.log("newchain.curvefrac: " + newchain.curvefrac);
-            console.log("newchain.pathfrac: " + newchain.pathfrac);
-            console.log("newchain.bestcost: " + newchain.best_possible_cost);
+            // console.log("newchain.curvefrac: " + newchain.curvefrac);
+            // console.log("newchain.pathfrac: " + newchain.pathfrac);
+            // console.log("newchain.bestcost: " + newchain.best_possible_cost);
 
             if (i == 0) {
-                makePath(connected[i].token, {strokeColor:'green', strokeWidth:5})
+                // makePath(connected[i].token, {strokeColor:'green', strokeWidth:5})
             } else if (i == 1) {
-                makePath(connected[i].token, {strokeColor:'blue', strokeWidth:5})
+                // makePath(connected[i].token, {strokeColor:'blue', strokeWidth:5})
             }
             if (newchain.best_possible_cost < best_actual_cost) {
                 partialchains.push(newchain);
@@ -320,7 +347,16 @@ function pathSelect(svgitem, userStroke) {
         bestchain = partialchains.pop();
         debug++;
     }
+
     if (!best_actual_chain) return;
+    best_actual_chain.tpath.strokeColor = 'magenta';
+    best_actual_chain.tpath.strokeWidth = 2;
+
+    var tpoint = new paper.Path.Circle(best_actual_chain.tpath.firstSegment.point, 5);
+    tpoint.strokeColor = 'blue';
+    tpoint = new paper.Path.Circle(best_actual_chain.tpath.lastSegment.point, 5);
+    tpoint.strokeColor = 'red';
+
     return best_actual_chain.tlist;
 };
 
