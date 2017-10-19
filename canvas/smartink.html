@@ -55,6 +55,7 @@
                         <!--<button type="button" id="spacer" title="Insert Space" class="btn btn-default btn-circle btn-xl" onclick="selectSpacer();">-->
                         <!--<i class=" glyphicon glyphicon-plus"></i></button><br/>-->
                     </td></tr>
+                    <!-- Uncomment this part to enable multiple slide pages
                     <tr><td>
                         <button type="button" title="Next" class="btn btn-default btn-circle btn-sm" onclick="prevSlide()">
                             <i class="glyphicon glyphicon-arrow-left"></i></button>
@@ -63,7 +64,29 @@
                         <button type="button" title="Previous" class="btn btn-default btn-circle btn-sm" onclick="nextSlide()">
                             <i class="glyphicon glyphicon-arrow-right"></i></button>
 
+                    </td></tr>-->
+                    <tr><td><input type="text" data-slider-id="radiusslider" class="slider" data-slider-min="0" data-slider-max="50" data-slider-step="1" data-slider-value="10" data-slider-orientation="vertical" value="0" />
                     </td></tr>
+                    <tr>
+                    <td>
+                        <svg width="100" height="100">
+                            <circle id="pen-radius-circle" cx="50" cy="50" r="10" stroke-width="0" fill="black" />
+                        </svg>
+                    </td></tr>
+                    <tr><td>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" class="btn btn-secondary" onclick = "zoomOut();"><i class="glyphicon glyphicon-minus"></i></button>
+                            <button type="button" class="btn btn-secondary" onclick="fitScreen();"><i class="glyphicon glyphicon-fullscreen"></i></button>
+                            <button type="button" class="btn btn-secondary" onclick="zoomIn();"><i class="glyphicon glyphicon-plus"></i></button>
+                        </div>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" value="" onclick="toggleFollow();">
+                                Follow
+                            </label>
+                        </div>
+                    </td>
+                    </tr>
                 </table>
 
 
@@ -72,8 +95,6 @@
                 <!--<input id='pen-tool' type="checkbox" data-toggle="toggle" data-on="Pen" data-off="Mask" data-offstyle="warning"  checked/>-->
                 <!--<input type = "text" id='strokec' />-->
                 <!--<input type = "text" id='strokec2' />-->
-                <!--<input type="text" class="slider" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="1" data-slider-orientation="horizontal" value="0" />-->
-
                 <!--<label><input id='auto-style' type="checkbox" checked/>&nbsp;Auto Style</label>-->
             </div>
         </div>

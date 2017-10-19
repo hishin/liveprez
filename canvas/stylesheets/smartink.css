@@ -120,9 +120,8 @@ canvas {
     height: 34px;
 }
 
-#strokewSlider .slider-selection {
-    background: #BABABA;
-    height: 5px;
+#radiusslider .slider-selection {
+    background: deepskyblue;
 }
 
 #download_link {
@@ -130,7 +129,7 @@ canvas {
 }
 
 label {
-    font-family: calibri;
+    font-family: sans-serif;
     color: black;
 }
 
@@ -160,4 +159,11 @@ label {
 table {
     height: 100%;
     margin: 0 auto;
+}
+
+.form-check-label > input {
+    width: 20px;
+    height: 20px;
+    font-family: sans-serif;
+
 }

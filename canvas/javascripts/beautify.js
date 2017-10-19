@@ -525,9 +525,10 @@ function traceClosestPixels(praster, path, velocity) {
 ;
 
 function traceClosestPixelsEllipse(praster, path, rstart, ra, rb) {
+    console.log("Path.length: " + path.length);
     var point, pixelp, px, py, cx, cy, startdist;
     var tracedpx = [];
-    for (var i = 0; i < path.length; i += 1 ) {
+    for (var i = 0; i < path.length; i += 1/praster.scale ) {
         point = path.getPointAt(i);
         pixelp = getPixelPoint(point, praster);
         px = pixelp.x;

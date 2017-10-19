@@ -62,6 +62,10 @@ window.addEventListener('message', function(event) {
             handleSpaceContinueMessage(data);
         } else if (data.type === 'space-end') {
             handleSpaceEndMessage(data);
+        } else if (data.type == 'slide-zoom') {
+            handleZoomMessage(data);
+        } else if (data.type == 'slide-pan') {
+            handlePanMessage(data);
         }
 
     }
@@ -472,6 +476,19 @@ function handleSpaceContinueMessage(data) {
             subs.push(subraster);
         }
     }
+};
+
+function handleZoomMessage(data) {
+    if (apaper)
+        apaper.view.zoom = data.zoom;
+};
+
+function handlePanMessage(data) {
+    if (apaper) {
+        var delta = new paper.Point(data.deltax, data.deltay);
+        apaper.view.translate(delta);
+    }
+
 };
 
 function saveCanvasImage() {
