@@ -667,7 +667,7 @@ function inkStart(event){
     //set stroke color to closest fg color
     var cx = curitem.praster.dti[p.x+p.y*curitem.praster.width];
     var cy = curitem.praster.dtj[p.x+p.y*curitem.praster.width];
-    curstroke.strokeColor = curitem.praster.getPixel(cx, cy);
+    curstroke.strokeColor = 'black';//curitem.praster.getPixel(cx, cy);
     curstroke.strokeColor.alpha = 1.0;
     curstroke.data.free = false;
 
@@ -729,10 +729,10 @@ function inkEnd(event) {
         if (avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
             // console.log("here 1");
             var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
-            var annocolor;
+            var annocolor ='black';
             // if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
             // else
-            annocolor = invertColor(avgbgcolor);
+            // annocolor = invertColor(avgbgcolor);
             // annocolor = '#0033ff';
             // trace color so that it stands out from the background
             curstroke.strokeColor = annocolor;
@@ -754,7 +754,7 @@ function inkEnd(event) {
                 var avgbgcolor = new paper.Color(avgcolor[0], avgcolor[1], avgcolor[2], avgcolor[3]);
                 // if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
                 // else
-                annocolor = invertColor(avgbgcolor);
+                annocolor = black;// invertColor(avgbgcolor);
                 curstroke.strokeColor = annocolor;
                 curstroke.data.free = true;
                 // console.log("here 3");
