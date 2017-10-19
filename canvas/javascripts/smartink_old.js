@@ -8,7 +8,7 @@ var spaper;
 var SLIDE_W;
 var SLIDE_H;
 var aspectratio; // matches the slide aspect ratio
-var scale = 1.0;
+var scale;
 var img_w;
 var numslides;
 var curslidenum = 0;
@@ -40,8 +40,6 @@ var LEFT = 1;
 var BOTTOM = 2;
 var TOP = 3;
 var DEBUG = 1;
-var radiusSlider;
-var follow = false;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -108,27 +106,16 @@ window.onload = function () {
     //     }
     // });
     // setColorPalette([]);
-    var penRadiusSVG = document.getElementById('pen-radius-circle');
-    var radiusChange = function() {
-        if (curitem) {
-            scale = curitem.praster.scale;
-        } else {
-            scale = 1.0;
-        }
-        penRadiusSVG.setAttribute('r', radiusSlider.getValue()/scale);
-    };
 
-    radiusSlider = $('.slider').slider(
-        {
-            tooltip_position:'right',
-            formatter: function(value) {
-                return 'Current value: ' + value;
-            }
-        }
-    ).on('slide', radiusChange).data('slider');
+    // $('.slider').slider(
+    //     {
+    //         tooltip_position:'bottom',
+    //         formatter: function(value) {
+    //             return 'Current value: ' + value;
+    //         }
+    //     }
+    // );
 };
-
-
 
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
@@ -201,7 +188,8 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
-    if (event.pointerType == 'pen' || event.pointerType == 'ink') {
+
+    if (event.pointerType == 'pen' || event.pointerType == 'mouse' || event.pointerType == 'ink') {
         if (pen == 0) {
             activateInkTool();
         }
@@ -209,10 +197,7 @@ function handlePointerEvents(event) {
             activateEraserTool();
         }
 
-    } else if (event.pointerType == 'mouse') {
-        activatePanTool();
-    }
-    else if (spaper){
+    } else if (spaper){
         spaper.tool = null;
     }
 };
@@ -229,14 +214,7 @@ function selectEraser() {
     pen = 1;
 };
 
-function toggleFollow() {
-    follow = !follow;
-    if (!follow) {
-        post(slideZoomMessage(1.0));
-    } else {
-        post(slideZoomMessage(spaper.view.zoom));
-    }
-};
+
 
 function popupAudienceView() {
     awindow = window.open('smartaudience.html', 'Audience View');
@@ -307,7 +285,6 @@ function setupSlideCanvas(slidedeck) {
         canvashammer.get('pinch').set({enable:true});
 
         canvashammer.on('pinchstart', function(ev){
-            console.log("pinch start");
             ev.preventDefault();
             oldzoom = spaper.view.zoom;
             pinchcenter = new paper.Point(ev.center.x - $(scanvas).offset().left, ev.center.y - $(scanvas).offset().top);
@@ -348,34 +325,6 @@ function setupSlideCanvas(slidedeck) {
     }
     post(setupSlidesMessage());
     loadSlide(slidedeck.getSlide(curslidenum));
-    selectItem();
-};
-
-function zoomIn() {
-    if (spaper) {
-        spaper.view.zoom *= 1.3;
-        if (follow) {
-            post(slideZoomMessage(spaper.view.zoom));
-        }
-    }
-};
-
-function zoomOut() {
-    if (spaper) {
-        spaper.view.zoom /= 1.3;
-        if (follow) {
-            post(slideZoomMessage(spaper.view.zoom));
-        }
-    }
-};
-
-function fitScreen() {
-    if (spaper) {
-        spaper.view.zoom = 1.0;
-        if (follow) {
-            post(slideZoomMessage(spaper.view.zoom));
-        }
-    }
 };
 
 function stableZoom(prevzoom, p, c, prevs, sfactor) {
@@ -417,12 +366,6 @@ function setupPaperTools() {
     eraser.onMouseDrag = erase;
     spaper.eraser = eraser;
 
-    var pantool = new spaper.Tool();
-    pantool.name = 'pan';
-    pantool.onMouseDown = panStart;
-    pantool.onMouseDrag = panContinue;
-    spaper.pantool = pantool;
-
     spaper.tool = null;
 };
 
@@ -435,7 +378,7 @@ function loadSlide(slide) {
     // load or show new slide
     if (!slide.loaded) {
         slide.itemlayer = [];
-        // console.log('slide nitems: ' + slide.nitems);
+        console.log('slide nitems: ' + slide.nitems);
         for (var i = 0; i < slide.nitems; i++) {
             var item = slide.items[i];
             loadItem(slide, item, i);
@@ -466,7 +409,6 @@ function loadSlide(slide) {
         loadNextSlide(slidedeck.getSlide(slide.num+1));
     }
     spaper.view.update();
-
     post(slideChangeMessage());
 };
 
@@ -694,11 +636,6 @@ function activateEraserTool() {
     spaper.eraser.activate();
 };
 
-function activatePanTool() {
-    if (!spaper) return;
-    spaper.pantool.activate();
-};
-
 function selectItem() {
     // Select the Foreground Item
     bgitem = curslide.items[0];
@@ -732,7 +669,7 @@ function inkStart(event){
     selectItem();
     if (curstroke) curstroke.remove();
     curstroke = new paper.Path();
-    curstroke.strokeWidth = radiusSlider.getValue();
+    curstroke.strokeWidth = 5;
     curstroke.add(event.point);
     curstroke.strokeCap = 'round';
     curstroke.strokeColor = 'green';
@@ -743,13 +680,25 @@ function inkStart(event){
     if (curitem) {
         var p = getPixelPoint(event.point, curitem.praster);
         dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
+        //set stroke color to closest fg color
+        var cx = curitem.praster.dti[p.x+p.y*bgitem.praster.width];
+        var cy = curitem.praster.dtj[p.x+p.y*bgitem.praster.width];
+        // curstroke.strokeColor = bgitem.praster.getPixel(cx, cy);
+        // curstroke.strokeColor.alpha = 1.0;
         curstroke.data.free = false;
     }
     else {
         dist2fg = Infinity;
     }
     pcount = 1;
-
+    // background pixel color
+    bgpcolors = [0,0,0,0];
+    var bgp = getPixelPoint(event.point, bgitem.praster);
+    var pcolor = bgitem.praster.getPixel(bgp.x, bgp.y);
+    bgpcolors[0] += pcolor.red;
+    bgpcolors[1] += pcolor.green;
+    bgpcolors[2] += pcolor.blue;
+    bgpcolors[3] += pcolor.alpha;
     post(inkMessage(curstroke, [], false));
 };
 
@@ -757,18 +706,28 @@ function inkContinue(event) {
     if (!expand) {
         curstroke.add(event.point);
         movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
+
+        // console.log(event.point);
+        // console.log(curitem.praster.scale);
+        // console.log('p.x:' + p.x + ' p.y:' + p.y + ' praster.width: ' + curitem.praster.width + ' praster.height:' + curitem.praster.height);
         if (curitem) {
             var p = getPixelPoint(event.point, curitem.praster);
             dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
         }
         pcount++;
-        /**
-         * Uncomment this part to enable space manipulation operation
-
-         line_end = event.point;
+        var bgp = getPixelPoint(event.point, bgitem.praster);
+        var pcolor = bgitem.praster.getPixel(bgp.x, bgp.y);
+        bgpcolors[0] += pcolor.red;
+        bgpcolors[1] += pcolor.green;
+        bgpcolors[2] += pcolor.blue;
+        bgpcolors[3] += pcolor.alpha;
+        line_end = event.point;
         if (timeout)
             clearTimeout(timeout);
-         timeout = setTimeout(function() {
+
+        /**
+         * Uncomment this part to enable space manipulation operation
+        timeout = setTimeout(function() {
             expand = true;
             line = curstroke;
             line.dashArray = [5,5];
@@ -783,23 +742,72 @@ function inkContinue(event) {
 };
 
 function inkEnd(event) {
-    /**
-     * Uncomment this part to enable space manipulation operation
-
     if (timeout)
         clearTimeout(timeout);
     if (expand) {
         makeSpaceEnd(event);
         return;
-    }*/
+    }
     if (curstroke) {
         curstroke.add(event.point);
-        var rstart = radiusSlider.getValue()*2.0;
-        var ra = radiusSlider.getValue();
-        var rb = radiusSlider.getValue();
-        var tracedpx = traceClosestPixelsEllipse(curitem.praster, curstroke, rstart, ra, rb);
-        tracePixels(curitem.praster, tracedpx);
+        var rstart = 15;
+        var ra = 20;
+        var rb = 5;
+        // var tracedpx = traceClosestPixelsEllipse(curitem.praster, curstroke, rstart, ra, rb);
+        // tracePixels(curitem.praster, tracedpx);
         curstroke.remove();
+        movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
+        if (curitem) {
+            var p = getPixelPoint(event.point, curitem.praster);
+            dist2fg += curitem.praster.dtfg[p.x + p.y * curitem.praster.width];
+        }
+        pcount++;
+        var bgp = getPixelPoint(event.point, bgitem.praster);
+        var pcolor = bgitem.praster.getPixel(bgp.x, bgp.y);
+        bgpcolors[0] += pcolor.red;
+        bgpcolors[1] += pcolor.green;
+        bgpcolors[2] += pcolor.blue;
+        bgpcolors[3] += pcolor.alpha;
+
+        var result;
+        var avg_dist2fg = dist2fg / pcount;
+        var velocity = movedist / (event.timeStamp - prevtime) * 1000;
+        var tracedpx = [];
+        // IF STROKE IS FAR FROM UNDERLYING PIXELS
+        // console.log(curitem == null);
+        // console.log(avg_dist2fg);
+        // console.log(DIST2FG_THRES_A * velocity + DIST2FG_THRES_B);
+        if (curitem == null || avg_dist2fg > DIST2FG_THRES_A * velocity + DIST2FG_THRES_B) {
+            var avgbgcolor = new paper.Color(bgpcolors[0] / pcount, bgpcolors[1] / pcount, bgpcolors[2] / pcount, bgpcolors[3] / pcount);
+            var annocolor;
+            annocolor = invertColor(avgbgcolor);
+            curstroke.strokeColor = annocolor;
+            curstroke.data.free = true;
+        } else {
+            result = traceClosestPixels(curitem.praster, curstroke, velocity);
+            var tracedpx = result[0];
+            var avgcolor = result[1];
+            // TRACING UNDERLYING CONTENT
+            if (tracedpx.length / pcount > 0.10) {
+                setTimeout( function() {
+                    tracePixels(curitem.praster, tracedpx);
+                }, 0);
+                curstroke.remove();
+                // console.log("here 2");
+
+            } else {
+                // ANNOTATING ON TOP OF UNDERLYING CONTENT
+                var avgbgcolor = new paper.Color(avgcolor[0], avgcolor[1], avgcolor[2], avgcolor[3]);
+                // if (avgbgcolor.hue <= 0.1) annocolor = '#66ff33';
+                // else
+                annocolor = invertColor(avgbgcolor);
+                curstroke.strokeColor = annocolor;
+                curstroke.data.free = true;
+                // console.log("here 3");
+
+            }
+        }
+
         curstroke.data.id = strokeid++;
         post(inkMessage(curstroke, tracedpx, true));
     }
@@ -826,20 +834,6 @@ function erase(event) {
             strokes[0].item.remove();
             post(inkDeleteMessage(strokes[0].item));
         }
-    }
-};
-
-var panstart;
-function panStart(event) {
-    panstart = event.point;
-    oldcenter = spaper.view.center;
-};
-
-function panContinue(event) {
-    var pandelta = new paper.Point(event.point.x - panstart.x, event.point.y - panstart.y);
-    spaper.view.translate(pandelta);
-    if (follow) {
-        post(slidePanMessage(pandelta));
     }
 };
 
@@ -1190,27 +1184,6 @@ function resizeMessage() {
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         width: SLIDE_W,
         height: SLIDE_H
-    } );
-    return msg;
-};
-
-function slideZoomMessage(szoom) {
-    var msg = JSON.stringify( {
-        namespace: 'liveprez',
-        type: 'slide-zoom',
-        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
-        zoom: szoom
-    } );
-    return msg;
-};
-
-function slidePanMessage(delta) {
-    var msg = JSON.stringify( {
-        namespace: 'liveprez',
-        type: 'slide-pan',
-        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
-        deltax: delta.x,
-        deltay: delta.y
     } );
     return msg;
 };

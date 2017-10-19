@@ -95,6 +95,11 @@ function pointDist(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 };
 
+function ellipseDist(x,y, origx, origy, r1, r2, theta) {
+    return Math.pow(((x-origx)*Math.cos(theta) + (y-origy)*Math.sin(theta)), 2)/(r1*r1) +
+        Math.pow(((x-origx)*Math.sin(theta) - (y-origy)*Math.cos(theta)), 2)/(r2*r2);
+};
+
 function distToPath(points, pathq) {
     if (pathq.className == "Shape") {
         pathq = pathq.toPath();
@@ -472,15 +477,20 @@ function traceClosestPixels(praster, path, velocity) {
         point = path.getPointAt(i);
 
         // get pixel coordinates
-        px = Math.round((point.x - praster.wslack) * praster.scale);
-        py = Math.round((point.y - praster.hslack) * praster.scale);
+        var pixelp = getPixelPoint(point, praster);
+        px = pixelp.x; // Math.round((point.x - praster.wslack) * praster.scale);
+        py = pixelp.y; //Math.round((point.y - praster.hslack) * praster.scale);
 
         // get closest foreground pixel
         cx = praster.dti[px + py * praster.width];
         cy = praster.dtj[px + py * praster.width];
+
+        // propagate if distance to fgpixel is within threshold
         var dist2cur = pointDist(px, py, cx, cy);
         if (dist2cur <= DIST2FG_THRES_A * velocity + 10) {
             clabel = praster.cclabel[cx + cy * praster.width];
+
+            // propagate only within a single connected component per stroke
             if (prevlabel && prevlabel != clabel) {
                 var dist2prev = pointDist(prevcx, prevcy, cx, cy);
                 if (dist2prev - dist2cur < DIST2FG_THRES_B) {
@@ -512,6 +522,78 @@ function traceClosestPixels(praster, path, velocity) {
 
     return [tracedpx, avgcolors];
 }
+;
+
+function traceClosestPixelsEllipse(praster, path, rstart, ra, rb) {
+    console.log("Path.length: " + path.length);
+    var point, pixelp, px, py, cx, cy, startdist;
+    var tracedpx = [];
+    for (var i = 0; i < path.length; i += 1/praster.scale ) {
+        point = path.getPointAt(i);
+        pixelp = getPixelPoint(point, praster);
+        px = pixelp.x;
+        py = pixelp.y;
+
+        // get closest foreground pixel
+        cx = praster.dti[px + py * praster.width];
+        cy = praster.dtj[px + py * praster.width];
+
+        // if distance to closest fg pixel is within threshold, propagate
+        startdist = pointDist(px,py,cx,cy);
+        // For debugging: Draw an ellipse centered at point with radius ra, rb, and direction theta
+        // if (DEBUG) {
+        //     var pointc = getCanvasPoint(new paper.Point(cx,cy), praster);
+        //     var lefttop = new paper.Point(pointc.x-ra/praster.scale, pointc.y-rb/praster.scale);
+        //     var size = new paper.Size(2*ra/praster.scale, 2*rb/praster.scale);
+        //     var rectangle = new paper.Shape.Rectangle(lefttop, size);
+        //     var ellipse = new paper.Path.Ellipse(rectangle.bounds);
+        //     var tangent = path.getTangentAt(i);
+        //     var theta;
+        //     if (tangent.x != 0)
+        //         theta = Math.atan(tangent.y/tangent.x);
+        //     else
+        //         theta = Math.PI/2;
+        //     ellipse.rotate(theta*180/Math.PI, pointc);
+        //     ellipse.strokeColor = 'red';
+        //     ellipse.strokeWidth = 1;
+        // }
+
+        if (startdist <= rstart) {
+            var tangent = path.getTangentAt(i);
+            var theta;
+            if (tangent.x != 0)
+                theta = Math.atan(tangent.y/tangent.x);
+            else
+                theta = Math.PI/2;
+            floodFillEllipse(praster, cx, cy, cx, cy, ra, rb, theta, tracedpx);
+
+
+
+        }
+    }
+    return tracedpx;
+};
+
+function floodFillEllipse(praster, x, y, origx, origy, ra, rb, theta, tracedpx) {
+    // out of image bound
+    if (x < 0 || x >= praster.width || y < 0 || y >= praster.height) return;
+    // already filled
+    if (praster.revealed[x+y*praster.width]) return;
+    // not foreground pixel
+    if (!praster.fg[x+y*praster.width]) return;
+
+    // if not within ellipse
+    var dist = ellipseDist(x,y,origx,origy, ra, rb, theta);
+    if (dist > 1) return;
+
+    praster.revealed[x+y*praster.width] = 1;
+    tracedpx.push([x,y]);
+    floodFillEllipse(praster, x-1, y, origx, origy, ra, rb, theta, tracedpx);
+    floodFillEllipse(praster, x+1, y, origx, origy, ra, rb, theta, tracedpx);
+    floodFillEllipse(praster, x, y-1, origx, origy, ra, rb, theta, tracedpx);
+    floodFillEllipse(praster, x, y+1, origx, origy, ra, rb, theta, tracedpx);
+}
+
 ;
 
 function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {

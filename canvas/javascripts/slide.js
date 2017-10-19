@@ -64,8 +64,8 @@ var Slide = function(sfiles, p) {
                         aspectratio = this.height / this.width;
                     }
                     img_w = this.width;
-                    SLIDE_W = $('#speaker-slide').width();
-                    SLIDE_H = $(window).height() - 5;
+                    // SLIDE_W = $('#speaker-slide').width();
+                    // SLIDE_H = $(window).height() - 5;
                 }
                 slide.items[tempi] = item;
             }
@@ -123,8 +123,10 @@ function Item(url, slide) {
             raster.onLoad = function() {
                 this.fitBounds(paper.view.bounds);
                 this.scale = Math.max(this.width/paper.view.bounds.width, this.height/paper.view.bounds.height);
+
                 this.wslack = (paper.view.bounds.width - this.width/this.scale)/2.0;
                 this.hslack = (paper.view.bounds.height - this.height/this.scale)/2.0;
+
                 // console.log("Compute Background Color");
                 this.imdata = this.getImageData(new paper.Rectangle(0, 0, this.width, this.height));
                 // var c = getBackgroundColor(imgdata.data)
@@ -493,3 +495,9 @@ function getPixelPoint(point, raster) {
     var py = Math.round((point.y - raster.hslack) * raster.scale);
     return new paper.Point(px, py);
 };
+
+function getCanvasPoint(pixelp, raster) {
+    var cx = pixelp.x/raster.scale + raster.wslack;
+    var cy = pixelp.y/raster.scale + raster.hslack;
+    return new paper.Point(cx, cy);
+}

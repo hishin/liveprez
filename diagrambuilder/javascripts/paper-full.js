@@ -5165,6 +5165,52 @@ var Raster = Item.extend({
 		this.getContext(true).drawImage(image, point.x, point.y);
 	},
 
+	getPixelsInside: function(object) {
+		var bounds, path;
+		if (!object) {
+			bounds = this.getBounds();
+		} else if (object instanceof PathItem) {
+			path = object;
+			bounds = object.getBounds();
+		} else if (typeof object === 'object') {
+			if ('width' in object) {
+				bounds = new Rectangle(object);
+			} else if ('x' in object) {
+				bounds = new Rectangle(object.x - 0.5, object.y - 0.5, 1, 1);
+			}
+		}
+		if (!bounds)
+			return null;
+		var sampleSize = 32,
+			width = Math.min(bounds.width, sampleSize),
+			height = Math.min(bounds.height, sampleSize);
+		var ctx = Raster._sampleContext;
+		if (!ctx) {
+			ctx = Raster._sampleContext = CanvasProvider.getContext(
+				new Size(sampleSize));
+		} else {
+			ctx.clearRect(0, 0, sampleSize + 1, sampleSize + 1);
+		}
+		ctx.save();
+		var matrix = new Matrix()
+			.scale(width / bounds.width, height / bounds.height)
+			.translate(-bounds.x, -bounds.y);
+		matrix.applyToContext(ctx);
+		if (path)
+			path.draw(ctx, new Base({ clip: true, matrices: [matrix] }));
+		this._matrix.applyToContext(ctx);
+		var element = this.getElement(),
+			size = this._size;
+		if (element)
+			ctx.drawImage(element, -size.width / 2, -size.height / 2);
+		ctx.restore();
+		var pixels = ctx.getImageData(0.5, 0.5, Math.ceil(width),
+			Math.ceil(height)).data,
+			channels = [0, 0, 0],
+			total = 0;
+		return pixels;
+	},
+
 	getAverageColor: function(object) {
 		var bounds, path;
 		if (!object) {

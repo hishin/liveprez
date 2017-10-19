@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagram Builder Demo</title>
+    <script src="javascripts/paper-full.min.js"></script>
+    <script src="javascripts/diagrambuilder.js"></script>
+    <script src="javascripts/svg.js"></script>
+    <script src="javascripts/math.min.js"></script>
+    <script src="javascripts/binaryheap.js"></script>
+    <link href="stylesheets/diagrambuilder.css" rel="stylesheet" type="text/css"/>
+
+</head>
+<body>
+<canvas id="presCanvas" resize style="border: 1px solid black;"></canvas>
+<canvas id="audCanvas" resize style="border: 1px solid black;"></canvas>
+<input type="file" id="files" onchange="handleFiles(this.files)"/>
+</body>
+</html>

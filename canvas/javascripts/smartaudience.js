@@ -62,6 +62,10 @@ window.addEventListener('message', function(event) {
             handleSpaceContinueMessage(data);
         } else if (data.type === 'space-end') {
             handleSpaceEndMessage(data);
+        } else if (data.type == 'slide-zoom') {
+            handleZoomMessage(data);
+        } else if (data.type == 'slide-pan') {
+            handlePanMessage(data);
         }
 
     }
@@ -129,7 +133,8 @@ function handleSlideSetupMessage(data) {
     for (var i = 0; i < deck.length; i++) {
         slide = deck[i];
         slide.itemlayer = [];
-        for (var j = 0; j < 2; j++) {
+        console.log('item length: ' + slide.items.length);
+        for (var j = 0; j < slide.items.length; j++) {
             item = slide.items[j];
             loadItem(slide, item, j);
         }
@@ -471,6 +476,19 @@ function handleSpaceContinueMessage(data) {
             subs.push(subraster);
         }
     }
+};
+
+function handleZoomMessage(data) {
+    if (apaper)
+        apaper.view.zoom = data.zoom;
+};
+
+function handlePanMessage(data) {
+    if (apaper) {
+        var delta = new paper.Point(data.deltax, data.deltay);
+        apaper.view.translate(delta);
+    }
+
 };
 
 function saveCanvasImage() {
