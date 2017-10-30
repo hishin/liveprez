@@ -20,6 +20,8 @@ var aspectratio;
 var scale = 1.0; // speaker view / audience view ratio
 var speakerwidth;
 var slides;
+var mediaRecorder;
+var recordedChunks;
 
 window.addEventListener('message', function(event) {
     var data = JSON.parse(event.data);
@@ -66,6 +68,8 @@ window.addEventListener('message', function(event) {
             handleZoomMessage(data);
         } else if (data.type == 'slide-pan') {
             handlePanMessage(data);
+        } else if (data.type == 'record') {
+            handleRecordMessage(data);
         }
 
     }
@@ -491,6 +495,14 @@ function handlePanMessage(data) {
 
 };
 
+function handleRecordMessage(data) {
+    if (data.start) {
+        startRecording();
+    } else {
+        stopRecording();
+    }
+};
+
 function saveCanvasImage() {
     var dataURL = acanvas.toDataURL("image/png");
     var href = dataURL.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
@@ -578,4 +590,63 @@ function handleKeyboardEvents(event) {
             break;
         default:
     }
+};
+
+function startRecording() {
+
+    var stream = acanvas.captureStream(60);
+    var options = {mimeType: 'video/webm'};
+    recordedChunks = [];
+    try {
+        mediaRecorder = new MediaRecorder(stream, options);
+    } catch (e0) {
+        console.log('Unable to create MediaRecorder with options Object: ', e0);
+        try {
+            options = {mimeType: 'video/webm,codecs=vp9'};
+            mediaRecorder = new MediaRecorder(stream, options);
+        } catch (e1) {
+            console.log('Unable to create MediaRecorder with options Object: ', e1);
+            try {
+                options = 'video/vp8'; // Chrome 47
+                mediaRecorder = new MediaRecorder(stream, options);
+            } catch (e2) {
+                alert('MediaRecorder is not supported by this browser.\n\n' +
+                    'Try Firefox 29 or later, or Chrome 47 or later, with Enable experimental Web Platform features enabled from chrome://flags.');
+                console.error('Exception while creating MediaRecorder:', e2);
+                return;
+            }
+        }
+    }
+
+    console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+
+    mediaRecorder.ondataavailable = handleDataAvailable;
+    mediaRecorder.start(100);
+
+    function handleDataAvailable(event) {
+        if (event.data && event.data.size > 0) {
+            recordedChunks.push(event.data);
+        }
+    };
+};
+
+function stopRecording() {
+    mediaRecorder.stop();
+    console.log('Recorded Blobs: ', recordedChunks);
+    downloadRecording();
+};
+
+function downloadRecording() {
+    var blob = new Blob(recordedChunks, {type: 'video/webm'});
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'audience ' + new Date() + '.webm';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, 100);
 };

@@ -85,9 +85,9 @@ function selectEnd(event) {
     if (!dragged) {
         selectedItems = clickSelect(svgitem, event.point);
     }
-    else {
-        selectedItems = pathSelect(svgitem, userStroke);
-    }
+    // else {
+    //     selectedItems = pathSelect(svgitem, userStroke);
+    // }
 
     if (selectedItems)
         showAudience(selectedItems);
@@ -103,6 +103,7 @@ function showAudience(selectedItems) {
 
 function createClone(item) {
     var citem;
+    console.log("Selected Item Class: " + item.className);
     if (item.className == 'Group') {
         citem = new mypapers[1].Group();
     } else if (item.className == 'CompoundPath') {
@@ -117,14 +118,10 @@ function createClone(item) {
         citem = new paper.Path({
             segments: [item.segment1, item.segment2]
         });
-        // item.path.selected = true;
-        // citem.copyAttributes(item.path);
-        citem.strokeColor = 'red';
-        citem.strokeWidth = 2;
     } else {
         console.log(item.className);
     }
-    // citem.copyContent(item);
-    // citem.copyAttributes(item);
+    citem.copyContent(item);
+    citem.copyAttributes(item);
     citem.selected = false;
 };

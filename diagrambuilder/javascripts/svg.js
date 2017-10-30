@@ -199,7 +199,9 @@ function svgOnLoad(item, svgdata) {
     tokens = [];
     item.fitBounds(paper.view.bounds);
 
-    // Break all paths at intersections
+    /**
+     * Break all paths at intersections
+     *
     var childPaths = svgitem.getItems({class:'Path'});
     for (var i = 0; i < childPaths.length; i++) {
         var p1 = childPaths[i];
@@ -231,8 +233,7 @@ function svgOnLoad(item, svgdata) {
         }
         // tokens.push.apply(tokens, childPaths[i].curves);
     }
-    console.log('childpaths: ' + childPaths.length);
-    console.log('tokens: ' + tokens.length);
+     **/
 };
 
 function clickSelect(svgitem, point) {

@@ -15,7 +15,7 @@
     <script src="javascripts/jquery-3.1.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="javascripts/colorutil.js"></script>
-    <script src="javascripts/kmeans.js"></script>
+    <!--<script src="javascripts/kmeans.js"></script>-->
     <script src="javascripts/smartink.js"></script>
     <script src="javascripts/slide.js"></script>
     <script src="javascripts/beautify.js"></script>
@@ -34,7 +34,9 @@
 <div class="container col-md-12 ">
     <!--Slide-->
     <div class="col-md-12 view" id="speaker-view">
-        <div class="col-md-9 slide" id="speaker-slide"></div>
+        <div class="col-md-9 slide" id="speaker-slide">
+            <!--<video autoplay></video><br>-->
+        </div>
         <div class="col-md-3 slide-menu" >
             <div class="col-md-12" id="next-slide">
                 <img class="next-slide-image" id="next-slide-image-bg"/>
@@ -50,11 +52,13 @@
                     <tr><td>
                         <button type="button" id="pen" title="Pen" class="btn btn-default btn-circle btn-sm checked" onclick="selectPen();">
                             <i class=" glyphicon glyphicon-pencil"></i></button>
-                        <button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-sm" onclick="selectEraser();">
-                            <i class=" glyphicon glyphicon-erase"></i></button>
+                        <!--<button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-sm" onclick="selectEraser();">-->
+                            <!--<i class=" glyphicon glyphicon-erase"></i></button>-->
                         <!--<button type="button" id="spacer" title="Insert Space" class="btn btn-default btn-circle btn-xl" onclick="selectSpacer();">-->
                         <!--<i class=" glyphicon glyphicon-plus"></i></button><br/>-->
                     </td></tr>
+                    <tr><td><button type="button" id="record" title="Start Recording" class="btn btn-danger btn-circle btn-sm" onclick="toggleRecord();" data-state="start-record">
+                        <i class=" glyphicon glyphicon-record"></i></button></td></tr>
                     <!-- Uncomment this part to enable multiple slide pages
                     <tr><td>
                         <button type="button" title="Next" class="btn btn-default btn-circle btn-sm" onclick="prevSlide()">
