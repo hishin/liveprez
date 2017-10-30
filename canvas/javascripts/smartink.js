@@ -751,6 +751,7 @@ function inkStart(event){
         dist2fg = Infinity;
     }
     pcount = 1;
+
     post(inkMessage(curstroke, [], false));
 };
 
