@@ -95,6 +95,7 @@ function pointDist(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 };
 
+//Checks if point [x,y] is inside the ellipse with center at [origx, origy] and radii [r1, r2], orientation theta
 function ellipseDist(x,y, origx, origy, r1, r2, theta) {
     return Math.pow(((x-origx)*Math.cos(theta) + (y-origy)*Math.sin(theta)), 2)/(r1*r1) +
         Math.pow(((x-origx)*Math.sin(theta) - (y-origy)*Math.cos(theta)), 2)/(r2*r2);
@@ -525,7 +526,7 @@ function traceClosestPixels(praster, path, velocity) {
 ;
 
 function traceClosestPixelsEllipse(praster, path, rstart, ra, rb) {
-    console.log("Path.length: " + path.length);
+    // console.log("Path.length: " + path.length);
     var point, pixelp, px, py, cx, cy, startdist;
     var tracedpx = [];
     for (var i = 0; i < path.length; i += 1/praster.scale ) {
@@ -542,9 +543,9 @@ function traceClosestPixelsEllipse(praster, path, rstart, ra, rb) {
         startdist = pointDist(px,py,cx,cy);
         // For debugging: Draw an ellipse centered at point with radius ra, rb, and direction theta
         // if (DEBUG) {
-        //     var pointc = getCanvasPoint(new paper.Point(cx,cy), praster);
-        //     var lefttop = new paper.Point(pointc.x-ra/praster.scale, pointc.y-rb/praster.scale);
-        //     var size = new paper.Size(2*ra/praster.scale, 2*rb/praster.scale);
+        //     var pointc = point;//getCanvasPoint(new paper.Point(cx,cy), praster);
+        //     var lefttop = new paper.Point(pointc.x-ra/2.0*praster.scale, pointc.y-rb/2.0*praster.scale);
+        //     var size = new paper.Size(ra*praster.scale, rb*praster.scale);
         //     var rectangle = new paper.Shape.Rectangle(lefttop, size);
         //     var ellipse = new paper.Path.Ellipse(rectangle.bounds);
         //     var tangent = path.getTangentAt(i);
@@ -566,9 +567,6 @@ function traceClosestPixelsEllipse(praster, path, rstart, ra, rb) {
             else
                 theta = Math.PI/2;
             floodFillEllipse(praster, cx, cy, cx, cy, ra, rb, theta, tracedpx);
-
-
-
         }
     }
     return tracedpx;

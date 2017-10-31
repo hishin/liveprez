@@ -117,7 +117,7 @@ window.onload = function () {
         } else {
             scale = 1.0;
         }
-        penRadiusSVG.setAttribute('r', radiusSlider.getValue()/scale);
+        penRadiusSVG.setAttribute('r', radiusSlider.getValue());
     };
 
     radiusSlider = $('.slider').slider(
@@ -734,10 +734,17 @@ function inkStart(event){
     selectItem();
     if (curstroke) curstroke.remove();
     curstroke = new paper.Path();
-    curstroke.strokeWidth = radiusSlider.getValue();
+
+    if (curitem) {
+        scale = curitem.praster.scale;
+    } else {
+        scale = 1.0;
+    }
+
+    curstroke.strokeWidth = radiusSlider.getValue()*2.0/spaper.view.zoom;
     curstroke.add(event.point);
     curstroke.strokeCap = 'round';
-    curstroke.strokeColor = 'green';
+    curstroke.strokeColor = 'grey';
     curstroke.strokeColor.alpha = 0.5;
     movedist = 0.0;
     prevtime = event.timeStamp;
@@ -796,9 +803,9 @@ function inkEnd(event) {
     }*/
     if (curstroke) {
         curstroke.add(event.point);
-        var rstart = radiusSlider.getValue()*2.0;
-        var ra = radiusSlider.getValue();
-        var rb = radiusSlider.getValue();
+        var rstart = curstroke.strokeWidth*curitem.praster.scale;
+        var ra = curstroke.strokeWidth/2.0*curitem.praster.scale;//.getValue();
+        var rb = curstroke.strokeWidth/2.0*curitem.praster.scale;
         var tracedpx = traceClosestPixelsEllipse(curitem.praster, curstroke, rstart, ra, rb);
         tracePixels(curitem.praster, tracedpx);
         curstroke.remove();
