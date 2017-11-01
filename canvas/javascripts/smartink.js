@@ -43,7 +43,7 @@ var DEBUG = 1;
 var radiusSlider;
 var follow = false;
 var mediaRecorder = null;
-var recordedChunks = [];
+var recordedChunks = null;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -1236,12 +1236,12 @@ function setupSlidesMessage() {
     return msg;
 };
 
-function toggleRecordMessage(start) {
+function toggleRecordMessage(state) {
     var msg = JSON.stringify( {
         namespace: 'liveprez',
         type: 'record',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
-        start: start
+        state: state
     } );
     return msg;
 };
@@ -1503,11 +1503,11 @@ function saveCanvasImage() {
 function toggleRecord() {
     var button = document.getElementById('record');
     if (button.getAttribute('data-state') == 'start-record') {
-        post(toggleRecordMessage(true));
+        post(toggleRecordMessage('start'));
         startRecording();
     } else {
-        stopRecording();
-        post(toggleRecordMessage(false));
+        pauseRecording();
+        post(toggleRecordMessage('pause'));
     }
 };
 
@@ -1515,32 +1515,37 @@ function startRecording() {
 
     var stream = scanvas.captureStream(60);
     var options = {mimeType: 'video/webm'};
-    recordedChunks = [];
-    try {
-        mediaRecorder = new MediaRecorder(stream, options);
-    } catch (e0) {
-        console.log('Unable to create MediaRecorder with options Object: ', e0);
+    if (recordedChunks == null) {
+        recordedChunks = [];
         try {
-            options = {mimeType: 'video/webm,codecs=vp9'};
             mediaRecorder = new MediaRecorder(stream, options);
-        } catch (e1) {
-            console.log('Unable to create MediaRecorder with options Object: ', e1);
+        } catch (e0) {
+            console.log('Unable to create MediaRecorder with options Object: ', e0);
             try {
-                options = 'video/vp8'; // Chrome 47
+                options = {mimeType: 'video/webm,codecs=vp9'};
                 mediaRecorder = new MediaRecorder(stream, options);
-            } catch (e2) {
-                alert('MediaRecorder is not supported by this browser.\n\n' +
-                    'Try Firefox 29 or later, or Chrome 47 or later, with Enable experimental Web Platform features enabled from chrome://flags.');
-                console.error('Exception while creating MediaRecorder:', e2);
-                return;
+            } catch (e1) {
+                console.log('Unable to create MediaRecorder with options Object: ', e1);
+                try {
+                    options = 'video/vp8'; // Chrome 47
+                    mediaRecorder = new MediaRecorder(stream, options);
+                } catch (e2) {
+                    alert('MediaRecorder is not supported by this browser.\n\n' +
+                        'Try Firefox 29 or later, or Chrome 47 or later, with Enable experimental Web Platform features enabled from chrome://flags.');
+                    console.error('Exception while creating MediaRecorder:', e2);
+                    return;
+                }
             }
         }
-    }
 
-    console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+        console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
 
-    mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.start(100);
+        mediaRecorder.ondataavailable = handleDataAvailable;
+        mediaRecorder.start(100);
+    } else {
+        mediaRecorder.resume();
+    }// otherwise resume recording
+
 
     function handleDataAvailable(event) {
         if (event.data && event.data.size > 0) {
@@ -1549,17 +1554,28 @@ function startRecording() {
     };
 
     // change button to record
-    toggleRecordToStop(true);
+    toggleRecordToPause(true);
 };
 
 function stopRecording() {
     mediaRecorder.stop();
-    console.log('Recorded Blobs: ', recordedChunks);
+    console.log('Stop: Recorded Blobs: ', recordedChunks);
+    post(toggleRecordMessage('stop'));
     downloadRecording();
-    toggleRecordToStop(false);
+    toggleRecordToPause(true);
 };
 
+
+function pauseRecording() {
+    mediaRecorder.pause();
+    console.log('Pause: Recorded Blobs: ', recordedChunks);
+    console.log("Just Pausing")
+    toggleRecordToPause(false);
+};
+
+
 function downloadRecording() {
+    console.log("Downloading");
     var blob = new Blob(recordedChunks, {type: 'video/webm'});
     var url = window.URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -1574,16 +1590,16 @@ function downloadRecording() {
     }, 100);
 };
 
-function toggleRecordToStop(to_stop) {
+function toggleRecordToPause(to_stop) {
 
     var button = document.getElementById('record');
     // toggle back to start-record button
     var icon = $(button).children("i");
     if (to_stop) {
-        icon.attr('class', 'glyphicon glyphicon-stop');
-        icon.attr('title', "Stop Recording");
-        $(button).attr('class', "btn btn-primary btn-circle btn-sm");
-        $(button).attr('data-state', 'stop-record');
+        icon.attr('class', 'glyphicon glyphicon-pause');
+        icon.attr('title', "Pause Recording");
+        $(button).attr('class', "btn btn-info btn-circle btn-sm");
+        $(button).attr('data-state', 'pause-record');
     } else {
         icon.attr('class', 'glyphicon glyphicon-record');
         icon.attr('title', "Start Recording");

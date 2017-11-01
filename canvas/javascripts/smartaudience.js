@@ -21,7 +21,7 @@ var scale = 1.0; // speaker view / audience view ratio
 var speakerwidth;
 var slides;
 var mediaRecorder;
-var recordedChunks;
+var recordedChunks = null;
 
 window.addEventListener('message', function(event) {
     var data = JSON.parse(event.data);
@@ -496,9 +496,13 @@ function handlePanMessage(data) {
 };
 
 function handleRecordMessage(data) {
-    if (data.start) {
+    if (data.state == 'start') {
         startRecording();
-    } else {
+    } else if (data.state == 'pause') {
+        pauseRecording();
+        // stopRecording();
+    } else if (data.state == 'stop') {
+        console.log("here");
         stopRecording();
     }
 };
@@ -596,32 +600,37 @@ function startRecording() {
 
     var stream = acanvas.captureStream(60);
     var options = {mimeType: 'video/webm'};
-    recordedChunks = [];
-    try {
-        mediaRecorder = new MediaRecorder(stream, options);
-    } catch (e0) {
-        console.log('Unable to create MediaRecorder with options Object: ', e0);
+    if (recordedChunks == null) {
+        recordedChunks = [];
         try {
-            options = {mimeType: 'video/webm,codecs=vp9'};
             mediaRecorder = new MediaRecorder(stream, options);
-        } catch (e1) {
-            console.log('Unable to create MediaRecorder with options Object: ', e1);
+        } catch (e0) {
+            console.log('Unable to create MediaRecorder with options Object: ', e0);
             try {
-                options = 'video/vp8'; // Chrome 47
+                options = {mimeType: 'video/webm,codecs=vp9'};
                 mediaRecorder = new MediaRecorder(stream, options);
-            } catch (e2) {
-                alert('MediaRecorder is not supported by this browser.\n\n' +
-                    'Try Firefox 29 or later, or Chrome 47 or later, with Enable experimental Web Platform features enabled from chrome://flags.');
-                console.error('Exception while creating MediaRecorder:', e2);
-                return;
+            } catch (e1) {
+                console.log('Unable to create MediaRecorder with options Object: ', e1);
+                try {
+                    options = 'video/vp8'; // Chrome 47
+                    mediaRecorder = new MediaRecorder(stream, options);
+                } catch (e2) {
+                    alert('MediaRecorder is not supported by this browser.\n\n' +
+                        'Try Firefox 29 or later, or Chrome 47 or later, with Enable experimental Web Platform features enabled from chrome://flags.');
+                    console.error('Exception while creating MediaRecorder:', e2);
+                    return;
+                }
             }
         }
+
+        console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
+
+        mediaRecorder.ondataavailable = handleDataAvailable;
+        mediaRecorder.start(100);
     }
-
-    console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
-
-    mediaRecorder.ondataavailable = handleDataAvailable;
-    mediaRecorder.start(100);
+    else {
+        mediaRecorder.resume();
+    }
 
     function handleDataAvailable(event) {
         if (event.data && event.data.size > 0) {
@@ -634,6 +643,11 @@ function stopRecording() {
     mediaRecorder.stop();
     console.log('Recorded Blobs: ', recordedChunks);
     downloadRecording();
+};
+
+function pauseRecording() {
+    mediaRecorder.pause();
+
 };
 
 function downloadRecording() {
