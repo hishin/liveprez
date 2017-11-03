@@ -92,13 +92,10 @@ canvas {
     /*border: inset;*/
     margin: 0;
     background-color: white;
-    /*border: 1px solid black;*/
+    border: 1px solid black;
     /*1px rgba(60, 63, 65, 0.75) inset;*/
     touch-action: auto;
-}
-
-#audience-canvas {
-    border: 0;
+    cursor: url('../markericon-small.png'), pointer;
 }
 
 #audience-slide {

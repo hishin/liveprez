@@ -50,13 +50,16 @@
                         <button type="button" title="Open" class="btn btn-default btn-circle btn-sm" onclick="document.getElementById('files').click();">
                             <i class=" glyphicon glyphicon-folder-open"></i></button></td></tr>
                     <tr><td>
-                        <button type="button" id="pen" title="Pen" class="btn btn-default btn-circle btn-sm checked" onclick="selectPen();">
+                        <button type="button" id="pen" title="Reveal" class="btn btn-default btn-circle btn-sm checked" onclick="selectPen();">
+                            <i class=" glyphicon glyphicon-eye-open"></i></button>
+                        <button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-sm" onclick="selectEraser();">
+                            <i class=" glyphicon glyphicon-erase"></i></button>
+                        <button type="button" id="annotate" title="Annotate" class="btn btn-default btn-circle btn-sm" onclick="selectAnnotate();">
                             <i class=" glyphicon glyphicon-pencil"></i></button>
-                        <!--<button type="button" id="eraser" title="Eraser" class="btn btn-default btn-circle btn-sm" onclick="selectEraser();">-->
-                            <!--<i class=" glyphicon glyphicon-erase"></i></button>-->
                         <!--<button type="button" id="spacer" title="Insert Space" class="btn btn-default btn-circle btn-xl" onclick="selectSpacer();">-->
                         <!--<i class=" glyphicon glyphicon-plus"></i></button><br/>-->
                     </td></tr>
+
                     <tr><td><button type="button" id="record" title="Start Recording" class="btn btn-danger btn-circle btn-sm" onclick="toggleRecord();" data-state="start-record">
                         <i class=" glyphicon glyphicon-record"></i></button></td></tr>
                     <tr><td><button type="button" id="record" title="Pause Recording" class="btn btn-primary btn-circle btn-sm" onclick="stopRecording();" data-state="start-record">
@@ -72,14 +75,19 @@
                             <i class="glyphicon glyphicon-arrow-right"></i></button>
 
                     </td></tr>-->
-                    <tr><td><input type="text" data-slider-id="radiusslider" class="slider" data-slider-min="0" data-slider-max="50" data-slider-step="1" data-slider-value="10" data-slider-orientation="vertical" value="0" />
-                    </td></tr>
                     <tr>
-                    <td>
-                        <svg width="100" height="100">
-                            <circle id="pen-radius-circle" cx="50" cy="50" r="10" stroke-width="0" fill="black" />
-                        </svg>
-                    </td></tr>
+                        <td><input id="radiusslider" type="text" data-slider-id="radiusslider" class="slider" data-slider-min="1" data-slider-max="50" data-slider-step="1" data-slider-value="10" data-slider-orientation="horizontal" value="0" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <svg id="penradius" width="100" height="100" >
+                                <circle id="pen-radius-circle" cx="50" cy="50" r="10" stroke-width="0" fill="#000" />
+                            </svg>
+                        </td>
+                    </tr>
+
+
                     <tr><td>
                         <div class="btn-group" role="group" aria-label="Basic example">
                             <button type="button" class="btn btn-secondary" onclick = "zoomOut();"><i class="glyphicon glyphicon-minus"></i></button>

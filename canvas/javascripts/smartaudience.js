@@ -22,6 +22,12 @@ var speakerwidth;
 var slides;
 var mediaRecorder;
 var recordedChunks = null;
+var pencursor = null;
+var erasercursor = null;
+var PEN_CURSOR_URL = "markericon-small.png"
+var ERASER_CURSOR_URL = "erasericon-small.png"
+
+var origcenter;
 
 window.addEventListener('message', function(event) {
     var data = JSON.parse(event.data);
@@ -44,6 +50,8 @@ window.addEventListener('message', function(event) {
             handleDrawMessage(data);
         } else if (data.type === 'ink') {
             handleInkMessage(data);
+        } else if (data.type === 'annotate') {
+            handleAnnotateMessage(data);
         } else if (data.type === 'inkdel') {
             handleInkDelMessage(data);
         } else if (data.type ==='lowermask') {
@@ -68,7 +76,9 @@ window.addEventListener('message', function(event) {
             handleZoomMessage(data);
         } else if (data.type == 'slide-pan') {
             handlePanMessage(data);
-        } else if (data.type == 'record') {
+        } else if (data.type === 'slide-center') {
+            handleCenterMessage(data);
+        } else if (data.type === 'record') {
             handleRecordMessage(data);
         }
 
@@ -76,6 +86,7 @@ window.addEventListener('message', function(event) {
 });
 
 window.onload = function() {
+    document.getElementById('pen-cursor').style.display = 'none';
     aslide = document.getElementById('audience-slide');
     acanvas = document.createElement('canvas');
     acanvas.setAttribute('id', aslide.id.replace('slide', 'canvas'));
@@ -97,6 +108,7 @@ window.onload = function() {
         handleKeyboardEvents(event);
     });
     document.getElementById('download_link').addEventListener('click', saveCanvasImage, false);
+
 
 };
 
@@ -130,6 +142,7 @@ function handleSlideSetupMessage(data) {
         SLIDE_W = SLIDE_H/aspectratio;
     }
     resizeCanvas(SLIDE_W, SLIDE_H);
+    // origcenter = apaper.view.center;
 
     apaper.project.clear();
     var deck = JSON.parse(data.deck).slides;
@@ -137,7 +150,7 @@ function handleSlideSetupMessage(data) {
     for (var i = 0; i < deck.length; i++) {
         slide = deck[i];
         slide.itemlayer = [];
-        console.log('item length: ' + slide.items.length);
+        // console.log('item length: ' + slide.items.length);
         for (var j = 0; j < slide.items.length; j++) {
             item = slide.items[j];
             loadItem(slide, item, j);
@@ -157,7 +170,23 @@ function handleSlideSetupMessage(data) {
         hideSlide(slide);
     }
     slides = deck;//new Array(numslide);
+
+    // Load cursor item
+    var cursorLayer = new paper.Layer();
+    pencursor = new paper.Raster(PEN_CURSOR_URL);
+    pencursor.visible = false;
+    pencursor.onLoad = function() {
+        pencursor.pivot = pencursor.bounds.topLeft;
+    };
+    erasercursor = new paper.Raster(ERASER_CURSOR_URL);
+    erasercursor.visible = false;
+    erasercursor.onLoad = function() {
+        erasercursor.pivot = erasercursor.bounds.topLeft;
+    };
+
 };
+
+
 
 function showSlide(slide) {
     for (var i = 0; i < slide.itemlayer.length; i++)
@@ -220,7 +249,6 @@ function loadSlide(slide) {
     curslide = slides[slide.num];
     curslidenum = curslide.num;
     curitem = curslide.items[1];
-    console.log(curslide.items.length);
 }
 
 function resizeCanvas(width, height) {
@@ -352,6 +380,7 @@ function handleUpdateViewMessage(data) {
 };
 
 function handleInkDelMessage(data) {
+    console.log("del strokeid " + data.strokeid);
     if (curslide.inklayer && curslide.inklayer.children.length > 0) {
         var item = curslide.inklayer.getItem({
             data: {
@@ -366,40 +395,47 @@ function handleInkDelMessage(data) {
 var expand = false;
 
 function handleInkMessage(data) {
-    if (!expand) {
-        if (!curslide.inklayer) {
-            curslide.inklayer = new paper.Layer();
-        }
-        else
-            curslide.inklayer.activate();
-        if (curstroke ) {
-            curstroke.remove();
-        }
+    // Get Current Point
+    if (!curslide.inklayer) {
+        curslide.inklayer = new paper.Layer();
+    }
+    curslide.inklayer.activate();
+    // Get Last point on curstroke
+    curstroke = new paper.Path(JSON.parse(data.content)[1]);
+    curstroke.scale(scale, new paper.Point(0,0));
+    curstroke.visible = false;
 
-        curstroke = new paper.Path(JSON.parse(data.content)[1]);
-        curstroke.data.id = data.strokeid;
-        curstroke.scale(scale, new paper.Point(0,0));
-        var tracedpx = JSON.parse(data.tracedpx);
+    var curpoint = curstroke.lastSegment.point;
+    var tracedpx = JSON.parse(data.tracedpx);
 
-        if (data.end) {
-            curstroke.data.free = data.free;
-            prevstroke = curstroke;
-            if (!data.free) {
-                tracePixels(curitem.praster, tracedpx);
-                curstroke.onFrame = function () {
-                    if (!data.free) {
-                        if (this.strokeColor.alpha <= 0) {
-                            this.remove();
-                        }
-                        this.strokeColor.alpha -= 0.05;
-                    }
-                };
-            }
-            curstroke = null;
-            prevstroke = null;
-        }
+    if (data.pen) { // REVEAL
+        displayCursor('pen-cursor', curpoint.x, curpoint.y);
+        tracePixels(curitem.praster, tracedpx);
+    } else { // ERASER
+        displayCursor('eraser-cursor', curpoint.x, curpoint.y);
+        untracePixelsAudience(curitem.praster, tracedpx);
+    }
+    curstroke.remove();
+
+};
+
+function handleAnnotateMessage(data) {
+    if (!curslide.inklayer) {
+        curslide.inklayer = new paper.Layer();
+    }
+    else
+        curslide.inklayer.activate();
+    if (curstroke) {
+        curstroke.remove();
+    }
+    curstroke = new paper.Path(JSON.parse(data.content)[1]);
+    curstroke.scale(scale, new paper.Point(0,0));
+    curstroke.data.id = data.strokeid;
+    if (data.end) {
+        curstroke = null;
     }
 };
+
 
 var line;
 var expanddir = -1;
@@ -489,10 +525,17 @@ function handleZoomMessage(data) {
 
 function handlePanMessage(data) {
     if (apaper) {
-        var delta = new paper.Point(data.deltax, data.deltay);
+        var delta = new paper.Point(data.deltax*scale, data.deltay*scale);
         apaper.view.translate(delta);
     }
 
+};
+
+function handleCenterMessage(data) {
+    if (apaper) {
+        var center = new paper.Point(data.centerx*scale, data.centery*scale);
+        apaper.view.center = center;
+    }
 };
 
 function handleRecordMessage(data) {
@@ -663,4 +706,27 @@ function downloadRecording() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
     }, 100);
+};
+
+function displayCursor(id, x, y) {
+    if (id == 'pen-cursor') {
+        pencursor.position.x = x;
+        pencursor.position.y = y;
+        pencursor.visible = true;
+        erasercursor.visible = false;
+    } else if (id == 'eraser-cursor') {
+        erasercursor.position.x = x;
+        erasercursor.position.y = y;
+        erasercursor.visible = true;
+        pencursor.visible = false;
+    }
+    // console.log(cursor.style.display);
+    // cursor.style.left = x + 'px';
+    // cursor.style.top = y + 'px';
+
+};
+
+function hideCursors() {
+    pencursor.visible = false;
+    erasercursor.visible = false;
 };

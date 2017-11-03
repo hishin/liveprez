@@ -390,6 +390,40 @@ function tracePixels(praster, pixels) {
 };
 
 
+function untracePixelsPresenter(praster, pixels) {
+    var pctx = praster.getContext(true);
+    var pimdata = praster.imdata;
+    var pdata = pimdata.data;
+    var px, py, off;
+    // console.log(praster.width);
+    for (var i = 0 ; i < pixels.length; i++) {
+        px = pixels[i][0];
+        py = pixels[i][1];
+        off = (py*praster.width + px)*4;
+        pdata[off+3] = 125;
+    }
+    pctx.putImageData(pimdata, 0, 0);
+
+};
+
+function untracePixelsAudience(praster, pixels) {
+    var pctx = praster.getContext(true);
+    var pimdata = praster.imdata;
+    var pdata = pimdata.data;
+    var px, py, off;
+    // console.log(praster.width);
+    for (var i = 0 ; i < pixels.length; i++) {
+        px = pixels[i][0];
+        py = pixels[i][1];
+        off = (py*praster.width + px)*4;
+        pdata[off+3] = 0;
+    }
+    pctx.putImageData(pimdata, 0, 0);
+
+};
+
+
+
 function makeSemiTransparent(praster) {
     var pctx = praster.getContext();
     // var pimdata = praster.getImageData(new paper.Shape.Rectangle(0, 0, praster.width, praster.height));

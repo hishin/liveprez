@@ -525,7 +525,7 @@ function traceClosestPixels(praster, path, velocity) {
 }
 ;
 
-function traceClosestPixelsEllipse(praster, path, rstart, ra, rb) {
+function traceClosestPixelsEllipse(praster, path, rstart, ra, rb, unrevealed) {
     // console.log("Path.length: " + path.length);
     var point, pixelp, px, py, cx, cy, startdist;
     var tracedpx = [];
@@ -566,17 +566,21 @@ function traceClosestPixelsEllipse(praster, path, rstart, ra, rb) {
                 theta = Math.atan(tangent.y/tangent.x);
             else
                 theta = Math.PI/2;
-            floodFillEllipse(praster, cx, cy, cx, cy, ra, rb, theta, tracedpx);
+            floodFillEllipse(praster, cx, cy, cx, cy, ra, rb, theta, tracedpx, unrevealed);
+
+
         }
     }
     return tracedpx;
 };
 
-function floodFillEllipse(praster, x, y, origx, origy, ra, rb, theta, tracedpx) {
+
+function floodFillEllipse(praster, x, y, origx, origy, ra, rb, theta, tracedpx, unrevealed) {
     // out of image bound
     if (x < 0 || x >= praster.width || y < 0 || y >= praster.height) return;
     // already filled
-    if (praster.revealed[x+y*praster.width]) return;
+    if (unrevealed && praster.revealed[x+y*praster.width] > 0) return;
+    if (!unrevealed && praster.revealed[x+y*praster.width] == 0) return;
     // not foreground pixel
     if (!praster.fg[x+y*praster.width]) return;
 
@@ -584,15 +588,16 @@ function floodFillEllipse(praster, x, y, origx, origy, ra, rb, theta, tracedpx) 
     var dist = ellipseDist(x,y,origx,origy, ra, rb, theta);
     if (dist > 1) return;
 
-    praster.revealed[x+y*praster.width] = 1;
+    if (unrevealed)
+        praster.revealed[x+y*praster.width] = 1;
+    else
+        praster.revealed[x+y*praster.width] = 0;
     tracedpx.push([x,y]);
-    floodFillEllipse(praster, x-1, y, origx, origy, ra, rb, theta, tracedpx);
-    floodFillEllipse(praster, x+1, y, origx, origy, ra, rb, theta, tracedpx);
-    floodFillEllipse(praster, x, y-1, origx, origy, ra, rb, theta, tracedpx);
-    floodFillEllipse(praster, x, y+1, origx, origy, ra, rb, theta, tracedpx);
-}
-
-;
+    floodFillEllipse(praster, x-1, y, origx, origy, ra, rb, theta, tracedpx, unrevealed);
+    floodFillEllipse(praster, x+1, y, origx, origy, ra, rb, theta, tracedpx, unrevealed);
+    floodFillEllipse(praster, x, y-1, origx, origy, ra, rb, theta, tracedpx, unrevealed);
+    floodFillEllipse(praster, x, y+1, origx, origy, ra, rb, theta, tracedpx, unrevealed);
+};
 
 function floodFill(praster, x, y, origx, origy, cl, labc, tracedpx, velocity) {
     var w = praster.width;

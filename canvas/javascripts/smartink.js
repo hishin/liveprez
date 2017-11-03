@@ -20,7 +20,7 @@ var curitem = null;
 var bgitem = null;
 var awindow;
 var reveal = false;
-var prevcolor = new paper.Color(0.5,0,1);
+var prevcolor = new paper.Color(0.5, 0, 1);
 var slide_files;
 var viewhammer;
 var canvashammer;
@@ -32,7 +32,7 @@ var autostyle = true;
 var default_palette = ['rgb(0,0,0)', 'rgb(255,255,255)', 'rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'];
 var DIST2FG_THRES_A = 0.02;
 var DIST2FG_THRES_B = 5.0;
-var COLOR_THRES_A = 1/15;
+var COLOR_THRES_A = 1 / 15;
 var pen = 0; // eraser = 1, space = 2
 var strokeid = 0;
 var RIGHT = 0;
@@ -44,6 +44,7 @@ var radiusSlider;
 var follow = false;
 var mediaRecorder = null;
 var recordedChunks = null;
+var origcenter = null;
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -73,11 +74,11 @@ function preloadImages(srcs) {
 };
 
 window.onload = function () {
-    document.getElementById('speaker-view').addEventListener('touchstart', function(event){
+    document.getElementById('speaker-view').addEventListener('touchstart', function (event) {
         if (event.target.tagName == 'DIV') {
             event.preventDefault();
         }
-    }, {passive:false});
+    }, {passive: false});
 
     // document.oncontextmenu = function(event) {
     //     event.preventDefault();
@@ -86,12 +87,12 @@ window.onload = function () {
 
     document.getElementById('download_link').addEventListener('click', saveCanvasImage, false);
     document.getElementById('files').addEventListener('change', handleFileSelect, false);
-    document.addEventListener("keyup", function(event) {
+    document.addEventListener("keyup", function (event) {
         handleKeyboardEvents(event);
     });
 
-    document.addEventListener("pointerdown", function(event) {
-       handlePointerEvents(event);
+    document.addEventListener("pointerdown", function (event) {
+        handlePointerEvents(event);
     });
 
     SLIDE_W = $('#speaker-slide').width();
@@ -111,7 +112,7 @@ window.onload = function () {
     // });
     // setColorPalette([]);
     var penRadiusSVG = document.getElementById('pen-radius-circle');
-    var radiusChange = function() {
+    var radiusChange = function () {
         if (curitem) {
             scale = curitem.praster.scale;
         } else {
@@ -122,15 +123,19 @@ window.onload = function () {
 
     radiusSlider = $('.slider').slider(
         {
-            tooltip_position:'right',
-            formatter: function(value) {
+            tooltip_position: 'right',
+            formatter: function (value) {
                 return 'Current value: ' + value;
             }
         }
     ).on('slide', radiusChange).data('slider');
+
+    var slider = document.getElementById('radiusslider');
+    slider.style.visibility = 'hidden';
+
+    var penradius = document.getElementById('penradius');
+    penradius.onclick = toggleRadiusSlider;
 };
-
-
 
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
@@ -165,7 +170,7 @@ function handleFileSelect(evt) {
     }, 1000);
 };
 
-function compareFileName(a,b) {
+function compareFileName(a, b) {
     var anum = parseFloat(a.name.match(/\d+(\.\d+)?/)[0]);
     var bnum = parseFloat(b.name.match(/\d+(\.\d+)?/)[0]);
 
@@ -187,7 +192,7 @@ function selectButton(event) {
 };
 
 function handleKeyboardEvents(event) {
-    switch(event.key) {
+    switch (event.key) {
         case "ArrowLeft":
             prevSlide();
             break;
@@ -209,12 +214,13 @@ function handlePointerEvents(event) {
         }
         else if (pen == 1) {
             activateEraserTool();
+        } else if (pen == 2) {
+            activateAnnotateTool();
         }
-
     } else if (event.pointerType == 'mouse') {
         activatePanTool();
     }
-    else if (spaper){
+    else if (spaper) {
         spaper.tool = null;
     }
 };
@@ -222,26 +228,47 @@ function handlePointerEvents(event) {
 function selectPen() {
     $('#pen').addClass('checked');
     $('#eraser').removeClass('checked');
+    $('#annotate').removeClass('checked');
+    scanvas.style.cursor = "url('markericon-small.png'), pointer";
     pen = 0;
+    activateInkTool();
 };
 
 function selectEraser() {
     $('#eraser').addClass('checked');
     $('#pen').removeClass('checked');
+    $('#annotate').removeClass('checked');
+    scanvas.style.cursor = "url('erasericon-small.png'), pointer";
     pen = 1;
+    activateEraserTool();
+};
+
+function selectAnnotate() {
+    $('#annotate').addClass('checked');
+    $('#eraser').removeClass('checked');
+    $('#pen').removeClass('checked');
+    scanvas.style.cursor = "url('annotateicon-small.png'), pointer";
+    pen = 2;
+    activateAnnotateTool();
 };
 
 function toggleFollow() {
     follow = !follow;
-    if (!follow) {
-        post(slideZoomMessage(1.0));
-    } else {
+    if (!follow) { // needs to go back to original center
+        // post(slideZoomMessage(1.0));
+        // post(slideCenterMessage(spaper.view.origcenter));
+
+    } else { // need to go to current center
+        // var delta = new paper.Point(origcenter.x - spaper.view.center.x, origcenter.y - spaper.view.center.y);
+        post(slideCenterMessage(spaper.view.center));
         post(slideZoomMessage(spaper.view.zoom));
+        // post(slidePanMessage(delta));
     }
 };
 
 function popupAudienceView() {
     awindow = window.open('smartaudience.html', 'Audience View');
+
     /**
      * Connect to the audience view window through a postmessage handshake.
      * Using postmessage enables us to work in situations where the
@@ -250,19 +277,20 @@ function popupAudienceView() {
      */
     function connect() {
         // Keep trying to connect until we get a 'connected' message back
-        var connectInterval = setInterval( function() {
-            awindow.postMessage( JSON.stringify( {
+        var connectInterval = setInterval(function () {
+            awindow.postMessage(JSON.stringify({
                 namespace: 'liveprez',
                 type: 'connect',
-                url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search            } ), '*' );
-        }, 500 );
+                url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search
+            }), '*');
+        }, 500);
 
-        window.addEventListener( 'message', function( event ) {
-            var data = JSON.parse( event.data );
-            if( data && data.namespace === 'audience' && data.type === 'connected' ) {
-                clearInterval( connectInterval );
+        window.addEventListener('message', function (event) {
+            var data = JSON.parse(event.data);
+            if (data && data.namespace === 'audience' && data.type === 'connected') {
+                clearInterval(connectInterval);
             }
-        } );
+        });
     }
 
     connect();
@@ -281,6 +309,7 @@ function setupSlideCanvas(slidedeck) {
         spaper = new paper.PaperScope();
         spaper.setup(scanvas);
         resizeCanvas(SLIDE_W, SLIDE_H);
+        origcenter = spaper.view.center;
 
         sslide.paper = spaper;
         sslide.canvas = scanvas;
@@ -289,40 +318,42 @@ function setupSlideCanvas(slidedeck) {
         spaper.slide = sslide;
         spaper.canvas = scanvas;
 
-        // viewhammer = new Hammer(document.getElementById('speaker-view'));
-        // viewhammer.get('swipe').set({velocity: 0.5});
-        // viewhammer.on('swipeleft', function(ev) {
-        //     ev.preventDefault();
-        //     if (ev.pointerType == 'touch') {
-        //         nextSlide();
-        //     }
-        //     return;
-        // });
-        // viewhammer.on('swiperight', function(ev) {
-        //     ev.preventDefault();
-        //    if (ev.pointerType == 'touch') {
-        //        prevSlide();
-        //    }
-        // });
 
-        canvashammer = new Hammer(document.getElementById('speaker-slide'));
-        canvashammer.get('pinch').set({enable:true});
+        /** Uncomment to use hammer.js to recognize pinch to zoom & pan gestures
+         *
+         viewhammer = new Hammer(document.getElementById('speaker-view'));
+         viewhammer.get('swipe').set({velocity: 0.5});
+         viewhammer.on('swipeleft', function(ev) {
+            ev.preventDefault();
+            if (ev.pointerType == 'touch') {
+                nextSlide();
+            }
+            return;
+        });
+         viewhammer.on('swiperight', function(ev) {
+            ev.preventDefault();
+           if (ev.pointerType == 'touch') {
+               prevSlide();
+           }
+        });
+         canvashammer = new Hammer(document.getElementById('speaker-slide'));
+         canvashammer.get('pinch').set({enable:true});
 
-        canvashammer.on('pinchstart', function(ev){
+         canvashammer.on('pinchstart', function(ev){
             console.log("pinch start");
             ev.preventDefault();
             oldzoom = spaper.view.zoom;
             pinchcenter = new paper.Point(ev.center.x - $(scanvas).offset().left, ev.center.y - $(scanvas).offset().top);
             prevpinchscale = 1.0;
         });
-        canvashammer.on('pinchout', function(ev) {
+         canvashammer.on('pinchout', function(ev) {
             ev.preventDefault();
             var zoomresult = stableZoom(oldzoom, pinchcenter, spaper.view.center, prevpinchscale, ev.scale);
             spaper.view.zoom = zoomresult[0];
             spaper.view.center = spaper.view.center.subtract(zoomresult[1]);
             prevpinchscale = ev.scale;
         });
-        canvashammer.on('pinchin', function(ev){
+         canvashammer.on('pinchin', function(ev){
             ev.preventDefault();
             var zoomresult = stableZoom(oldzoom, pinchcenter, spaper.view.center, prevpinchscale, ev.scale);
             spaper.view.zoom = zoomresult[0];
@@ -330,20 +361,21 @@ function setupSlideCanvas(slidedeck) {
             prevpinchscale = ev.scale;
         });
 
-        canvashammer.get('pan').set({threshold: 0});
-        canvashammer.on('panstart', function (ev) {
+         canvashammer.get('pan').set({threshold: 0});
+         canvashammer.on('panstart', function (ev) {
             ev.preventDefault();
             if (ev.pointerType == 'touch') {
                 oldcenter = spaper.view.center;
             }
         });
-        canvashammer.on('panmove', function(ev){
+         canvashammer.on('panmove', function(ev){
             ev.preventDefault();
             if (ev.pointerType == 'touch') {
                 var newcenter = new paper.Point(oldcenter.x - ev.deltaX, oldcenter.y - ev.deltaY);
                 spaper.view.center = newcenter;
             }
         });
+         */
     }
     else {
         curslidenum = 0;
@@ -374,8 +406,11 @@ function zoomOut() {
 function fitScreen() {
     if (spaper) {
         spaper.view.zoom = 1.0;
+        spaper.view.center = origcenter;
         if (follow) {
+            post(slideCenterMessage(spaper.view.center));
             post(slideZoomMessage(spaper.view.zoom));
+
         }
     }
 };
@@ -384,15 +419,15 @@ function stableZoom(prevzoom, p, c, prevs, sfactor) {
     var newzoom = prevzoom * sfactor;
     // a=p−Z(p)=p−β⋅(p−c)−c
     var pc = p.subtract(c);
-    var beta = sfactor/prevs;
+    var beta = sfactor / prevs;
     var delta = p.subtract(pc.multiply(beta)).subtract(c);
 
     return [newzoom, delta];
 };
 
 function resizeCanvas(width, height) {
-    sslide.style.width = width +'px';
-    sslide.style.height = height +'px';
+    sslide.style.width = width + 'px';
+    sslide.style.height = height + 'px';
     scanvas.width = width;
     scanvas.height = height;
     spaper.view.viewSize.width = width;
@@ -415,9 +450,17 @@ function setupPaperTools() {
 
     var eraser = new spaper.Tool();
     eraser.name = 'eraser';
-    eraser.onMouseDown = erase;
+    eraser.onMouseDown = eraseStart;
     eraser.onMouseDrag = erase;
+    eraser.onMouseUp = eraseEnd;
     spaper.eraser = eraser;
+
+    var annotate = new spaper.Tool();
+    annotate.name = 'annotate';
+    annotate.onMouseDown = annotateStart;
+    annotate.onMouseDrag = annotateContinue;
+    annotate.onMouseUp = annotateEnd;
+    spaper.annotate = annotate;
 
     var pantool = new spaper.Tool();
     pantool.name = 'pan';
@@ -445,7 +488,7 @@ function loadSlide(slide) {
         if (!slide.lowermask) {
             slide.lowermask = new paper.Layer();
         }
-        slide.lowermask.insertAbove(slide.itemlayer[slide.itemlayer.length-1]);
+        slide.lowermask.insertAbove(slide.itemlayer[slide.itemlayer.length - 1]);
         if (!slide.masklayer) {
             slide.masklayer = new paper.Layer();
         } else {
@@ -465,7 +508,7 @@ function loadSlide(slide) {
 
     // console.log('pagenum' + slide.pagenum);
     if (slide.num < numslides - 1) {
-        loadNextSlide(slidedeck.getSlide(slide.num+1));
+        loadNextSlide(slidedeck.getSlide(slide.num + 1));
     }
     spaper.view.update();
 
@@ -486,7 +529,7 @@ function loadNextSlide(slide) {
 function setMask() {
     if (!curslide.masklayer) {
         curslide.masklayer = new paper.Layer();
-        curslide.masklayer.insertAbove(curslide.itemlayer[curslide.itemlayer.length-1]);
+        curslide.masklayer.insertAbove(curslide.itemlayer[curslide.itemlayer.length - 1]);
     }
     activateMaskTool();
 };
@@ -538,7 +581,7 @@ function loadForegroundItem(slide, item) {
     slide.itemlayer.push(layer);
     slide.fglayer = layer;
     if (slide.itemlayer.length > 1) {
-        layer.insertAbove(slide.itemlayer[slide.itemlayer.length-2]);
+        layer.insertAbove(slide.itemlayer[slide.itemlayer.length - 2]);
     }
     layer.activate();
     var raster = new paper.Raster(item.src);
@@ -577,7 +620,6 @@ function hideSpeakerOnlyItems(pitem) {
 };
 
 
-
 function revealItem(pitem) {
     if (pitem.children) {
         for (var i = 0; i < pitem.children.length; i++) {
@@ -600,7 +642,7 @@ function getInkStyle(pitem, styles) {
             styles = getInkStyle(pitem.children[i], styles);
         }
     }
-    else if (!pitem.clipMask ){
+    else if (!pitem.clipMask) {
         // Add only if same style does not exist
         var inkstyle = new InkStyle(pitem);
         for (var i = 0; i < styles.length; i++) {
@@ -648,7 +690,7 @@ function prevSlide() {
 };
 
 function nextSlide() {
-    if (curslidenum < numslides -1) {
+    if (curslidenum < numslides - 1) {
         curslidenum++;
         loadSlide(slidedeck.getSlide(curslidenum));
     }
@@ -696,6 +738,12 @@ function activateEraserTool() {
     spaper.eraser.activate();
 };
 
+function activateAnnotateTool() {
+    if (!spaper) return;
+    spaper.annotate.activate();
+};
+
+
 function activatePanTool() {
     if (!spaper) return;
     spaper.pantool.activate();
@@ -724,7 +772,8 @@ var expand = false;
 var subs = null;
 var line;
 var prev_p;
-function inkStart(event){
+
+function inkStart(event) {
     if (!curslide.inklayer) {
         var layer = new paper.Layer();
         curslide.inklayer = layer;
@@ -741,84 +790,88 @@ function inkStart(event){
         scale = 1.0;
     }
 
-    curstroke.strokeWidth = radiusSlider.getValue()*2.0/spaper.view.zoom;
-    curstroke.add(event.point);
+    curstroke.strokeWidth = radiusSlider.getValue() * 2.0 / spaper.view.zoom;
     curstroke.strokeCap = 'round';
     curstroke.strokeColor = 'grey';
     curstroke.strokeColor.alpha = 0.5;
-    movedist = 0.0;
-    prevtime = event.timeStamp;
+    curstroke.data.id = strokeid++;
+    inkContinue(event);
 
-    if (curitem) {
-        var p = getPixelPoint(event.point, curitem.praster);
-        dist2fg = curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
-        curstroke.data.free = false;
-    }
-    else {
-        dist2fg = Infinity;
-    }
-    pcount = 1;
-
-    post(inkMessage(curstroke, [], false));
 };
 
 function inkContinue(event) {
-    if (!expand) {
-        curstroke.add(event.point);
-        movedist += Math.sqrt((event.delta.x * event.delta.x + event.delta.y * event.delta.y));
-        if (curitem) {
-            var p = getPixelPoint(event.point, curitem.praster);
-            dist2fg += curitem.praster.dtfg[p.x + p.y* curitem.praster.width];
-        }
-        pcount++;
-        /**
-         * Uncomment this part to enable space manipulation operation
+    /**
+     * Uncomment this part to enable space manipulation operation
 
-         line_end = event.point;
-        if (timeout)
-            clearTimeout(timeout);
-         timeout = setTimeout(function() {
+     line_end = event.point;
+     if (timeout)
+     clearTimeout(timeout);
+     timeout = setTimeout(function() {
             expand = true;
             line = curstroke;
             line.dashArray = [5,5];
             line.strokeColor = 'red';
             post(spaceStartMessage());
         }, 300);
-         */
-        post(inkMessage(curstroke, [], false));
-    } else {
-        makeSpaceContinue(event);
-    }
+     */
+    curstroke.add(event.point);
+
+    var rstart = curstroke.strokeWidth * curitem.praster.scale;
+    var ra = curstroke.strokeWidth / 2.0 * curitem.praster.scale;//.getValue();
+    var rb = curstroke.strokeWidth / 2.0 * curitem.praster.scale;
+    var tracedpx = traceClosestPixelsEllipse(curitem.praster, curstroke, rstart, ra, rb, true);
+    tracePixels(curitem.praster, tracedpx);
+    post(inkMessage(curstroke, tracedpx, true, false));
+
 };
 
 function inkEnd(event) {
     /**
      * Uncomment this part to enable space manipulation operation
 
-    if (timeout)
-        clearTimeout(timeout);
-    if (expand) {
+     if (timeout)
+     clearTimeout(timeout);
+     if (expand) {
         makeSpaceEnd(event);
         return;
     }*/
-    if (curstroke) {
-        curstroke.add(event.point);
-        var rstart = curstroke.strokeWidth*curitem.praster.scale;
-        var ra = curstroke.strokeWidth/2.0*curitem.praster.scale;//.getValue();
-        var rb = curstroke.strokeWidth/2.0*curitem.praster.scale;
-        var tracedpx = traceClosestPixelsEllipse(curitem.praster, curstroke, rstart, ra, rb);
-        tracePixels(curitem.praster, tracedpx);
-        curstroke.remove();
-        curstroke.data.id = strokeid++;
-        post(inkMessage(curstroke, tracedpx, true));
+    // if (curstroke) {
+    curstroke.remove();
+    post(inkMessage(curstroke, [], true, true));
+    // }
+};
+
+function eraseStart(event) {
+    if (!curslide.inklayer) {
+        var layer = new paper.Layer();
+        curslide.inklayer = layer;
+    } else {
+        curslide.inklayer.activate();
     }
+    selectItem();
+
+    if (curstroke) curstroke.remove();
+    curstroke = new paper.Path();
+
+    if (curitem) {
+        scale = curitem.praster.scale;
+    } else {
+        scale = 1.0;
+    }
+
+    curstroke.strokeWidth = radiusSlider.getValue() * 2.0 / spaper.view.zoom;
+    curstroke.strokeCap = 'round';
+    curstroke.strokeColor = '#da512f'
+    curstroke.strokeColor.alpha = 0.5;
+    curstroke.data.id = strokeid++;
+
+    erase(event);
 };
 
 function erase(event) {
-    selectItem();
-    var raster = curitem.praster;
-    // var p = getPixelPoint(event.point, raster);
-
+    curstroke.add(event.point);
+    // /** Delete ink strokes first **/
+    var strokes = null;
     var hitoptions = {
         segments: true,
         stroke: true,
@@ -831,14 +884,70 @@ function erase(event) {
     var strokes = null;
     if (curslide.inklayer && curslide.inklayer.children.length > 0) {
         strokes = curslide.inklayer.hitTestAll(event.point, hitoptions);
-        if (strokes.length > 0) {
-            strokes[0].item.remove();
-            post(inkDeleteMessage(strokes[0].item));
+        for (var i = 0; i < strokes.length; i++) {
+            if (strokes[i] != curstroke) {
+                post(inkDeleteMessage(strokes[i].item));
+                strokes[i].item.remove();
+            }
         }
     }
+
+    var rstart = curstroke.strokeWidth * curitem.praster.scale;
+    var ra = curstroke.strokeWidth / 2.0 * curitem.praster.scale;//.getValue();
+    var rb = curstroke.strokeWidth / 2.0 * curitem.praster.scale;
+    var tracedpx = traceClosestPixelsEllipse(curitem.praster, curstroke, rstart, ra, rb, false);
+    untracePixelsPresenter(curitem.praster, tracedpx);
+    post(inkMessage(curstroke, tracedpx, false, false));
 };
 
+function eraseEnd(event) {
+    curstroke.remove();
+    post(inkMessage(curstroke, [], false, true));
+
+};
+
+function annotateStart(event) {
+    if (!curslide.inklayer) {
+        var layer = new paper.Layer();
+        curslide.inklayer = layer;
+    } else {
+        curslide.inklayer.activate();
+    }
+    selectItem();
+    if (curstroke) curstroke.remove();
+    curstroke = new paper.Path();
+
+    if (curitem) {
+        scale = curitem.praster.scale;
+    } else {
+        scale = 1.0;
+    }
+
+    curstroke.strokeWidth = radiusSlider.getValue() * 2.0 / spaper.view.zoom;
+    curstroke.strokeCap = 'round';
+    curstroke.strokeColor = 'red';
+    curstroke.data.id = strokeid++;
+
+    annotateContinue(event);
+
+};
+
+function annotateContinue(event) {
+    curstroke.add(event.point);
+    post(annotateMessage(curstroke, false));
+
+
+};
+
+function annotateEnd(event) {
+    post(annotateMessage(curstroke, true));
+    curstroke = null;
+};
+
+
+
 var panstart;
+
 function panStart(event) {
     panstart = event.point;
     oldcenter = spaper.view.center;
@@ -860,7 +969,7 @@ function setColorPalette(colors) {
     $('#strokec').spectrum({
         allowEmpty: true,
         showPaletteOnly: true,
-        showPalette:true,
+        showPalette: true,
         hideAfterPaletteSelect: true,
         flat: true,
         palette: [
@@ -906,7 +1015,6 @@ function printStrokeStyles() {
 };
 
 
-
 function activateMaskTool() {
     if (!spaper) return;
     spaper.masktool.activate();
@@ -937,7 +1045,7 @@ function maskEnd(event) {
 function maskPropagate() {
     hideMenu(document.getElementById('mask-context-menu'));
     var slide;
-    for (var i = curslidenum+1; i < slidedeck.n; i++) {
+    for (var i = curslidenum + 1; i < slidedeck.n; i++) {
         slide = slidedeck.getSlide(i);
         if (slide.masklayer)
             slide.masklayer.removeChildren();
@@ -991,23 +1099,23 @@ function revealContinue(event) {
     }
     curbound = new paper.Path.Line(curstroke.getPointAt(0), event.point);
     curbound.strokeWidth = 1;
-    curbound.dashArray = [3,3];
+    curbound.dashArray = [3, 3];
     curbound.strokeColor = 'black';
 };
 
 function revealEnd(event) {
     changeMask(event, true);
-        // // get inkstrokes inside this region
-        // var inkitems = curslide.inklayer.getItems({inside: curstroke.bounds});
-        // for (var i = 0; i < inkitems.length; i++) {
-        //     if (!inkitems[i].data.free && isInside(curstroke, inkitems[i])) {
-        //         inkitems[i].onFrame = function () {
-        //             if (this.strokeColor.alpha <= 0) this.remove();
-        //             this.strokeColor.alpha -= 0.05;
-        //         };
-        //
-        //     }
-        // }
+    // // get inkstrokes inside this region
+    // var inkitems = curslide.inklayer.getItems({inside: curstroke.bounds});
+    // for (var i = 0; i < inkitems.length; i++) {
+    //     if (!inkitems[i].data.free && isInside(curstroke, inkitems[i])) {
+    //         inkitems[i].onFrame = function () {
+    //             if (this.strokeColor.alpha <= 0) this.remove();
+    //             this.strokeColor.alpha -= 0.05;
+    //         };
+    //
+    //     }
+    // }
 
 };
 
@@ -1062,16 +1170,16 @@ function isInside(apath, cpath) {
     for (var i = 0; i < points.length; i++) {
         if (apath.contains(points[i])) incount++;
     }
-    if (incount/points.length > 0.75) return true;
+    if (incount / points.length > 0.75) return true;
 };
 
 function slideChangeMessage() {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'slide-change',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         state: getSlideState()
-    } );
+    });
     return msg;
 
 };
@@ -1081,27 +1189,27 @@ function getSlideState() {
 };
 
 function spaceStartMessage() {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'space-start',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search
-    } );
+    });
     return msg;
 };
 
 function spaceContinueMessage(expanddir, delta) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'space-continue',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         dir: expanddir,
         delta: JSON.stringify(delta)
-    } );
+    });
     return msg;
 };
 
 function spaceEndMessage(raster) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'space-end',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
@@ -1110,12 +1218,12 @@ function spaceEndMessage(raster) {
         height: raster.bounds.height,
         top: raster.bounds.top,
         left: raster.bounds.left
-    } );
+    });
     return msg;
 };
 
-function inkMessage(inkstroke, tracedpx, end) {
-    var msg = JSON.stringify( {
+function inkMessage(inkstroke, tracedpx, pen, end) {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'ink',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
@@ -1124,131 +1232,158 @@ function inkMessage(inkstroke, tracedpx, end) {
         fillalpha: inkstroke.data.fillalpha,
         tracedpx: JSON.stringify(tracedpx),
         strokeid: inkstroke.data.id,
+        pen: pen,
         end: end
-    } );
+    });
+    return msg;
+};
+
+function annotateMessage(inkstroke, end) {
+    var msg = JSON.stringify({
+        namespace: 'liveprez',
+        type: 'annotate',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        content: JSON.stringify(inkstroke),
+        free: inkstroke.data.free,
+        fillalpha: inkstroke.data.fillalpha,
+        strokeid: inkstroke.data.id,
+        end: end
+    });
     return msg;
 };
 
 function inkDeleteMessage(inkstroke) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'inkdel',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         strokeid: inkstroke.data.id
-    } );
+    });
     return msg;
 };
 
 function colorChangeMessage(color, free) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'color-change',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         content: color,
         free: free,
-    } );
+    });
     return msg;
 };
 
 function lowerMaskMessage(maskstroke) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'lowermask',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         content: JSON.stringify(maskstroke)
-    } );
+    });
     return msg;
 };
 
 function addMaskMessage(pathitem, add) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'mask',
         add: add,
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         content: JSON.stringify(pathitem),
         bgcolor: curitem.praster.bgcolor.toCSS(true)
-    } );
+    });
     return msg;
 };
 
 function propagateMaskMessage(masklayer, slidenum) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'propagate-mask',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         mask: JSON.stringify(masklayer),
         slidenum: slidenum
-    } );
+    });
     return msg;
 };
 
 function revealSlideMessage() {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'slide-reveal',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search
-    } );
+    });
     return msg;
 };
 
 function resizeMessage() {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'slide-resize',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         width: SLIDE_W,
         height: SLIDE_H
-    } );
+    });
     return msg;
 };
 
 function slideZoomMessage(szoom) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'slide-zoom',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         zoom: szoom
-    } );
+    });
     return msg;
 };
 
 function slidePanMessage(delta) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'slide-pan',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         deltax: delta.x,
         deltay: delta.y
-    } );
+    });
+    return msg;
+};
+
+function slideCenterMessage(center) {
+    console.log("post centermessage");
+    var msg = JSON.stringify({
+        namespace: 'liveprez',
+        type: 'slide-center',
+        url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
+        centerx: center.x,
+        centery: center.y,
+    });
     return msg;
 };
 
 function setupSlidesMessage() {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'slide-setup',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         num: slidedeck.slides.length,
         deck: JSON.stringify(slidedeck),
-        aspectratio: SLIDE_H/SLIDE_W
-    } );
+        aspectratio: SLIDE_H / SLIDE_W
+    });
     return msg;
 };
 
 function toggleRecordMessage(state) {
-    var msg = JSON.stringify( {
+    var msg = JSON.stringify({
         namespace: 'liveprez',
         type: 'record',
         url: window.location.protocol + '//' + window.location.host + window.location.pathname + window.location.search,
         state: state
-    } );
+    });
     return msg;
 };
 
 function post(msg) {
     if (awindow) {
-        awindow.postMessage( msg, '*' );
+        awindow.postMessage(msg, '*');
     }
 };
 
@@ -1264,7 +1399,7 @@ function makeSpaceEnd(event) {
     // set newraster as the praster
     curitem.praster = null; // freeing memory;
     curitem.praster = newraster;
-    curitem.praster.scale = Math.max(curitem.praster.width/curitem.praster.bounds.width, curitem.praster.height/curitem.praster.bounds.height);
+    curitem.praster.scale = Math.max(curitem.praster.width / curitem.praster.bounds.width, curitem.praster.height / curitem.praster.bounds.height);
     curitem.praster.wslack = newraster.bounds.left;//(paper.view.bounds.width - curitem.praster.width/curitem.praster.scale)/2.0;
     curitem.praster.hslack = newraster.bounds.top;//(paper.view.bounds.height - curitem.praster.height/curitem.praster.scale)/2.0;
     newraster.imdata = newraster.getImageData(new paper.Rectangle(0, 0, newraster.width, newraster.height));
@@ -1294,6 +1429,7 @@ function makeSpaceEnd(event) {
 };
 
 var expanddir = -1;
+
 function makeSpaceContinue(event) {
     clearTimeout(timeout);
     // determine the direction of expansion:
@@ -1312,7 +1448,7 @@ function makeSpaceContinue(event) {
         }
     } else {
         var delta;
-        switch(expanddir) {
+        switch (expanddir) {
             case RIGHT:
                 delta = expandSpaceRight(event);
                 break;
@@ -1331,7 +1467,7 @@ function makeSpaceContinue(event) {
 };
 
 function expandSpaceBottom(event) {
-    var delta = new paper.Point(0,0);
+    var delta = new paper.Point(0, 0);
     if (subs) {
         var dy;
         if (prev_p) {
@@ -1339,7 +1475,7 @@ function expandSpaceBottom(event) {
         } else {
             dy = event.point.y - line_end.y;
         }
-        delta = new paper.Point(0,dy);
+        delta = new paper.Point(0, dy);
         for (var i = 0; i < subs.length; i++) {
             subs[i].translate(delta);
         }
@@ -1350,9 +1486,9 @@ function expandSpaceBottom(event) {
         subs = [];
         var ctx = curitem.praster.getContext(true);
         curitem.praster.layer.activate();
-        for (var x = 0; x <= line.length-1; x +=1) {
+        for (var x = 0; x <= line.length - 1; x += 1) {
             var p = line.getPointAt(x);
-            var pnext = line.getPointAt(x+1);
+            var pnext = line.getPointAt(x + 1);
             var px = getPixelPoint(p, curitem.praster);
             var pxnext = getPixelPoint(pnext, curitem.praster);
             var rect = new paper.Shape.Rectangle(px.x, px.y, (pxnext.x - px.x), curitem.praster.height - px.y);
@@ -1365,7 +1501,7 @@ function expandSpaceBottom(event) {
 };
 
 function expandSpaceTop(event) {
-    var delta = new paper.Point(0,0);
+    var delta = new paper.Point(0, 0);
     if (subs) {
         var dy;
         if (prev_p) {
@@ -1385,9 +1521,9 @@ function expandSpaceTop(event) {
         subs = [];
         var ctx = curitem.praster.getContext(true);
         curitem.praster.layer.activate();
-        for (var x = 0; x <= line.length-1; x +=1) {
+        for (var x = 0; x <= line.length - 1; x += 1) {
             var p = line.getPointAt(x);
-            var pnext = line.getPointAt(x+1);
+            var pnext = line.getPointAt(x + 1);
             var px = getPixelPoint(p, curitem.praster);
             var pxnext = getPixelPoint(pnext, curitem.praster);
             var rect = new paper.Shape.Rectangle(px.x, 0, (pxnext.x - px.x), px.y);
@@ -1419,9 +1555,9 @@ function expandSpaceRight(event) {
         subs = [];
         var ctx = curitem.praster.getContext(true);
         curitem.praster.layer.activate();
-        for (var x = 0; x <= line.length-1; x +=1) {
+        for (var x = 0; x <= line.length - 1; x += 1) {
             var p = line.getPointAt(x);
-            var pnext = line.getPointAt(x+1);
+            var pnext = line.getPointAt(x + 1);
             var px = getPixelPoint(p, curitem.praster);
             var pxnext = getPixelPoint(pnext, curitem.praster);
             var rect = new paper.Shape.Rectangle(px.x, px.y, curitem.praster.width - px.x, (pxnext.y - px.y));
@@ -1434,7 +1570,7 @@ function expandSpaceRight(event) {
 };
 
 function expandSpaceLeft(event) {
-    var delta = new paper.Point(0,0);
+    var delta = new paper.Point(0, 0);
     if (subs) {
         var dx;
         if (prev_p) {
@@ -1453,9 +1589,9 @@ function expandSpaceLeft(event) {
         subs = [];
         var ctx = curitem.praster.getContext(true);
         curitem.praster.layer.activate();
-        for (var x = 0; x <= line.length-1; x +=1) {
+        for (var x = 0; x <= line.length - 1; x += 1) {
             var p = line.getPointAt(x);
-            var pnext = line.getPointAt(x+1);
+            var pnext = line.getPointAt(x + 1);
             var px = getPixelPoint(p, curitem.praster);
             var pxnext = getPixelPoint(pnext, curitem.praster);
             var rect = new paper.Shape.Rectangle(0, px.y, px.x, (pxnext.y - px.y));
@@ -1466,7 +1602,6 @@ function expandSpaceLeft(event) {
     }
     return delta;
 };
-
 
 
 function getElementsInRange(rect, elements) {
@@ -1584,7 +1719,7 @@ function downloadRecording() {
     a.download = 'presenter ' + new Date() + '.webm';
     document.body.appendChild(a);
     a.click();
-    setTimeout(function() {
+    setTimeout(function () {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
     }, 100);
@@ -1607,4 +1742,13 @@ function toggleRecordToPause(to_stop) {
         $(button).attr('data-state', "start-record");
     }
 
+};
+
+function toggleRadiusSlider(event) {
+    var slider = document.getElementById('radiusslider');
+    if (slider.style.visibility == 'hidden') {
+        slider.style.visibility = 'visible';
+    } else {
+        slider.style.visibility = 'hidden';
+    }
 };
