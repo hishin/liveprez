@@ -886,6 +886,7 @@ function erase(event) {
         strokes = curslide.inklayer.hitTestAll(event.point, hitoptions);
         for (var i = 0; i < strokes.length; i++) {
             if (strokes[i] != curstroke) {
+                console.log("delete stroke: " + strokes[i].item.data.id);
                 post(inkDeleteMessage(strokes[i].item));
                 strokes[i].item.remove();
             }
@@ -935,8 +936,6 @@ function annotateStart(event) {
 function annotateContinue(event) {
     curstroke.add(event.point);
     post(annotateMessage(curstroke, false));
-
-
 };
 
 function annotateEnd(event) {

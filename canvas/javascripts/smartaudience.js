@@ -24,8 +24,10 @@ var mediaRecorder;
 var recordedChunks = null;
 var pencursor = null;
 var erasercursor = null;
-var PEN_CURSOR_URL = "markericon-small.png"
-var ERASER_CURSOR_URL = "erasericon-small.png"
+var markercursor = null;
+var PEN_CURSOR_URL = "markericon-small.png";
+var ERASER_CURSOR_URL = "erasericon-small.png";
+var MARKER_CURSOR_URL = "markericon-small.png";
 
 var origcenter;
 
@@ -183,6 +185,12 @@ function handleSlideSetupMessage(data) {
     erasercursor.onLoad = function() {
         erasercursor.pivot = erasercursor.bounds.topLeft;
     };
+    markercursor = new paper.Raster(MARKER_CURSOR_URL);
+    markercursor.visible = false;
+    markercursor.onLoad = function() {
+        markercursor.pivot = markercursor.bounds.topLeft;
+    };
+
 
 };
 
@@ -381,6 +389,7 @@ function handleUpdateViewMessage(data) {
 
 function handleInkDelMessage(data) {
     console.log("del strokeid " + data.strokeid);
+    console.log(curslide.inklayer.children.length);
     if (curslide.inklayer && curslide.inklayer.children.length > 0) {
         var item = curslide.inklayer.getItem({
             data: {
@@ -423,14 +432,15 @@ function handleAnnotateMessage(data) {
     if (!curslide.inklayer) {
         curslide.inklayer = new paper.Layer();
     }
-    else
-        curslide.inklayer.activate();
-    if (curstroke) {
-        curstroke.remove();
-    }
+    curslide.inklayer.activate();
+
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
     curstroke.scale(scale, new paper.Point(0,0));
     curstroke.data.id = data.strokeid;
+
+    var curpoint = curstroke.lastSegment.point;
+
+    displayCursor('marker-cursor', curpoint.x, curpoint.y);
     if (data.end) {
         curstroke = null;
     }
@@ -714,12 +724,23 @@ function displayCursor(id, x, y) {
         pencursor.position.y = y;
         pencursor.visible = true;
         erasercursor.visible = false;
+        markercursor.visible = false;
+
     } else if (id == 'eraser-cursor') {
         erasercursor.position.x = x;
         erasercursor.position.y = y;
         erasercursor.visible = true;
         pencursor.visible = false;
+        markercursor.visible = false;
+
+    } else if (id == 'marker-cursor') {
+        markercursor.position.x = x;
+        markercursor.position.y = y;
+        markercursor.visible = true;
+        pencursor.visible = false;
+        erasercursor.visible = false;
     }
+
     // console.log(cursor.style.display);
     // cursor.style.left = x + 'px';
     // cursor.style.top = y + 'px';
