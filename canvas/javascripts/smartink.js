@@ -130,11 +130,11 @@ window.onload = function () {
         }
     ).on('slide', radiusChange).data('slider');
 
-    var slider = document.getElementById('radiusslider');
-    slider.style.visibility = 'hidden';
+    // var slider = document.getElementById('radiusslider');
+    // slider.style.visibility = 'hidden';
 
     var penradius = document.getElementById('penradius');
-    penradius.onclick = toggleRadiusSlider;
+    // penradius.onclick = toggleRadiusSlider;
 };
 
 function handleFileSelect(evt) {
