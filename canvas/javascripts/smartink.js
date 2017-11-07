@@ -924,7 +924,7 @@ function annotateStart(event) {
         scale = 1.0;
     }
 
-    curstroke.strokeWidth = radiusSlider.getValue() * / spaper.view.zoom;
+    curstroke.strokeWidth = radiusSlider.getValue() / spaper.view.zoom;
     curstroke.strokeCap = 'round';
     curstroke.strokeColor = 'red';
     curstroke.data.id = strokeid++;
