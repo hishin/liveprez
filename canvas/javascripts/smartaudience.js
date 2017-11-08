@@ -388,8 +388,6 @@ function handleUpdateViewMessage(data) {
 };
 
 function handleInkDelMessage(data) {
-    console.log("del strokeid " + data.strokeid);
-    console.log(curslide.inklayer.children.length);
     if (curslide.inklayer && curslide.inklayer.children.length > 0) {
         var item = curslide.inklayer.getItem({
             data: {
@@ -434,6 +432,9 @@ function handleAnnotateMessage(data) {
     }
     curslide.inklayer.activate();
 
+    if (curstroke) {
+        curstroke.remove();
+    }
     curstroke = new paper.Path(JSON.parse(data.content)[1]);
     curstroke.scale(scale, new paper.Point(0,0));
     curstroke.data.id = data.strokeid;

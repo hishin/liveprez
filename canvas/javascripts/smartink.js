@@ -130,11 +130,11 @@ window.onload = function () {
         }
     ).on('slide', radiusChange).data('slider');
 
-    var slider = document.getElementById('radiusslider');
-    slider.style.visibility = 'hidden';
+    // var slider = document.getElementById('radiusslider');
+    // slider.style.visibility = 'hidden';
 
     var penradius = document.getElementById('penradius');
-    penradius.onclick = toggleRadiusSlider;
+    // penradius.onclick = toggleRadiusSlider;
 };
 
 function handleFileSelect(evt) {
@@ -924,7 +924,7 @@ function annotateStart(event) {
         scale = 1.0;
     }
 
-    curstroke.strokeWidth = radiusSlider.getValue() * 2.0 / spaper.view.zoom;
+    curstroke.strokeWidth = radiusSlider.getValue() / spaper.view.zoom;
     curstroke.strokeCap = 'round';
     curstroke.strokeColor = 'red';
     curstroke.data.id = strokeid++;
