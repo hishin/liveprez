@@ -21,7 +21,7 @@ var SlideDeck = function(slide_files) {
         slide.num = this.slides.length;
         this.slides.push(slide);
     }
-    this.n = getSlideNumFromFileName(slide_files[slide_files.length-1].name);
+    this.n = this.slides.length;//getSlideNumFromFileName(slide_files[slide_files.length-1].name);
 
     this.getSlide = function(num){
         if (num >= this.n) {

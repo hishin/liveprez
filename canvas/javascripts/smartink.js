@@ -507,7 +507,9 @@ function loadSlide(slide) {
         slide.show();
     }
 
-    // console.log('pagenum' + slide.pagenum);
+    console.log('slide.num' + slide.num);
+    console.log('numslides = ' + numslides);
+
     if (slide.num < numslides - 1) {
         loadNextSlide(slidedeck.getSlide(slide.num + 1));
     }

@@ -148,6 +148,7 @@ function handleSlideSetupMessage(data) {
 
     apaper.project.clear();
     var deck = JSON.parse(data.deck).slides;
+    console.log("slide number = " + deck.length);
     var slide, item;
     for (var i = 0; i < deck.length; i++) {
         slide = deck[i];
@@ -199,7 +200,7 @@ function handleSlideSetupMessage(data) {
 function showSlide(slide) {
     for (var i = 0; i < slide.itemlayer.length; i++)
         slide.itemlayer[i].visible = true;
-    slide.lowermask.visible = true;
+    // slide.lowermask.visible = true;
     slide.masklayer.visible = true;
     slide.inklayer.visible = true;
 };
@@ -207,7 +208,7 @@ function showSlide(slide) {
 function hideSlide(slide) {
     for (var i = 0; i < slide.itemlayer.length; i++)
         slide.itemlayer[i].visible = false;
-    slide.lowermask.visible = false;
+    // slide.lowermask.visible = false;
     slide.masklayer.visible = false;
     slide.inklayer.visible = false;
 };
@@ -254,6 +255,7 @@ function loadSlide(slide) {
     }
     showSlide(slides[slide.num]);
 
+    apaper.view.update();
     curslide = slides[slide.num];
     curslidenum = curslide.num;
     curitem = curslide.items[1];
