@@ -1759,6 +1759,10 @@ function pickColor(elem) {
         $(colors[c]).removeClass('selected');
     }
     $(elem).addClass('selected');
-    annoclor = elem.style.color;
+    annocolor = $(elem).css('color');
+
+    var penRadiusSVG = document.getElementById('pen-radius-circle');
+    console.log(annocolor);
+    penRadiusSVG.setAttribute('fill', annocolor);
 
 }
