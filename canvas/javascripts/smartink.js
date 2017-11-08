@@ -209,6 +209,7 @@ function handleKeyboardEvents(event) {
 };
 
 function handlePointerEvents(event) {
+    console.log(event.pointerType);
     if (event.pointerType == 'pen' || event.pointerType == 'ink') {
         if (pen == 0) {
             activateInkTool();
@@ -218,7 +219,7 @@ function handlePointerEvents(event) {
         } else if (pen == 2) {
             activateAnnotateTool();
         }
-    } else if (event.pointerType == 'mouse') {
+    } else if (event.pointerType == 'mouse' || event.pointerType == 'touch') {
         activatePanTool();
     }
     else if (spaper) {
