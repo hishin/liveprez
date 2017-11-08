@@ -163,5 +163,34 @@ table {
     width: 20px;
     height: 20px;
     font-family: sans-serif;
+}
 
+#red {
+    color: red;
+    background-color: red;
+}
+
+#blue {
+    color: blue;
+    background-color: blue;
+}
+
+#green {
+    color: #00A14B;
+    background-color: #00A14B;
+}
+
+#black {
+    color: black;
+    background-color: black;
+}
+
+.colorpicker {
+    padding: 15px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.colorpicker.selected {
+    border: 3px lightgrey inset;
 }

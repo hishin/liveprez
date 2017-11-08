@@ -45,6 +45,7 @@ var follow = false;
 var mediaRecorder = null;
 var recordedChunks = null;
 var origcenter = null;
+var annocolor = 'black';
 
 function preloadImages(srcs) {
     if (!preloadImages.cache) {
@@ -926,7 +927,7 @@ function annotateStart(event) {
 
     curstroke.strokeWidth = radiusSlider.getValue() / spaper.view.zoom;
     curstroke.strokeCap = 'round';
-    curstroke.strokeColor = 'red';
+    curstroke.strokeColor = annocolor;
     curstroke.data.id = strokeid++;
 
     annotateContinue(event);
@@ -1751,3 +1752,13 @@ function toggleRadiusSlider(event) {
         slider.style.visibility = 'hidden';
     }
 };
+
+function pickColor(elem) {
+    var colors = document.getElementsByClassName('colorpicker');
+    for (var c=0; c < colors.length; c++) {
+        $(colors[c]).removeClass('selected');
+    }
+    $(elem).addClass('selected');
+    annoclor = elem.style.color;
+
+}
